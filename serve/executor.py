@@ -1,6 +1,6 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from jina import Executor, requests
+from jina import DocumentArray, Executor, requests
 from langchain.chains.loading import load_chain_from_config
 from pydantic import BaseModel
 
@@ -66,17 +66,53 @@ class ChainExecutor(Executor):
         super().__init__(*args, **kwargs)
 
     @requests(on='/run')
-    def __run_endpoint(self, parameters: Dict[str, Any], **kwargs) -> Dict[str, str]:
-        if len(self.output_keys) == 1:
-            return {RESULT: self.run(parameters)}
-        else:
-            return {RESULT: self(parameters)}
+    def __run_endpoint(
+        self,
+        docs: DocumentArray,
+        docs_map: Optional[Dict[str, DocumentArray]],
+        **kwargs,
+    ) -> DocumentArray:
+        if len(docs_map) > 1:
+            # Merge Documnets with same ID into one Document and create the DocumentArray
+            da = DocumentArray()
+            for k, v in docs_map.items():
+                for doc in v:
+                    if doc.id in da:
+                        da[doc.id].tags.update(doc.tags)
+                    else:
+                        da.append(doc)
+            docs = da
+        for doc in docs:
+            self.logger.debug(f'Calling chain on {doc.tags.keys()}')
+            if len(self.output_keys) == 1:
+                _result = {self.output_keys[0]: self.run(doc.tags)}
+            else:
+                _result = {RESULT: self(doc.tags)}
+            doc.tags.update(_result)
+        return docs
 
     @requests(on='/arun')
     async def __arun_endpoint(
-        self, parameters: Dict[str, Any], **kwargs
+        self,
+        docs: DocumentArray,
+        docs_map: Optional[Dict[str, DocumentArray]],
+        **kwargs,
     ) -> Dict[str, str]:
-        if len(self.output_keys) == 1:
-            return {RESULT: await self.arun(parameters)}
-        else:
-            return {RESULT: await self(parameters)}
+        if len(docs_map) > 1:
+            # Merge Documnets with same ID into one Document and create the DocumentArray
+            da = DocumentArray()
+            for k, v in docs_map.items():
+                for doc in v:
+                    if doc.id in da:
+                        da[doc.id].tags.update(doc.tags)
+                    else:
+                        da.append(doc)
+            docs = da
+        for doc in docs:
+            self.logger.debug(f'Calling chain on {doc.tags.keys()}')
+            if len(self.output_keys) == 1:
+                _result = {self.output_keys[0]: await self.arun(doc.tags)}
+            else:
+                _result = {RESULT: await self(doc.tags)}
+            doc.tags.update(_result)
+        return docs
