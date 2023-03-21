@@ -16,7 +16,7 @@ Langchain Apps on Production using Jina
 | [Custom Chain](examples/custom_chain.md) | [Link](https://langchain.readthedocs.io/en/latest/modules/chains/getting_started.html#create-a-custom-chain-with-the-chain-class) | Expose `Chain` as RESTful/gRPC/WebSocket API locally |
 | | TBD | Expose `Agent` as RESTful/gRPC/WebSocket API locally |
 | | TBD | Branching `Chains` |
-| | TBD | Concurrent calls via local API |
+| | TBD | Streaming/concurrent requests |
 | | TBD | Pushing `Chains` as `Executors` to Jina Hub |
 | | TBD | Serve `Chains` on JCloud |
 | | TBD | Serverless `Chains` on JCloud |
