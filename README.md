@@ -3,6 +3,15 @@
 
 [Langchain docs recommend a few options for deploying apps](https://langchain.readthedocs.io/en/latest/deployments.html). This repo is an attempt to deploy Langchain apps using Jina.
 
+## What is this?
+
+- Expose `Chain` as RESTful/gRPC/WebSocket API locally.
+- Convert `Chain` to `Executor` using `ChainExecutor` with no change to `Chain` code.
+- Hide `Flow` & `Client` complexities from user (wherever possible) and provide simplified APIs/commands.
+- (TBD) Auto push `Chain`/`Agent`s as `Executor` to Jina Hub to allow JCloud to serve them.
+- (TBD) Serve `Chain`/`Agent`s on JCloud hiding Flow yaml complexities.
+
+
 ## Examples
 
 | Example | LangChain Docs | Description |
