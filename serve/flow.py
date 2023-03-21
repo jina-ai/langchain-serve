@@ -28,7 +28,7 @@ def ServeWebSocket(uses, uses_with, port=12345):
     return StartFlow('websocket', uses, uses_with, port)
 
 
-def Interact(host, inputs):
+def Interact(host, inputs, output_key='text'):
     from jina import Client
 
     # create a document array from inputs as tag
@@ -36,12 +36,11 @@ def Interact(host, inputs):
         on='/run', inputs=DocumentArray([Document(tags=inputs)]), return_responses=True
     )
     if r:
-        # results = r[0].parameters.get(JINA_RESULTS, None)
-        # print(results)
-        return r
-        # if results:
-        #     # TODO: handle replicas
-        #     for v in results.values():
-        #         if RESULT in v:
-        #             return v[RESULT]
-    return None
+        if len(r) == 1:
+            tags = r[0].docs[0].tags
+            if output_key in tags:
+                return tags[output_key]
+            else:
+                return tags
+        else:
+            return r

@@ -69,23 +69,7 @@ with ServeHTTP(
 ╰──────────────────────────────────────────╯
 
 
-I’m not sure what a good name is for a company that makes toothbrush. I’ve heard like, “They’re going to get a name based on the company.”
-
-I’m pretty sure that’s not true. But it’s not my opinion; it’s just the way it’s supposed to work.
-
-So I’m not sure what your opinion is on it?
-
-Yeah, I’m not really sure what my opinion is on it, and it’s really hard to spell.
-
-The toothbrush is probably not the best name, but I’ll give you my opinion.
-
-And can I ask, who do you think should be the best name for the company?
-
-I think it’s hard to call a company based on the company.
-
-Why?
-
-I don’t know. I think it has to do with what a company is. A lot of companies are based on something, and it’s hard to call a company that’s based on a thing. I think a company should be based on some cultural thing. I don
+A good name for a company that makes toothbrush is a good name for a company that makes toothbrush. There is no wrong answer. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company that makes toothbrush. The name of the company that makes toothbrush is a good name for a company
 ```
 
 [Read more about serving endpoint with other protocols](protocols.md).
