@@ -60,10 +60,10 @@ with ServeHTTP(
 
 > Entering new LLMMathChainExecutor chain...
 What is 13 raised to the .3432 power?
-```python
+````python
 import math
 print(math.pow(13, .3432))
-```
+````
 
 Answer: 2.4116004626599237
 
