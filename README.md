@@ -15,7 +15,7 @@ Langchain Apps on Production using Jina
 | [LLM Requests Chain](examples/llm_requests_chain.md) | [Link](https://langchain.readthedocs.io/en/latest/modules/chains/examples/llm_requests.html) | Expose `Chain` as RESTful/gRPC/WebSocket API locally |
 | [Custom Chain](examples/custom_chain.md) | [Link](https://langchain.readthedocs.io/en/latest/modules/chains/getting_started.html#create-a-custom-chain-with-the-chain-class) | Expose `Chain` as RESTful/gRPC/WebSocket API locally |
 | [Sequential Chains](examples/sequential_executors.md) | N/A | Sequential `Chains` in separate `Executor`s |
-| [Branching Chains](examples/branching.md) | TBD | Branching `Chains` in separate `Executor`s |
+| [Branching Chains](examples/branching.md) | N/A | Branching `Chains` in separate `Executor`s |
 | | TBD | Expose `Agent` as RESTful/gRPC/WebSocket API locally |
 | | TBD | Streaming/concurrent requests |
 | | TBD | Pushing `Chains` as `Executors` to Jina Hub |
