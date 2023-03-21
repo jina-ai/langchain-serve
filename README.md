@@ -14,11 +14,11 @@ Langchain Apps on Production using Jina
 | [LLM Math Chain](examples/llm_math.md) | [Link](https://langchain.readthedocs.io/en/latest/modules/chains/examples/llm_math.html) | Expose `Chain` as RESTful/gRPC/WebSocket API locally |
 | [LLM Requests Chain](examples/llm_requests_chain.md) | [Link](https://langchain.readthedocs.io/en/latest/modules/chains/examples/llm_requests.html) | Expose `Chain` as RESTful/gRPC/WebSocket API locally |
 | [Custom Chain](examples/custom_chain.md) | [Link](https://langchain.readthedocs.io/en/latest/modules/chains/getting_started.html#create-a-custom-chain-with-the-chain-class) | Expose `Chain` as RESTful/gRPC/WebSocket API locally |
-| | | Expose `Agent` as RESTful/gRPC/WebSocket API locally |
-| | | Branching `Chains` |
-| | | Concurrent calls via local API |
-| | | Pushing `Chains` as `Executors` to Jina Hub |
-| | | Serve `Chains` on JCloud |
-| | | Serverless `Chains` on JCloud |
-| | | Serve `Agents` on JCloud |
-| | | Serverless `Agents` on JCloud |
+| | TBD | Expose `Agent` as RESTful/gRPC/WebSocket API locally |
+| | TBD | Branching `Chains` |
+| | TBD | Concurrent calls via local API |
+| | TBD | Pushing `Chains` as `Executors` to Jina Hub |
+| | TBD | Serve `Chains` on JCloud |
+| | TBD | Serverless `Chains` on JCloud |
+| | TBD | Serve `Agents` on JCloud |
+| | TBD | Serverless `Agents` on JCloud |
