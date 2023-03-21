@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from docarray import Document, DocumentArray
 from jina import Flow
 
-from .helper import JINA_RESULTS, RESULT, parse_uses_with
+from .helper import parse_uses_with
 
 
 @contextmanager
