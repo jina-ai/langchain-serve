@@ -1,9 +1,9 @@
-## LLM Math Chain
+# LLM Math Chain
 
 [Langchain LLM Math](https://langchain.readthedocs.io/en/latest/modules/chains/examples/llm_math.html)
 
 
-### Running locally
+## Running locally
 
 ```python
 import os
@@ -17,7 +17,7 @@ llm_math = LLMMathChain(llm=llm, verbose=True)
 llm_math.run("What is 13 raised to the .3432 power?")
 ```
 
-### Create Executor from Chain
+## Create Executor from Chain
 
 ```python
 import sys
@@ -36,7 +36,7 @@ class LLMMathChainExecutor(
 ```
 
 
-### Serve gRPC Endpoint & Interact
+## Serve gRPC Endpoint & Interact
 
 ```python
 from serve import Interact, ServeGRPC
