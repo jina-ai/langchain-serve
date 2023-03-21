@@ -1,6 +1,6 @@
 ## LLM Match Chain
 
-https://langchain.readthedocs.io/en/latest/modules/chains/examples/llm_math.html
+[Langchain LLM Math](https://langchain.readthedocs.io/en/latest/modules/chains/examples/llm_math.html)
 
 
 ### Running locally
