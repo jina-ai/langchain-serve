@@ -32,7 +32,7 @@ import sys
 # jina code starts here
 from pydantic import Extra
 
-sys.path.append('/home/deepankar/repos/jcloud/play/llmexpt')
+sys.path.append('/home/deepankar/repos/langchain-serve')
 
 from serve import ChainExecutor, CombinedMeta, Interact, ServeHTTP
 

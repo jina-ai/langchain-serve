@@ -22,7 +22,7 @@ llm_math.run("What is 13 raised to the .3432 power?")
 ```python
 import sys
 
-sys.path.append('/home/deepankar/repos/jcloud/play/llmexpt')
+sys.path.append('/home/deepankar/repos/langchain-serve')
 
 from pydantic import Extra
 from serve import ChainExecutor, CombinedMeta, Interact, ServeHTTP
