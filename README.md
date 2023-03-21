@@ -27,7 +27,6 @@
 | | TBD | Expose `Agent` as RESTful/gRPC/WebSocket API locally |
 | | TBD | Streaming/concurrent requests |
 | | TBD | Pushing `Chains` as `Executors` to Jina Hub |
-| | TBD | Serve `Chains` on JCloud |
-| | TBD | Serverless `Chains` on JCloud |
-| | TBD | Serve `Agents` on JCloud |
-| | TBD | Serverless `Agents` on JCloud |
+| | TBD | Load `Chains` from Langchain Hub |
+| | TBD | Serve `Chains`/`Agents` on JCloud |
+| | TBD | Serverless `Chains`/`Agents` on JCloud |
