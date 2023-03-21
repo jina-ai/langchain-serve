@@ -17,7 +17,7 @@ llm_math = LLMMathChain(llm=llm, verbose=True)
 llm_math.run("What is 13 raised to the .3432 power?")
 ```
 
-### Serve HTTP Endpoint
+### Create Executor from Chain
 
 ```python
 import sys
@@ -33,8 +33,11 @@ class LLMMathChainExecutor(
 ):
     def __init__(self, *args, **kwargs):
         self.__init_parents__(LLMMathChain, *args, **kwargs)
+```
 
+### Serve HTTP Endpoint & Interact
 
+```python
 with ServeHTTP(
     uses=LLMMathChainExecutor, uses_with={'llm': llm, 'verbose': True}
 ) as host:
