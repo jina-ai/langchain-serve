@@ -161,9 +161,15 @@ with f:
 │  📚               Redoc       .../redoc  │
 ╰──────────────────────────────────────────╯
 
-Answer:
-Royal Challengers Bangalore: Sun, 2 Apr, 7:30 pm RCB vs MI; Tue, 6 Apr, 7:30 pm KKR vs RCB; Mon, 10 Apr, 7:30 pm RCB vs LSG
+Answer: 
+IPL matches scheduled for Royal Challengers Bangalore in April 2023: 
+Sun, 2 Apr, 7:30 PM: RCB vs MI 
+Wed, 6 Apr, 7:30 PM: KKR vs RCB 
+Mon, 10 Apr, 7:30 PM: RCB vs LSG 
 
-Mumbai Indians: Sun, 2 Apr, 7:30 pm RCB vs MI; Sat, 8 Apr, 7:30 pm MI vs CSK; Fri, 11 Apr, 7:30 pm DC vs MI
+IPL matches scheduled for Mumbai Indians in April 2023: 
+Sun, 2 Apr, 7:30 PM: RCB vs MI 
+Wed, 8 Apr, 7:30 PM: MI vs CSK 
+Mon, 11 Apr, 7:30 PM: DC vs MI
 
 ```
