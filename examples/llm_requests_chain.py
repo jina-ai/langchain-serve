@@ -34,7 +34,7 @@ from pydantic import Extra
 
 sys.path.append('/home/deepankar/repos/langchain-serve')
 
-from serve import ChainExecutor, CombinedMeta, Interact, ServeHTTP
+from serve import ChainExecutor, CombinedMeta, Interact, ServeGRPC, ServeHTTP
 
 llm = OpenAI(model_name='ada', temperature=.7)
 
@@ -44,6 +44,6 @@ class LLMRequestsChainExecutor(LLMRequestsChain, ChainExecutor, extra=Extra.allo
         self.__init_parents__(LLMRequestsChain, *args, **kwargs)
 
 
-with ServeHTTP(uses=LLMRequestsChainExecutor, uses_with={'llm_chain': LLMChain(llm=llm, prompt=PROMPT)}) as host:
+with ServeGRPC(uses=LLMRequestsChainExecutor, uses_with={'llm_chain': LLMChain(llm=llm, prompt=PROMPT)}) as host:
     print(Interact(host, inputs))
     
