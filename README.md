@@ -1,5 +1,4 @@
-# langchain-serve
-Langchain Apps on Production using Jina
+# Serve Langchain Apps on Jina
 
 
 [Langchain docs recommend a few options for deploying apps](https://langchain.readthedocs.io/en/latest/deployments.html). This repo is an attempt to deploy Langchain apps using Jina.
