@@ -8,6 +8,7 @@ RESULT = 'result'
 JINA_RESULTS = '__results__'
 LLM_TYPE = '_type'
 DEFAULT_FIELD = 'chain'
+DEFAULT_KEY = '__default__'
 
 
 def parse_uses_with(uses_with: Union[Dict, BaseModel, List]) -> Dict[str, Any]:
@@ -15,7 +16,7 @@ def parse_uses_with(uses_with: Union[Dict, BaseModel, List]) -> Dict[str, Any]:
 
     def _parse(v):
         if isinstance(v, BaseModel):
-            return {'cls': v.__class__.__name__, 'kwargs': v.dict(skip_defaults=True)}
+            return {'cls': v.__class__.__name__, 'kwargs': v.dict(exclude_unset=True)}
         elif isinstance(v, type):
             return {'cls': v.__name__}
         elif isinstance(v, dict):
