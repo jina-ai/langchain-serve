@@ -8,6 +8,8 @@
 from langchain.agents import initialize_agent, load_tools
 from langchain.llms import OpenAI
 
+# Set `OPENAI_API_KEY` & `SERPAPI_API_KEY` as environment variables
+
 llm = OpenAI(temperature=0)
 
 tools = load_tools(["serpapi", "llm-math"], llm=llm)
