@@ -1,4 +1,4 @@
-langchain
-ansi2html
+openai
 wikipedia
+google-search-results
 google-api-python-client

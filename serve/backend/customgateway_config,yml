@@ -1,5 +1,0 @@
-jtype: LangchainFastAPIGateway
-py_modules:
-  - gateway.py
-metas:
-  name: LangchainFastAPIGateway

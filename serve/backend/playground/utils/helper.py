@@ -1,5 +1,6 @@
 import os
 import threading
+import subprocess
 from collections import defaultdict
 from typing import Any, Dict, List, Union
 
@@ -11,6 +12,9 @@ LLM_TYPE = '_type'
 DEFAULT_FIELD = 'chain'
 DEFAULT_KEY = '__default__'
 AGENT_OUTPUT = '__agent_output__'
+
+LANGCHAIN_API_PORT = os.environ.get('LANGCHAIN_API_PORT', 8080)
+LANGCHAIN_PLAYGROUND_PORT = os.environ.get('LANGCHAIN_PLAYGROUND_PORT', 8501)
 
 import sys
 from io import StringIO
@@ -94,3 +98,17 @@ class EnvironmentVarCtxtManager:
         # Remove any newly added environment variables
         for key in self._env_keys_added.keys():
             os.unsetenv(key)
+
+
+def run_cmd(command, std_output=False, wait=True):
+    if isinstance(command, str):
+        command = command.split()
+    if not std_output:
+        process = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    else:
+        process = subprocess.Popen(command)
+    if wait:
+        output, error = process.communicate()
+        return output, error

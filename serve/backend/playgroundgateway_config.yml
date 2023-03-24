@@ -1,5 +1,0 @@
-jtype: PlaygroundGateway
-py_modules:
-  - gateway.py
-metas:
-  name: PlaygroundGateway

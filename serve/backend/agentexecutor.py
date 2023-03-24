@@ -10,7 +10,7 @@ from langchain.agents import AgentExecutor, initialize_agent, load_tools
 from langchain.chains.loading import load_chain_from_config
 from pydantic import BaseModel
 
-from backend.playground.utils.helper import (
+from .playground.utils.helper import (
     AGENT_OUTPUT,
     CLS,
     DEFAULT_FIELD,
@@ -163,7 +163,7 @@ class ChainExecutor(Executor):
         return docs
 
 
-class JinaAgentExecutor(Executor):
+class LangchainAgentExecutor(Executor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._capture_lock = threading.Lock()

@@ -1,22 +1,28 @@
 import os
+import time
 import shutil
-from typing import Dict
+from typing import Dict, List, Tuple
 
 import streamlit.web.bootstrap
 from fastapi import FastAPI, Query, Body
 from docarray import Document, DocumentArray
 
 from jina import Gateway
+from jina.enums import GatewayProtocolType
+from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 
 from streamlit.file_util import get_streamlit_file_path
 from streamlit.web.server import Server as StreamlitServer
 
-from backend.playground.utils.helper import (
+from .playground.utils.helper import (
     AGENT_OUTPUT,
     DEFAULT_KEY,
     RESULT,
     parse_uses_with,
+    LANGCHAIN_PLAYGROUND_PORT,
+    LANGCHAIN_API_PORT,
+    run_cmd,
 )
 
 cur_dir = os.path.dirname(__file__)
@@ -102,3 +108,102 @@ class LangchainFastAPIGateway(FastAPIBaseGateway):
                 return {'result': tags}
 
         return app
+
+
+class LangchainAgentGateway(CompositeGateway):
+    """The LangchainAgentGateway assumes that the gateway has been started with http on port 8081.
+    This is the port on which the nginx process listens. After nginx has been started,
+    it will start the playground on port 8501 and the API on port 8080. The actual
+    HTTP gateway will start on port 8082.
+    Nginx is configured to route the requests in the following way:
+    - /playground -> playground on port 8501
+    - /api -> API on port 8080
+    - / -> HTTP gateway on port 8082
+    """
+
+    def __init__(self, **kwargs):
+        # need to update port ot 8082, as nginx will listen on 8081
+        http_idx = kwargs['runtime_args']['protocol'].index(GatewayProtocolType.HTTP)
+        http_port = kwargs['runtime_args']['port'][http_idx]
+        if kwargs['runtime_args']['port'][http_idx] != 8081:
+            raise ValueError(
+                f'Please, let http port ({http_port}) be 8081 for nginx to work'
+            )
+
+        kwargs['runtime_args']['port'][http_idx] = 8082
+        super().__init__(**kwargs)
+
+        # remove potential clashing arguments from kwargs
+        kwargs.pop("port", None)
+        kwargs.pop("protocol", None)
+
+        # note order is important
+        self._add_gateway(
+            LangchainFastAPIGateway,
+            LANGCHAIN_API_PORT,
+            **kwargs,
+        )
+        self._add_gateway(
+            PlaygroundGateway,
+            LANGCHAIN_PLAYGROUND_PORT,
+            **kwargs,
+        )
+
+        self.setup_nginx()
+        self.nginx_was_shutdown = False
+
+    async def shutdown(self):
+        await super().shutdown()
+        if not self.nginx_was_shutdown:
+            self.shutdown_nginx()
+            self.nginx_was_shutdown = True
+
+    def setup_nginx(self):
+        command = [
+            'nginx',
+            '-c',
+            os.path.join(cur_dir, '', 'nginx.conf'),
+        ]
+        output, error = self._run_nginx_command(command)
+        self.logger.info('Nginx started')
+        self.logger.info(f'nginx output: {output}')
+        self.logger.info(f'nginx error: {error}')
+
+    def shutdown_nginx(self):
+        command = ['nginx', '-s', 'stop']
+        output, error = self._run_nginx_command(command)
+        self.logger.info('Nginx stopped')
+        self.logger.info(f'nginx output: {output}')
+        self.logger.info(f'nginx error: {error}')
+
+    def _run_nginx_command(self, command: List[str]) -> Tuple[bytes, bytes]:
+        self.logger.info(f'Running command: {command}')
+        output, error = run_cmd(command)
+        if error != b'':
+            # on CI we need to use sudo; using NOW_CI_RUN isn't good if running test locally
+            self.logger.info(f'nginx error: {error}')
+            command.insert(0, 'sudo')
+            self.logger.info(f'So running command: {command}')
+            output, error = run_cmd(command)
+        time.sleep(10)
+        return output, error
+
+    def _add_gateway(self, gateway_cls, port, protocol='http', **kwargs):
+        # ignore metrics_registry since it is not copyable
+        runtime_args = self._deepcopy_with_ignore_attrs(
+            self.runtime_args,
+            [
+                'metrics_registry',
+                'tracer_provider',
+                'grpc_tracing_server_interceptors',
+                'aio_tracing_client_interceptors',
+                'tracing_client_interceptor',
+            ],
+        )
+        runtime_args.port = [port]
+        runtime_args.protocol = [protocol]
+        gateway_kwargs = {k: v for k, v in kwargs.items() if k != 'runtime_args'}
+        gateway_kwargs['runtime_args'] = dict(vars(runtime_args))
+        gateway = gateway_cls(**gateway_kwargs)
+        gateway.streamer = self.streamer
+        self.gateways.insert(0, gateway)

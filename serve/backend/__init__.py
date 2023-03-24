@@ -1,2 +1,2 @@
-from .gateway import CustomGateway, PlaygroundGateway
-from .agentexecutor import JinaAgentExecutor, ChainExecutor
+from .gateway import LangchainFastAPIGateway, PlaygroundGateway
+from .agentexecutor import LangchainAgentExecutor, ChainExecutor
