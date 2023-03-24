@@ -71,7 +71,7 @@ def main():
             result, chain_of_thought = InteractWithAgent(
                 host=host,
                 inputs=question,
-                parameters=agent_params_from_input(selected_params, selected_options),
+                parameters=agent_params_from_input(selected_params),
                 envs={'OPENAI_API_KEY': openai_token},
             )
 

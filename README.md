@@ -25,6 +25,7 @@
 | [Sequential Chains](examples/sequential_executors.md) | N/A | Sequential `Chains` in separate `Executor`s |
 | [Branching Chains](examples/branching.md) | N/A | Branching `Chains` in separate `Executor`s |
 | [Agents](examples/agent.md) | [Link](https://langchain.readthedocs.io/en/latest/modules/agents/getting_started.html) | Expose `Agent` as RESTful/gRPC/WebSocket API locally |
+| | TBD [Link](https://langchain.readthedocs.io/en/latest/modules/agents/key_concepts.html#toolkits)  | Expose `Agent ToolKits` as RESTful/gRPC/WebSocket API locally |
 | | TBD | Streaming/concurrent requests |
 | | TBD | Pushing `Chains` as `Executors` to Jina Hub |
 | | TBD | Load `Chains` from Langchain Hub |

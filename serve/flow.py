@@ -5,6 +5,7 @@ from docarray import Document, DocumentArray
 from jina import Flow
 
 from .helper import AGENT_OUTPUT, DEFAULT_KEY, RESULT, parse_uses_with
+from .backend.gateway import PlaygroundGateway, CustomGateway
 
 
 @contextmanager
@@ -14,6 +15,21 @@ def StartFlow(protocol, uses, uses_with: Dict = None, port=12345):
         uses_with=parse_uses_with(uses_with) if uses_with else None,
         env={'JINA_LOG_LEVEL': 'INFO'},
         allow_concurrent=True,
+    ) as f:
+        yield str(f.protocol).lower() + '://' + f.host + ':' + str(f.port)
+
+
+@contextmanager
+def StartFlowWithPlayground(protocol, uses, uses_with: Dict = None, port=12345):
+    with (
+        Flow(port=port)
+        .config_gateway(uses=PlaygroundGateway, protocol=protocol)
+        .add(
+            uses=uses,
+            uses_with=parse_uses_with(uses_with) if uses_with else None,
+            env={'JINA_LOG_LEVEL': 'INFO'},
+            allow_concurrent=True,
+        )
     ) as f:
         yield str(f.protocol).lower() + '://' + f.host + ':' + str(f.port)
 

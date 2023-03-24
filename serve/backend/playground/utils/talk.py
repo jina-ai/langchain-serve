@@ -1,7 +1,7 @@
-from typing import Dict, List
+from typing import Dict
 
 
-def agent_params_from_input(selected_params: Dict, selected_options: List):
+def agent_params_from_input(selected_params: Dict[str, Dict[str, str]]) -> Dict:
     tools = {'tool_names': []}
     for param in selected_params.values():
         tools['tool_names'].append(param['api'])

@@ -1,0 +1,5 @@
+jtype: CustomGateway
+py_modules:
+  - gateway.py
+metas:
+  name: CustomGateway

@@ -1,0 +1,4 @@
+jtype: JinaAgentExecutor
+metas:
+  py_modules:
+    - agentexecutor.py

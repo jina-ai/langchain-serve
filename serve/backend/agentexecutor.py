@@ -1,7 +1,7 @@
 import os
 import threading
 from contextlib import nullcontext
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from ansi2html import Ansi2HTMLConverter
 from docarray import Document, DocumentArray
@@ -10,7 +10,7 @@ from langchain.agents import AgentExecutor, initialize_agent, load_tools
 from langchain.chains.loading import load_chain_from_config
 from pydantic import BaseModel
 
-from .helper import (
+from backend.playground.utils.helper import (
     AGENT_OUTPUT,
     CLS,
     DEFAULT_FIELD,
@@ -179,6 +179,21 @@ class JinaAgentExecutor(Executor):
             else Capturing(lock=self._capture_lock)
         )
 
+    def update_agent_output(
+        self,
+        cap: Union[Capturing, nullcontext],
+        doc: Document,
+        html: bool = False,
+    ):
+        if isinstance(cap, Capturing):
+            if html:
+                converter = Ansi2HTMLConverter()
+                doc.tags.update({AGENT_OUTPUT: converter.convert(''.join(cap))})
+            else:
+                doc.tags.update({AGENT_OUTPUT: ''.join(cap)})
+        else:
+            doc.tags.update({AGENT_OUTPUT: ''})
+
     @requests(on='/load_and_run')
     def __load_and_run_endpoint(
         self, docs: DocumentArray, parameters, **kwargs
@@ -188,17 +203,13 @@ class JinaAgentExecutor(Executor):
             parameters['env'] if 'env' in parameters else {}
         ):
             agent = _agent_base_model_args(parameters)
+            html = parameters['html'] if 'html' in parameters else False
 
             for doc in docs:
                 self.logger.debug(f'calling run on {doc.tags.keys()}')
                 with self.get_capture_ctx() as cap:
                     doc.tags.update({RESULT: agent.run(self.run_input(doc))})
-                if cap:
-                    converter = Ansi2HTMLConverter()
-                    doc.tags.update({AGENT_OUTPUT: converter.convert(''.join(cap))})
-                else:
-                    doc.tags.update({AGENT_OUTPUT: ''})
-
+                self.update_agent_output(cap, doc, html)
         return docs
 
     @requests(on='/aload_and_run')
@@ -210,15 +221,12 @@ class JinaAgentExecutor(Executor):
             parameters['env'] if 'env' in parameters else {}
         ):
             agent = _agent_base_model_args(parameters)
+            html = parameters['html'] if 'html' in parameters else False
 
             for doc in docs:
                 self.logger.debug(f'calling run on {doc.tags.keys()}')
                 with self.get_capture_ctx() as cap:
                     doc.tags.update({RESULT: await agent.arun(self.run_input(doc))})
-                if cap:
-                    converter = Ansi2HTMLConverter()
-                    doc.tags.update({AGENT_OUTPUT: converter.convert(''.join(cap))})
-                else:
-                    doc.tags.update({AGENT_OUTPUT: ''})
+                self.update_agent_output(cap, doc, html)
 
         return docs
