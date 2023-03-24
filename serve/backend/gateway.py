@@ -54,7 +54,7 @@ class PlaygroundGateway(Gateway):
         self.streamlit_server.stop()
 
 
-class CustomGateway(FastAPIBaseGateway):
+class LangchainFastAPIGateway(FastAPIBaseGateway):
     @property
     def app(self):
         app = FastAPI()
