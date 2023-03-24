@@ -1,12 +1,25 @@
+import os
+import threading
+from contextlib import nullcontext
 from typing import Any, Dict, Optional
 
+from ansi2html import Ansi2HTMLConverter
 from docarray import Document, DocumentArray
 from jina import Executor, requests
 from langchain.agents import AgentExecutor, initialize_agent, load_tools
 from langchain.chains.loading import load_chain_from_config
 from pydantic import BaseModel
 
-from .helper import CLS, DEFAULT_FIELD, DEFAULT_KEY, LLM_TYPE, RESULT
+from .helper import (
+    AGENT_OUTPUT,
+    CLS,
+    DEFAULT_FIELD,
+    DEFAULT_KEY,
+    LLM_TYPE,
+    RESULT,
+    Capturing,
+    EnvironmentVarCtxtManager,
+)
 
 
 class CombinedMeta(type(Executor), type(BaseModel)):
@@ -69,19 +82,23 @@ def _agent_base_model_args(executor_kwargs: Dict) -> AgentExecutor:
     def _get_llm_obj(llm_dict: Dict):
         return _chain_base_model_kwargs({'llm': llm_dict}, {'llm': None})['llm']
 
+    def _get_default_llm_obj():
+        from langchain.llms import OpenAI
+
+        return OpenAI()
+
     if 'tools' not in executor_kwargs or not isinstance(executor_kwargs['tools'], dict):
         raise ValueError('tools must be specified in the config')
     else:
         tools = executor_kwargs['tools']
-        tool_llm = tools.get('llm')
-        if not tool_llm:
-            raise ValueError('tools.llm must be specified in the config')
-        tools['llm'] = _get_llm_obj(tool_llm)
+        tools['llm'] = (
+            _get_llm_obj(tools['llm']) if tools.get('llm') else _get_default_llm_obj()
+        )
         tools = load_tools(**tools)
         executor_kwargs.pop('tools')
 
     if 'llm' not in executor_kwargs:
-        raise ValueError('llm must be specified in the config')
+        llm = _get_default_llm_obj()
     else:
         llm = _get_llm_obj(executor_kwargs['llm'])
         executor_kwargs.pop('llm')
@@ -132,7 +149,7 @@ class ChainExecutor(Executor):
         docs: DocumentArray,
         docs_map: Optional[Dict[str, DocumentArray]],
         **kwargs,
-    ) -> Dict[str, str]:
+    ) -> DocumentArray:
         if len(docs_map) > 1:
             docs = self._handle_merge(docs_map)
 
@@ -148,23 +165,60 @@ class ChainExecutor(Executor):
 
 class JinaAgentExecutor(Executor):
     def __init__(self, *args, **kwargs):
-        self.agent = _agent_base_model_args(kwargs)
         super().__init__(*args, **kwargs)
+        self._capture_lock = threading.Lock()
 
     @staticmethod
     def run_input(doc: Document) -> Dict:
         return doc.tags if DEFAULT_KEY not in doc.tags else doc.tags[DEFAULT_KEY]
 
-    @requests(on='/run')
-    def __run_endpoint(self, docs: DocumentArray, **kwargs) -> DocumentArray:
-        for doc in docs:
-            self.logger.debug(f'calling run on {doc.tags.keys()}')
-            doc.tags.update({RESULT: self.agent.run(self.run_input(doc))})
+    def get_capture_ctx(self) -> Capturing:
+        return (
+            nullcontext()
+            if self._capture_lock.locked()
+            else Capturing(lock=self._capture_lock)
+        )
+
+    @requests(on='/load_and_run')
+    def __load_and_run_endpoint(
+        self, docs: DocumentArray, parameters, **kwargs
+    ) -> DocumentArray:
+        print(f'Received parameters: {parameters}')
+        with EnvironmentVarCtxtManager(
+            parameters['env'] if 'env' in parameters else {}
+        ):
+            agent = _agent_base_model_args(parameters)
+
+            for doc in docs:
+                self.logger.debug(f'calling run on {doc.tags.keys()}')
+                with self.get_capture_ctx() as cap:
+                    doc.tags.update({RESULT: agent.run(self.run_input(doc))})
+                if cap:
+                    converter = Ansi2HTMLConverter()
+                    doc.tags.update({AGENT_OUTPUT: converter.convert(''.join(cap))})
+                else:
+                    doc.tags.update({AGENT_OUTPUT: ''})
+
         return docs
 
-    @requests(on='/arun')
-    async def __arun_endpoint(self, docs: DocumentArray, **kwargs) -> Dict[str, str]:
-        for doc in docs:
-            self.logger.debug(f'calling run on {doc.tags.keys()}')
-            doc.tags.update({RESULT: await self.agent.arun(self.run_input(doc))})
+    @requests(on='/aload_and_run')
+    async def __aload_and_run_endpoint(
+        self, docs: DocumentArray, parameters, **kwargs
+    ) -> DocumentArray:
+        self.logger.info(f'Received parameters: {parameters}')
+        with EnvironmentVarCtxtManager(
+            parameters['env'] if 'env' in parameters else {}
+        ):
+            agent = _agent_base_model_args(parameters)
+
+            for doc in docs:
+                self.logger.debug(f'calling run on {doc.tags.keys()}')
+                with self.get_capture_ctx() as cap:
+                    doc.tags.update({RESULT: await agent.arun(self.run_input(doc))})
+                if cap:
+                    converter = Ansi2HTMLConverter()
+                    doc.tags.update({AGENT_OUTPUT: converter.convert(''.join(cap))})
+                else:
+                    doc.tags.update({AGENT_OUTPUT: ''})
+
         return docs
