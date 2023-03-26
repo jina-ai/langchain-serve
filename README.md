@@ -8,7 +8,7 @@ Langchain agents use LLMs to determine the actions to be taken in what order. An
 
 Langchain agents can be used as standalone applications when used locally, this project aims to deploy Langchain agents on Cloud to make them accessible to everyone via RESTful APIs. Jina AI Cloud also allows to extend agents using gRPC and WebSocket APIs.
 
-### Streamlit playground 🕹️🎮
+### Playground 🕹️🎮🌐
 
 You can try out Langchain Agents on our Playground URL. The streamlit playground is hosted on Jina AI Cloud and allows you to interact with the agent which accepts the following inputs:
 
@@ -18,17 +18,22 @@ You can try out Langchain Agents on our Playground URL. The streamlit playground
 
 To use the playground, simply type your input in the text box provided to get the agent's output and chain of thought. Enjoy exploring Langchain's capabilities!
 
-### Interact with agents using RESTful APIs 🤖🌐
+In addition to streamlit, you can also use our RESTful APIs to interact with the agents. 
 
-In addition to streamlit, you can also use our API to interact with the agents. 
 
-#### [Zero-shot React Description agent with SerpAPI and Calculator](https://python.langchain.com/en/latest/modules/agents/getting_started.html)
+### [Zero-shot React Description agent with SerpAPI and Calculator](https://python.langchain.com/en/latest/modules/agents/getting_started.html)
+
+#### Streamlit Playground
+
+![Streamlit Playground](.github/images/playground_one.gif)
+
+#### RESTful API
 
 ```bash
 export OPENAI_API_KEY=sk-***
 export SERPAPI_API_KEY=***
 
-curl -sX POST 'http://langchain.wolf.jina.ai/api/run' \
+curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   --data-raw '{
