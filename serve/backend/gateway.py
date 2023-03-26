@@ -107,6 +107,10 @@ class LangchainFastAPIGateway(FastAPIBaseGateway):
             else:
                 return {'result': tags}
 
+        @app.get("/healthz")
+        async def __healthz():
+            return {'status': 'ok'}
+
         return app
 
 
@@ -131,6 +135,13 @@ class LangchainAgentGateway(CompositeGateway):
             )
 
         kwargs['runtime_args']['port'][http_idx] = 8082
+        runtime_args = kwargs['runtime_args']
+        runtime_args['metrics_registry'] = None
+        runtime_args['tracer_provider'] = None
+        runtime_args['grpc_tracing_server_interceptors'] = None
+        runtime_args['aio_tracing_client_interceptors'] = None
+        runtime_args['tracing_client_interceptor'] = None
+        kwargs['runtime_args'] = runtime_args
         super().__init__(**kwargs)
 
         # remove potential clashing arguments from kwargs
