@@ -40,7 +40,7 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   --data-raw '{
-    "text": "Who is Leo DiCaprios girlfriend? What is her current age raised to the 0.43 power",
+    "text": "Who is Leo DiCaprios girlfriend? What is her current age raised to the 0.43 power?",
     "parameters": {
         "tools": {
             "tool_names": ["serpapi", "llm-math"]
@@ -62,9 +62,43 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 }
 ```
 
-#### One more example here TBD
+### [Self Ask With Search](https://python.langchain.com/en/latest/modules/agents/implementations/self_ask_with_search.html)
 
+#### Streamlit Playground
 
+![Streamlit Playground](.github/images/playground_two.gif)
+
+#### RESTful API
+
+```bash
+export OPENAI_API_KEY=sk-***
+export SERPAPI_API_KEY=***
+
+curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{
+    "text": "What is the hometown of the reigning mens U.S. Open champion?",
+    "parameters": {
+        "tools": {
+            "tool_names": ["serpapi"]
+        },
+        "agent": "self-ask-with-search",
+        "verbose": true
+    },
+    "envs": {
+        "OPENAI_API_KEY": "'"${OPENAI_API_KEY}"'",
+        "SERPAPI_API_KEY": "'"${SERPAPI_API_KEY}"'"
+    }
+}' | jq
+```
+
+```json
+{
+  "result": "El Palmar, Murcia, Spain",
+  "chain_of_thought": "\u001b[1m> Entering new AgentExecutor chain...\u001b[0m\u001b[32;1m\u001b[1;3m Yes.Follow up: Who is the reigning mens U.S. Open champion?\u001b[0mIntermediate answer: \u001b[36;1m\u001b[1;3mCarlos Alcaraz Garfia\u001b[0m\u001b[32;1m\u001b[1;3mFollow up: What is Carlos Alcaraz Garfia's hometown?\u001b[0mIntermediate answer: \u001b[36;1m\u001b[1;3mCarlos Alcaraz Garfia was born on May 5, 2003, in El Palmar, Murcia, Spain to parents Carlos Alcaraz González and Virginia Garfia Escandón. He has three siblings.\u001b[0m\u001b[32;1m\u001b[1;3mSo the final answer is: El Palmar, Murcia, Spain\u001b[0m\u001b[1m> Finished chain.\u001b[0m"
+}
+```
 
 
 ## Chains on Jina 📦🚀
