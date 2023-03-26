@@ -81,5 +81,6 @@ Chains in langchain allow users to combine
 
 - [ ] Enable authorized, dedicated agents on Jina AI Cloud for individual users.
 - [ ] Allow custom agents on Jina AI Cloud.
+- [ ] Agent examples with vector stores.
 - [ ] Allow loading ChatGPT plugins.
 - [ ] Agent examples using gRPC and WebSocket APIs.
