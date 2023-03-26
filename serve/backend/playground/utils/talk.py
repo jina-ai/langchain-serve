@@ -32,9 +32,10 @@ def talk_to_agent(
 
     response = requests.post(
         host,
-        params={'text': question, 'html': True},
         headers={'accept': 'application/json', 'Content-Type': 'application/json'},
         json={
+            'text': question,
+            'html': True,
             'parameters': agent_params_from_input(selected_params, agent_type),
             'envs': {'OPENAI_API_KEY': openai_token},
         },

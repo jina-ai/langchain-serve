@@ -67,7 +67,10 @@ class LangchainFastAPIGateway(FastAPIBaseGateway):
 
         @app.post("/run")
         async def __run(
-            text: str = Query(default=..., description="The text to be processed"),
+            text: str = Body(
+                default=...,
+                description="The text to be processed",
+            ),
             parameters: Dict = Body(
                 default=..., description="The parameters to be passed to the executor"
             ),
@@ -75,10 +78,11 @@ class LangchainFastAPIGateway(FastAPIBaseGateway):
                 default={},
                 description="The environment variables to be passed to the executor",
             ),
-            executor: str = Query(
-                default="agent", description="The name of the executor"
+            executor: str = Body(
+                default="agent",
+                description="The name of the executor",
             ),
-            html: bool = Query(
+            html: bool = Body(
                 default=False,
                 description="Whether to return the result as html or plain text",
             ),

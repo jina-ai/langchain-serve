@@ -24,26 +24,26 @@ question = st.text_input(
 )
 
 
-selected_options = st.sidebar.multiselect('Select options:', ALL_TOOLS)
+selected_tools = st.sidebar.multiselect('Select tools:', ALL_TOOLS)
 selected_params = {}
 
-for option in selected_options:
-    api = ALL_TOOLS[option]['api']
-    selected_params[option] = {}
-    selected_params[option]['api'] = api
+for tool in selected_tools:
+    api = ALL_TOOLS[tool]['api']
+    selected_params[tool] = {}
+    selected_params[tool]['api'] = api
 
-    if len(ALL_TOOLS[option]['args']) > 0:
-        st.sidebar.write(f'`{option}` parameters:')
+    if len(ALL_TOOLS[tool]['args']) > 0:
+        st.sidebar.write(f'`{tool}` parameters:')
 
-        for param in ALL_TOOLS[option]['args']:
+        for param in ALL_TOOLS[tool]['args']:
             param_value = st.sidebar.text_input(
                 'label',
-                key=f'{option}_{param}',
+                key=f'{tool}_{param}',
                 label_visibility='collapsed',
                 placeholder=param,
                 type='password',
             )
-            selected_params[option][param] = param_value
+            selected_params[tool][param] = param_value
 
 submit = st.button('Submit')
 
@@ -58,16 +58,16 @@ def main():
             st.error('Please enter your question')
             return
 
-        if not selected_options:
+        if not selected_tools:
             st.error('Please select at least one option')
             return
 
         # if params are not provided for a tool, then don't run
-        for option in selected_options:
-            if len(ALL_TOOLS[option]) > 0:
-                for param in ALL_TOOLS[option]['args']:
-                    if not selected_params[option][param]:
-                        st.error(f'Please enter `{param}` for `{option}`')
+        for tool in selected_tools:
+            if len(ALL_TOOLS[tool]) > 0:
+                for param in ALL_TOOLS[tool]['args']:
+                    if not selected_params[tool][param]:
+                        st.error(f'Please enter `{param}` for `{tool}`')
                         return
 
         with st.spinner(text="Running agent..."):
