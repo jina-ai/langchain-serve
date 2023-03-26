@@ -9,6 +9,13 @@ sys.path.append(cwd)
 from utils.talk import talk_to_agent  # doesn't work
 from utils.tools import ALL_TOOLS, ALL_AGENT_TYPES
 
+st.set_page_config(
+    page_title='Langchain on Jina',
+    page_icon='⚡',
+    layout='wide',
+    initial_sidebar_state='auto',
+)
+
 st.sidebar.markdown('## OpenAI Token')
 openai_token = st.sidebar.text_input(
     'Enter your OpenAI token:', placeholder='sk-...', type='password'
