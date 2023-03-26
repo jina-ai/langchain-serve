@@ -1,12 +1,12 @@
-from typing import Dict
-
 import streamlit as st
 
-from utils.tools import ALL_TOOLS
-from utils.talk import agent_params_from_input
+from backend.playground.utils.tools import ALL_TOOLS
+from backend.playground.utils.talk import talk_to_agent
 
 st.sidebar.markdown('## OpenAI Token')
-openai_token = st.sidebar.text_input('Enter your OpenAI token:', placeholder='sk-...')
+openai_token = st.sidebar.text_input(
+    'Enter your OpenAI token:', placeholder='sk-...', type='password'
+)
 
 # Type your question
 question = st.text_input(
@@ -30,19 +30,11 @@ for option in selected_options:
                 key=f'{option}_{param}',
                 label_visibility='collapsed',
                 placeholder=param,
+                type='password',
             )
             selected_params[option][param] = param_value
 
 submit = st.button('Submit')
-
-
-import sys
-
-sys.path.append('/home/deepankar/repos/langchain-serve')
-
-from serve import InteractWithAgent
-
-host = 'http://localhost:12345'
 
 
 def main():
@@ -68,11 +60,10 @@ def main():
                         return
 
         with st.spinner(text="Running agent..."):
-            result, chain_of_thought = InteractWithAgent(
-                host=host,
+            result, chain_of_thought = talk_to_agent(
                 inputs=question,
-                parameters=agent_params_from_input(selected_params),
-                envs={'OPENAI_API_KEY': openai_token},
+                parameters=selected_params,
+                openai_token=openai_token,
             )
 
         st.write(result)
