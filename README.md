@@ -15,7 +15,7 @@ While Langchain agents can be standalone local applications, this project aims t
 
 ### Playground 🕹️🎮🌐
 
-You can try out Langchain Agents on our Playground URL. The streamlit playground is hosted on Jina AI Cloud and allows you to interact with the agent which accepts the following inputs:
+You can try out Langchain Agents on our **[Playground URL](https://langchain.wolf.jina.ai/playground/)**. The streamlit playground is hosted on Jina AI Cloud and allows you to interact with the agent which accepts the following inputs:
 
 - **[Agent Types](https://python.langchain.com/en/latest/modules/agents/agents.html):** Choose from different agent types that Langchain supports. 
 
