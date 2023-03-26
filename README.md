@@ -1,4 +1,4 @@
-# Deploy Langchain Apps on Jina 🚀
+# Langchain Apps ⚡ on Production with Jina 🚀
 
 [Jina](https://github.com/jina-ai/jina) is an open-source framework to build, deploy & manage machine learning applications at scale. 
 
@@ -17,13 +17,11 @@ While Langchain agents can be standalone local applications, this project aims t
 
 You can try out Langchain Agents on our Playground URL. The streamlit playground is hosted on Jina AI Cloud and allows you to interact with the agent which accepts the following inputs:
 
-- **Agent Types:** Choose from different agent types that Langchain supports. You can find a list of these types along with a description [here](https://python.langchain.com/en/latest/modules/agents/agents.html).
+- **[Agent Types](https://python.langchain.com/en/latest/modules/agents/agents.html):** Choose from different agent types that Langchain supports. 
 
-- **Tools:** Choose from different tools that Langchain supports. Some tools may require an API token or other related arguments. You can find a list of these tools along with a description [here](https://python.langchain.com/en/latest/modules/agents/tools.html).
+- **[Tools](https://python.langchain.com/en/latest/modules/agents/tools.html):** Choose from different tools that Langchain supports. Some tools may require an API token or other related arguments.
 
-To use the playground, simply type your input in the text box provided to get the agent's output and chain of thought. Enjoy exploring Langchain's capabilities!
-
-In addition to streamlit, you can also use our RESTful APIs to interact with the agents. 
+To use the playground, simply type your input in the text box provided to get the agent's output and chain of thought. Enjoy exploring Langchain's capabilities! In addition to streamlit, you can also use our RESTful APIs on the playground to interact with the agents. 
 
 
 ### [Zero-shot React Description agent with SerpAPI and Calculator](https://python.langchain.com/en/latest/modules/agents/getting_started.html)
@@ -71,7 +69,11 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 
 ## Chains on Jina 📦🚀
 
-Chains in langchain allow users to combine 
+[Chains](https://python.langchain.com/en/latest/modules/chains/getting_started.html) in langchain allow users to combine components to create a single, coherent application. With Jina, 
+
+- You can expose your `Chain` as RESTful/gRPC/WebSocket API.
+- Enable `Chain`s to deploy & scale separately from the rest of your application with the help of Executors.
+- Deploy your `Chain` on Jina AI Cloud and get exclusive access to Agents on Jina AI Cloud (coming soon)
 
 ### Examples
 

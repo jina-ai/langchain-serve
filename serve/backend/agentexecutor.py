@@ -103,6 +103,17 @@ def _agent_base_model_args(executor_kwargs: Dict) -> AgentExecutor:
         llm = _get_llm_obj(executor_kwargs['llm'])
         executor_kwargs.pop('llm')
 
+    if (
+        'agent' in executor_kwargs
+        and executor_kwargs['agent'] == 'self-ask-with-search'
+    ):
+        if len(tools) > 1:
+            raise ValueError(
+                'self-ask-with-search only works with one tool, but got %d' % len(tools)
+            )
+        if tools[0].name != 'Intermediate Answer':
+            tools[0].name = 'Intermediate Answer'
+
     return initialize_agent(tools=tools, llm=llm, **executor_kwargs)
 
 
@@ -198,13 +209,19 @@ class LangchainAgentExecutor(Executor):
     def __load_and_run_endpoint(
         self, docs: DocumentArray, parameters, **kwargs
     ) -> DocumentArray:
-        print(f'Received parameters: {parameters}')
+        self.logger.info(f'loading agent with {parameters} and docs {docs}')
         with EnvironmentVarCtxtManager(
             parameters['env'] if 'env' in parameters else {}
         ):
-            agent = _agent_base_model_args(parameters)
-            html = parameters['html'] if 'html' in parameters else False
+            try:
+                agent = _agent_base_model_args(parameters)
+            except ValueError as e:
+                self.logger.error(e)
+                for doc in docs:
+                    doc.tags.update({RESULT: str(e)})
+                return docs
 
+            html = parameters['html'] if 'html' in parameters else False
             for doc in docs:
                 self.logger.debug(f'calling run on {doc.tags.keys()}')
                 with self.get_capture_ctx() as cap:
@@ -216,13 +233,19 @@ class LangchainAgentExecutor(Executor):
     async def __aload_and_run_endpoint(
         self, docs: DocumentArray, parameters, **kwargs
     ) -> DocumentArray:
-        self.logger.info(f'Received parameters: {parameters}')
+        self.logger.info(f'loading agent with {parameters} and docs {docs}')
         with EnvironmentVarCtxtManager(
             parameters['env'] if 'env' in parameters else {}
         ):
-            agent = _agent_base_model_args(parameters)
-            html = parameters['html'] if 'html' in parameters else False
+            try:
+                agent = _agent_base_model_args(parameters)
+            except ValueError as e:
+                self.logger.error(e)
+                for doc in docs:
+                    doc.tags.update({RESULT: str(e)})
+                return docs
 
+            html = parameters['html'] if 'html' in parameters else False
             for doc in docs:
                 self.logger.debug(f'calling run on {doc.tags.keys()}')
                 with self.get_capture_ctx() as cap:
