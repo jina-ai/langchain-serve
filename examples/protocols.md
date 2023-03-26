@@ -15,9 +15,6 @@ with ServeHTTP(uses=MyExecutor) as host:
 
 ##### cURL (TBD)
 
-```bash
-
-```
 
 
 #### gRPC Endpoint
@@ -34,9 +31,6 @@ with ServeGRPC(uses=MyExecutor) as host:
 
 ##### grpcURL (TBD)
 
-```bash
-
-```
 
 #### WebSocket Endpoint
 
@@ -51,7 +45,3 @@ with ServeWebSocket(uses=MyExecutor) as host:
 ```
 
 ##### webcocat (TBD)
-
-```bash
-
-```
