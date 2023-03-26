@@ -1,4 +1,4 @@
-# Langchain Apps on Production with Jina ⚡🚀
+# Langchain Apps on Production with Jina 🚀
 
 [Jina](https://github.com/jina-ai/jina) is an open-source framework to build, deploy & manage machine learning applications at scale. 
 
