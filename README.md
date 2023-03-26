@@ -6,7 +6,12 @@
 
 Langchain agents use LLMs to determine the actions to be taken in what order. An action can either be using a tool and observing its output, or returning to the user. [Read more about agents here](https://python.langchain.com/en/latest/modules/agents/getting_started.html).
 
-Langchain agents can be used as standalone applications when used locally, this project aims to deploy Langchain agents on Cloud to make them accessible to everyone via RESTful APIs. Jina AI Cloud also allows to extend agents using gRPC and WebSocket APIs.
+While Langchain agents can be standalone local applications, this project aims to make agents production-ready by 
+
+  - Providing easy integration with Jina with RESTful/gRPC/WebSocket APIs.
+  - Allowing seamless deployments on Jina AI Cloud ensuring high availability and scalability. 
+  - Autoscaled to scale up and down your agents based on the load.
+  - Exclusive access to Agents on Jina AI Cloud (coming soon)
 
 ### Playground 🕹️🎮🌐
 
