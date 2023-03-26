@@ -2,7 +2,7 @@ from typing import Dict, Tuple
 import requests
 
 
-LANGCHAIN_API_HOST = 'http://localhost:8000/run'
+LANGCHAIN_API_HOST = 'http://localhost:8080/run'
 
 
 def agent_params_from_input(

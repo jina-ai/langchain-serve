@@ -73,8 +73,8 @@ def main():
         with st.spinner(text="Running agent..."):
             result, chain_of_thought = talk_to_agent(
                 question=question,
-                parameters=selected_params,
-                agent_type=agent_type,
+                selected_params=selected_params,
+                agent_type=ALL_AGENT_TYPES[agent_type],
                 openai_token=openai_token,
             )
 
