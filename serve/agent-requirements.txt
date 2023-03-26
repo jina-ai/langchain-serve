@@ -1,3 +1,5 @@
+openai
+wolframalpha
 wikipedia
 google-search-results
 google-api-python-client

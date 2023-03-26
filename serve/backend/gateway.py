@@ -41,12 +41,12 @@ class PlaygroundGateway(Gateway):
 
     async def setup_server(self):
         streamlit.web.bootstrap._fix_sys_path(self.streamlit_script)
+        streamlit.web.bootstrap._fix_sys_path(os.path.join(cur_dir, 'playground'))
         streamlit.web.bootstrap._fix_matplotlib_crash()
         streamlit.web.bootstrap._fix_tornado_crash()
         streamlit.web.bootstrap._fix_sys_argv(self.streamlit_script, ())
         streamlit.web.bootstrap._fix_pydeck_mapbox_api_warning()
         streamlit_cmd = f'streamlit run {self.streamlit_script}'
-
         self.streamlit_server = StreamlitServer(
             os.path.join(cur_dir, self.streamlit_script), streamlit_cmd
         )

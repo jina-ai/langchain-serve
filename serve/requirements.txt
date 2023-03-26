@@ -1,4 +1,3 @@
 langchain
 ansi2html
 streamlit
-openai

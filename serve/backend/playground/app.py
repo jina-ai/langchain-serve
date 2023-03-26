@@ -1,7 +1,13 @@
 import streamlit as st
+import os
+import sys
 
-from backend.playground.utils.tools import ALL_TOOLS
-from backend.playground.utils.talk import talk_to_agent
+# get file dir and add it to sys.path
+cwd = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(cwd)
+
+from utils.talk import talk_to_agent  # doesn't work
+from utils.tools import ALL_TOOLS
 
 st.sidebar.markdown('## OpenAI Token')
 openai_token = st.sidebar.text_input(
