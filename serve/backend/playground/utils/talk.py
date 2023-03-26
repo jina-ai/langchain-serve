@@ -5,7 +5,9 @@ import requests
 LANGCHAIN_API_HOST = 'http://localhost:8000/run'
 
 
-def agent_params_from_input(selected_params: Dict[str, Dict[str, str]]) -> Dict:
+def agent_params_from_input(
+    selected_params: Dict[str, Dict[str, str]], agent_type: str
+) -> Dict:
     tools = {'tool_names': []}
     for param in selected_params.values():
         tools['tool_names'].append(param['api'])
@@ -13,7 +15,7 @@ def agent_params_from_input(selected_params: Dict[str, Dict[str, str]]) -> Dict:
 
     return {
         'tools': tools,
-        'agent': 'zero-shot-react-description',
+        'agent': agent_type,
         'verbose': True,
     }
 
@@ -22,6 +24,7 @@ def talk_to_agent(
     question: str,
     selected_params: Dict[str, Dict[str, str]],
     openai_token: str,
+    agent_type: str,
     host: str = LANGCHAIN_API_HOST,
 ) -> Tuple[str, str]:
     if not host.endswith('/run'):
@@ -32,7 +35,7 @@ def talk_to_agent(
         params={'text': question},
         headers={'accept': 'application/json', 'Content-Type': 'application/json'},
         json={
-            'parameters': agent_params_from_input(selected_params),
+            'parameters': agent_params_from_input(selected_params, agent_type),
             'envs': {'OPENAI_API_KEY': openai_token},
             'html': True,
         },

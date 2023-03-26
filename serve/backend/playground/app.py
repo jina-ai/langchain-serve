@@ -7,17 +7,22 @@ cwd = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(cwd)
 
 from utils.talk import talk_to_agent  # doesn't work
-from utils.tools import ALL_TOOLS
+from utils.tools import ALL_TOOLS, ALL_AGENT_TYPES
 
 st.sidebar.markdown('## OpenAI Token')
 openai_token = st.sidebar.text_input(
     'Enter your OpenAI token:', placeholder='sk-...', type='password'
 )
 
+agent_type = st.sidebar.selectbox(
+    'Select agent type:', list(ALL_AGENT_TYPES.keys()), index=0
+)
+
 # Type your question
 question = st.text_input(
     'Type your question:', placeholder='Who is Leo DiCaprio\'s girlfriend?'
 )
+
 
 selected_options = st.sidebar.multiselect('Select options:', ALL_TOOLS)
 selected_params = {}
@@ -67,8 +72,9 @@ def main():
 
         with st.spinner(text="Running agent..."):
             result, chain_of_thought = talk_to_agent(
-                inputs=question,
+                question=question,
                 parameters=selected_params,
+                agent_type=agent_type,
                 openai_token=openai_token,
             )
 
