@@ -4,7 +4,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y git pip nginx &
 
 ## install requirements for the executor
 COPY requirements.txt .
-RUN pip install --compile -r requirements.txt
+COPY agent-requirements.txt /agent-requirements.text
+RUN pip install --compile -r requirements.txt -r agent-requirements.text
 
 # setup the workspace
 COPY . /workdir/
