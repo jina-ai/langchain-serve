@@ -1,0 +1,5 @@
+jtype: LangchainAgentGateway
+py_modules:
+  - backend/__init__.py
+metas:
+  name: LangchainAgentGateway

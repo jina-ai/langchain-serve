@@ -1,0 +1,8 @@
+[server]
+
+baseUrlPath = "/playground"
+headless = true
+
+[logger]
+
+level = "debug"

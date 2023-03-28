@@ -1,0 +1,41 @@
+
+jtype: Flow
+jcloud:
+  version: 3.14.2.dev18
+  labels:
+    app: langchain
+  monitor:
+    traces: 
+      enable: true
+    metrics:
+      enable: true
+gateway:
+  uses: docker://jinawolf/langchain-agent-gateway:0.0.1
+  # uses: customgateway_config.yml
+  port:
+    - 8081
+  protocol: 
+    - http
+  jcloud:
+    resources:
+      instance: C2
+    custom_dns:
+      - langchain.wolf.jina.ai
+    # autoscale:
+    #   min: 0
+    #   max: 10
+    #   metric: rps
+    #   target: 100
+executors:
+  - name: agent
+    uses: jinaai+docker://deepankarm/LangchainAgentExecutor:latest
+    # uses: config.yml
+    force_update: true
+    jcloud:
+      resources:
+        instance: C2
+      autoscale:
+        min: 0
+        max: 10
+        metric: rps
+        target: 2 # 1 replica can handle 2 rps

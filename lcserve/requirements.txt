@@ -1,0 +1,4 @@
+click
+langchain==0.0.123
+ansi2html
+streamlit

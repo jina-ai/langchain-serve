@@ -1,0 +1,5 @@
+jtype: ServingGateway
+py_modules:
+  - backend/__init__.py
+metas:
+  name: ServingGateway
