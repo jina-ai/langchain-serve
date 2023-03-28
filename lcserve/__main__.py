@@ -1,60 +1,22 @@
-import os
+import sys
 from typing import List, Union
 
 import click
 import yaml
+from jina import Flow
 
-ServingGatewayConfigFile = 'servinggateway_config.yml'
-
-
-def gateway_config_yaml_path() -> str:
-    return os.path.join(os.path.dirname(__file__), ServingGatewayConfigFile)
-
-
-def gateway_docker_image() -> str:
-    return 'docker://jinawolf/12345-gateway:latest'
-
-
-def flow_yaml(
-    mods: Union[str, List[str]],
-    local: bool = True,
-    port: int = 12345,
-) -> str:
-    if isinstance(mods, str):
-        mods = [mods]
-
-    flow_dict = {
-        'jtype': 'Flow',
-        'gateway': {
-            'uses': gateway_config_yaml_path() if local else gateway_docker_image(),
-            'uses_with': {
-                'modules': mods,
-            },
-            'port': [port],
-            'protocol': ['http'],
-        },
-    }
-    return yaml.safe_dump(flow_dict, sort_keys=False)
+from .flow import get_flow_dict, get_flow_yaml, serve_on_jcloud
 
 
 def serve_local(mods: Union[str, List[str]], port: int = 12345):
-    f_yaml = flow_yaml(mods, port)
-
-    print(f'Loading Flow from config:\n{f_yaml}')
-    from jina import Flow
-
+    f_yaml = get_flow_yaml(mods, jcloud=False, port=port)
     with Flow.load_config(f_yaml) as f:
+        print('Flow started!! ')
         f.block()
 
 
 def serve_jcloud(mods: Union[str, List[str]]):
-    f_yaml = flow_yaml(mods, local=False)
-
-    print(f'Loading Flow from config:\n{f_yaml}')
-    from jina import Flow
-
-    with Flow.load_config(f_yaml) as f:
-        f.block()
+    serve_on_jcloud(get_flow_dict(mods, jcloud=True))
 
 
 @click.command()
@@ -67,8 +29,12 @@ def serve_jcloud(mods: Union[str, List[str]]):
 @click.option(
     '--local',
     is_flag=True,
-    default=True,
     help='Serve your agent locally',
+)
+@click.option(
+    '--jcloud',
+    is_flag=True,
+    help='Serve your agent on jcloud',
 )
 @click.option(
     '--port',
@@ -77,8 +43,11 @@ def serve_jcloud(mods: Union[str, List[str]]):
     help='Port to run the server on',
 )
 @click.help_option('-h', '--help')
-def main(mods, local, port):
-    if local:
+def main(mods, local, jcloud, port):
+    if local and jcloud:
+        click.echo('--local and --jcloud are mutually exclusive')
+        sys.exit(1)
+    elif local:
         serve_local(mods, port)
     else:
         serve_jcloud(mods)

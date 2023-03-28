@@ -234,6 +234,7 @@ class LangchainAgentGateway(CompositeGateway):
 class ServingGateway(FastAPIBaseGateway):
     def __init__(self, modules: Tuple[str] = (), *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.logger.info(f'Loading modules/files: {",".join(modules)}')
         self._fix_sys_path()
         self._app = FastAPI()
         self._register_healthz()
@@ -260,6 +261,10 @@ class ServingGateway(FastAPIBaseGateway):
         async def __healthz():
             return {'status': 'ok'}
 
+        @self._app.get("/dry_run")
+        async def __dry_run():
+            return {'status': 'ok'}
+
     def _register_mod(self, mod: str):
         try:
             print(f'Importing {mod}. Current dir: {os.getcwd()}')
@@ -268,16 +273,19 @@ class ServingGateway(FastAPIBaseGateway):
                 if getattr(func, '__serving__', False):
                     self._register_route(func)
         except ModuleNotFoundError:
-            print(f'Unable to import {mod}')
+            print(f'Unable to import module: {mod}')
 
     def _register_file(self, file: Path):
-        spec = spec_from_file_location(file.stem, file)
-        mod = module_from_spec(spec)
-        spec.loader.exec_module(mod)
+        try:
+            spec = spec_from_file_location(file.stem, file)
+            mod = module_from_spec(spec)
+            spec.loader.exec_module(mod)
 
-        for name, func in inspect.getmembers(mod, inspect.isfunction):
-            if getattr(func, '__serving__', False):
-                self._register_route(func)
+            for name, func in inspect.getmembers(mod, inspect.isfunction):
+                if getattr(func, '__serving__', False):
+                    self._register_route(func)
+        except Exception as e:
+            print(f'Unable to import {file}: {e}')
 
     def _register_route(self, func: Callable, **kwargs):
         _name = func.__name__.title().replace('_', '')
