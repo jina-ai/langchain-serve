@@ -116,7 +116,7 @@ def InteractWithAgent(
 @dataclass
 class Defaults:
     instance: str = 'C2'
-    autoscale_min: int = 1
+    autoscale_min: int = 0
     autoscale_max: int = 10
     autoscale_rps: int = 10
 
@@ -182,7 +182,7 @@ class AutoscaleConfig:
 def get_with_args_for_jcloud() -> Dict:
     return {
         'with': {
-            'extra_search_paths': '/workdir/lcserve',
+            'extra_search_paths': ['/workdir/lcserve'],
         }
     }
 
@@ -228,7 +228,7 @@ def get_dummy_executor_args() -> Dict:
 def get_flow_dict(
     mods: Union[str, List[str]],
     jcloud: bool = False,
-    port: int = 12345,
+    port: int = 8080,
 ) -> Dict:
     if isinstance(mods, str):
         mods = [mods]
@@ -254,7 +254,7 @@ def get_flow_dict(
 def get_flow_yaml(
     mods: Union[str, List[str]],
     jcloud: bool = False,
-    port: int = 12345,
+    port: int = 8080,
 ) -> str:
     return yaml.safe_dump(get_flow_dict(mods, jcloud, port), sort_keys=False)
 

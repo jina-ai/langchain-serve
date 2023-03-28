@@ -8,7 +8,7 @@ from jina import Flow
 from .flow import get_flow_dict, get_flow_yaml, serve_on_jcloud
 
 
-def serve_local(mods: Union[str, List[str]], port: int = 12345):
+def serve_local(mods: Union[str, List[str]], port: int = 8080):
     f_yaml = get_flow_yaml(mods, jcloud=False, port=port)
     with Flow.load_config(f_yaml) as f:
         print('Flow started!! ')
@@ -39,7 +39,7 @@ def serve_jcloud(mods: Union[str, List[str]]):
 @click.option(
     '--port',
     type=int,
-    default=12345,
+    default=8080,
     help='Port to run the server on',
 )
 @click.help_option('-h', '--help')
