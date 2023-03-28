@@ -1,27 +1,32 @@
+import inspect
 import os
-import time
 import shutil
-from typing import Dict, List, Tuple
+import time
+from importlib import import_module
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
+from typing import Callable, Dict, List, Tuple
 
 import streamlit.web.bootstrap
-from fastapi import FastAPI, Query, Body
 from docarray import Document, DocumentArray
-
+from fastapi import Body, FastAPI
 from jina import Gateway
 from jina.enums import GatewayProtocolType
 from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-
+from pydantic import create_model
 from streamlit.file_util import get_streamlit_file_path
 from streamlit.web.server import Server as StreamlitServer
 
 from .playground.utils.helper import (
     AGENT_OUTPUT,
     DEFAULT_KEY,
-    RESULT,
-    parse_uses_with,
-    LANGCHAIN_PLAYGROUND_PORT,
     LANGCHAIN_API_PORT,
+    LANGCHAIN_PLAYGROUND_PORT,
+    RESULT,
+    SERVING,
+    Capturing,
+    parse_uses_with,
     run_cmd,
 )
 
@@ -222,3 +227,108 @@ class LangchainAgentGateway(CompositeGateway):
         gateway = gateway_cls(**gateway_kwargs)
         gateway.streamer = self.streamer
         self.gateways.insert(0, gateway)
+
+
+class ServingGateway(FastAPIBaseGateway):
+    def __init__(self, modules: Tuple[str] = [], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._app = FastAPI()
+        self.register_healthz()
+        for mod in modules:
+            # TODO: add support for registering a directory
+            if Path(mod).is_file() and mod.endswith('.py'):
+                self.register_file(Path(mod))
+            else:
+                self.register_mod(mod)
+
+    @property
+    def app(self):
+        return self._app
+
+    def register_healthz(self):
+        @self._app.get("/healthz")
+        async def __healthz():
+            return {'status': 'ok'}
+
+    def register_mod(self, mod: str):
+        try:
+            app_module = import_module(mod)
+            for name, func in inspect.getmembers(app_module, inspect.isfunction):
+                if getattr(func, '__serve__', False):
+                    self._register_route(func)
+        except ModuleNotFoundError:
+            print(f'Unable to import {mod}')
+
+    def register_file(self, file: Path):
+        spec = spec_from_file_location(file.stem, file)
+        mod = module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        for name, func in inspect.getmembers(mod, inspect.isfunction):
+            if getattr(func, '__serve__', False):
+                self._register_route(func)
+
+    def _register_route(self, func: Callable, **kwargs):
+        _name = func.__name__.title().replace('_', '')
+
+        # check if _name is already registered
+        if _name in [route.name for route in self.app.routes]:
+            print(f'Route {_name} already registered. Skipping...')
+            return
+
+        _input_params = [
+            (name, parameter.annotation)
+            for name, parameter in inspect.signature(func).parameters.items()
+        ]
+
+        _input_model_fields = {
+            name: (field_type, ...) for name, field_type in _input_params
+        }
+        _output_model_fields = {
+            'result': (
+                func.__annotations__['return']
+                if 'return' in func.__annotations__
+                else str,
+                ...,
+            ),
+            'error': (str, ...),
+            'stdout': (str, ...),
+        }
+
+        class Config:
+            arbitrary_types_allowed = True
+
+        input_model = create_model(
+            f'Input{_name}',
+            __config__=Config,
+            **_input_model_fields,
+        )
+
+        output_model = create_model(
+            f'Output{_name}',
+            __config__=Config,
+            **_output_model_fields,
+        )
+
+        @self.app.post(
+            path=f'/{func.__name__}',
+            name=_name,
+            description=func.__doc__ or '',
+            tags=[SERVING],
+        )
+        async def _create_route(input_data: input_model) -> output_model:
+            output, error = '', ''
+            with Capturing() as stdout:
+                try:
+                    output = func(**dict(input_data))
+                except Exception as e:
+                    print(f'Got an exception: {e}')
+                    error = str(e)
+
+            if error != '':
+                print(f'Error: {error}')
+            return output_model(
+                result=output,
+                error=error,
+                stdout='\n'.join(stdout),
+            )

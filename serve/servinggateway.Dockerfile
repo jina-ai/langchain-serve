@@ -4,14 +4,13 @@ RUN apt-get update && apt-get install --no-install-recommends -y git pip nginx &
 
 ## install requirements for the gateway
 COPY requirements.txt .
-COPY agent-requirements.txt /agent-requirements.text
-RUN pip install --compile -r requirements.txt -r agent-requirements.text
+RUN pip install --compile -r requirements.txt
 
 # setup the workspace
 COPY . /workdir/
 WORKDIR /workdir
 
-# Rename customgateway_config.yml to config.yml
-RUN mv customgateway_config.yml config.yml
+# Rename servinggateway_config.yml to config.yml
+RUN mv servinggateway_config.yml config.yml
 
 ENTRYPOINT ["jina", "gateway", "--uses", "config.yml"]

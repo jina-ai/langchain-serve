@@ -1,6 +1,6 @@
 import os
-import threading
 import subprocess
+import threading
 from collections import defaultdict
 from typing import Any, Dict, List, Union
 
@@ -12,6 +12,7 @@ LLM_TYPE = '_type'
 DEFAULT_FIELD = 'chain'
 DEFAULT_KEY = '__default__'
 AGENT_OUTPUT = '__agent_output__'
+SERVING = 'Serving'
 
 LANGCHAIN_API_PORT = os.environ.get('LANGCHAIN_API_PORT', 8080)
 LANGCHAIN_PLAYGROUND_PORT = os.environ.get('LANGCHAIN_PLAYGROUND_PORT', 8501)

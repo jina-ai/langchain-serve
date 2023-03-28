@@ -1,11 +1,16 @@
 from contextlib import contextmanager
-from typing import Dict, Union, Tuple
+from typing import Dict, Tuple, Union
 
 from docarray import Document, DocumentArray
 from jina import Flow
 
-from .helper import AGENT_OUTPUT, DEFAULT_KEY, RESULT, parse_uses_with
-from .backend.gateway import PlaygroundGateway, CustomGateway
+from .backend.gateway import PlaygroundGateway
+from .backend.playground.utils.helper import (
+    AGENT_OUTPUT,
+    DEFAULT_KEY,
+    RESULT,
+    parse_uses_with,
+)
 
 
 @contextmanager
