@@ -179,6 +179,14 @@ class AutoscaleConfig:
         }
 
 
+def get_with_args_for_jcloud() -> Dict:
+    return {
+        'with': {
+            'extra_search_paths': '/workdir/lcserve',
+        }
+    }
+
+
 def get_gateway_jcloud_args(
     instance: str = Defaults.instance,
     autoscale: AutoscaleConfig = AutoscaleConfig(),
@@ -227,6 +235,7 @@ def get_flow_dict(
 
     flow_dict = {
         'jtype': 'Flow',
+        **(get_with_args_for_jcloud() if jcloud else {}),
         'gateway': {
             'uses': gateway_docker_image() if jcloud else gateway_config_yaml_path(),
             'uses_with': {
