@@ -3,8 +3,7 @@ import sys
 from os import path
 
 import pkg_resources
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def get_requirements_list(f):
@@ -21,7 +20,7 @@ if sys.version_info < (3, 7, 0):
 
 try:
     pkg_name = 'langchain-serve'
-    libinfo_py = path.join('serve', '__init__.py')
+    libinfo_py = path.join('lcserve', '__init__.py')
     libinfo_content = open(libinfo_py, 'r', encoding='utf8').readlines()
     version_line = [l.strip() for l in libinfo_content if l.startswith('__version__')][
         0
@@ -40,15 +39,7 @@ import pathlib
 
 install_requires = get_requirements_list('requirements.txt')
 sys_platform = platform.system().lower()
-# if sys_platform == 'darwin':
-# torch_requirement = ['torch==1.10.2']
-# else:
-#     torch_requirement = [
-#         'torch==1.10.2+cpu',
-#     ]
 
-
-# install_requires.extend(torch_requirement)
 
 setup(
     name=pkg_name,
@@ -66,7 +57,13 @@ setup(
     zip_safe=False,
     setup_requires=['setuptools>=18.0', 'wheel'],
     install_requires=install_requires,
-    entry_points={"console_scripts": ["jina-now = now.cli:cli"]},
+    entry_points={
+        'console_scripts': [
+            'langchain-serve=lcserve.__main__:main',
+            'lc-serve=lcserve.__main__:main',
+            'lcserve=lcserve.__main__:main',
+        ],
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

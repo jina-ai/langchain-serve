@@ -13,6 +13,7 @@ DEFAULT_FIELD = 'chain'
 DEFAULT_KEY = '__default__'
 AGENT_OUTPUT = '__agent_output__'
 SERVING = 'Serving'
+APPDIR = '/appdir'
 
 LANGCHAIN_API_PORT = os.environ.get('LANGCHAIN_API_PORT', 8080)
 LANGCHAIN_PLAYGROUND_PORT = os.environ.get('LANGCHAIN_PLAYGROUND_PORT', 8501)

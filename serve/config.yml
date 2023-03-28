@@ -1,5 +1,0 @@
-jtype: LangchainAgentExecutor
-metas:
-  name: LangchainAgentExecutor
-  py_modules:
-    - backend/__init__.py

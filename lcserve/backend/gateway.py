@@ -1,6 +1,7 @@
 import inspect
 import os
 import shutil
+import sys
 import time
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
@@ -20,6 +21,7 @@ from streamlit.web.server import Server as StreamlitServer
 
 from .playground.utils.helper import (
     AGENT_OUTPUT,
+    APPDIR,
     DEFAULT_KEY,
     LANGCHAIN_API_PORT,
     LANGCHAIN_PLAYGROUND_PORT,
@@ -230,42 +232,51 @@ class LangchainAgentGateway(CompositeGateway):
 
 
 class ServingGateway(FastAPIBaseGateway):
-    def __init__(self, modules: Tuple[str] = [], *args, **kwargs):
+    def __init__(self, modules: Tuple[str] = (), *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._fix_sys_path()
         self._app = FastAPI()
-        self.register_healthz()
+        self._register_healthz()
         for mod in modules:
             # TODO: add support for registering a directory
             if Path(mod).is_file() and mod.endswith('.py'):
-                self.register_file(Path(mod))
+                self._register_file(Path(mod))
             else:
-                self.register_mod(mod)
+                self._register_mod(mod)
 
     @property
     def app(self):
         return self._app
 
-    def register_healthz(self):
+    def _fix_sys_path(self):
+        if os.getcwd() not in sys.path:
+            sys.path.append(os.getcwd())
+        if Path(APPDIR).exists() and APPDIR not in sys.path:
+            # This is where the app code is mounted in the container
+            sys.path.append(APPDIR)
+
+    def _register_healthz(self):
         @self._app.get("/healthz")
         async def __healthz():
             return {'status': 'ok'}
 
-    def register_mod(self, mod: str):
+    def _register_mod(self, mod: str):
         try:
+            print(f'Importing {mod}. Current dir: {os.getcwd()}')
             app_module = import_module(mod)
             for name, func in inspect.getmembers(app_module, inspect.isfunction):
-                if getattr(func, '__serve__', False):
+                if getattr(func, '__serving__', False):
                     self._register_route(func)
         except ModuleNotFoundError:
             print(f'Unable to import {mod}')
 
-    def register_file(self, file: Path):
+    def _register_file(self, file: Path):
         spec = spec_from_file_location(file.stem, file)
         mod = module_from_spec(spec)
         spec.loader.exec_module(mod)
 
         for name, func in inspect.getmembers(mod, inspect.isfunction):
-            if getattr(func, '__serve__', False):
+            if getattr(func, '__serving__', False):
                 self._register_route(func)
 
     def _register_route(self, func: Callable, **kwargs):
