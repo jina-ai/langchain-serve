@@ -16,7 +16,7 @@ def serve_local(mods: Union[str, List[str]], port: int = 8080):
 
 
 def serve_jcloud(mods: Union[str, List[str]]):
-    serve_on_jcloud(get_flow_dict(mods, jcloud=True))
+    serve_on_jcloud(get_flow_dict(mods, jcloud=True, port=8080))
 
 
 @click.command()

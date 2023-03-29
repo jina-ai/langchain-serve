@@ -3,7 +3,6 @@ import threading
 from contextlib import nullcontext
 from typing import Any, Dict, Optional, Union
 
-from ansi2html import Ansi2HTMLConverter
 from docarray import Document, DocumentArray
 from jina import Executor, requests
 from langchain.agents import AgentExecutor, initialize_agent, load_tools
@@ -196,6 +195,8 @@ class LangchainAgentExecutor(Executor):
         doc: Document,
         html: bool = False,
     ):
+        from ansi2html import Ansi2HTMLConverter
+
         if isinstance(cap, Capturing):
             if html:
                 converter = Ansi2HTMLConverter()

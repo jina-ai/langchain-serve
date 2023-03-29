@@ -28,6 +28,7 @@ from .playground.utils.helper import (
     RESULT,
     SERVING,
     Capturing,
+    EnvironmentVarCtxtManager,
     parse_uses_with,
     run_cmd,
 )
@@ -321,6 +322,7 @@ class ServingGateway(FastAPIBaseGateway):
             f'Input{_name}',
             __config__=Config,
             **_input_model_fields,
+            **{'envs': (Dict[str, str], ...)},
         )
 
         output_model = create_model(
@@ -337,17 +339,23 @@ class ServingGateway(FastAPIBaseGateway):
         )
         async def _create_route(input_data: input_model) -> output_model:
             output, error = '', ''
-            with Capturing() as stdout:
-                try:
-                    output = func(**dict(input_data))
-                except Exception as e:
-                    print(f'Got an exception: {e}')
-                    error = str(e)
+            envs = {}
+            if hasattr(input_data, 'envs'):
+                envs = input_data.envs
+                del input_data.envs
 
-            if error != '':
-                print(f'Error: {error}')
-            return output_model(
-                result=output,
-                error=error,
-                stdout='\n'.join(stdout),
-            )
+            with EnvironmentVarCtxtManager(envs):
+                with Capturing() as stdout:
+                    try:
+                        output = func(**dict(input_data))
+                    except Exception as e:
+                        print(f'Got an exception: {e}')
+                        error = str(e)
+
+                if error != '':
+                    print(f'Error: {error}')
+                return output_model(
+                    result=output,
+                    error=error,
+                    stdout='\n'.join(stdout),
+                )

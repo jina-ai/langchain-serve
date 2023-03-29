@@ -1,3 +1,4 @@
 jina
+click
 jcloud
 langchain
