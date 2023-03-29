@@ -34,6 +34,7 @@ def serve_on_jcloud(
             jcloud=True,
             port=8080,
             name=name,
+            app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
         ),
         app_id=app_id,

@@ -35,8 +35,13 @@ def get_or_create_eventloop():
 
 
 def asyncio_run(func, *args, **kwargs):
-    loop = get_or_create_eventloop()
-    return loop.run_until_complete(func(*args, **kwargs))
+    return get_or_create_eventloop().run_until_complete(func(*args, **kwargs))
+
+
+def asyncio_run_property(func):
+    task = asyncio.ensure_future(func)
+    get_or_create_eventloop().run_until_complete(task)
+    return task.result()
 
 
 def parse_uses_with(uses_with: Union[Dict, BaseModel, List]) -> Dict[str, Any]:

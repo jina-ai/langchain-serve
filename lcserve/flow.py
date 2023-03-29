@@ -23,6 +23,7 @@ from .backend.playground.utils.helper import (
     DEFAULT_KEY,
     RESULT,
     asyncio_run,
+    asyncio_run_property,
     parse_uses_with,
 )
 
@@ -239,7 +240,7 @@ def get_gateway_uses(id: str) -> str:
 
 
 def get_existing_name(app_id: str) -> str:
-    flow_obj = asyncio_run(CloudFlow(flow_id=app_id).status)
+    flow_obj = asyncio_run_property(CloudFlow(flow_id=app_id).status)
     if (
         'spec' in flow_obj
         and 'jcloud' in flow_obj['spec']
