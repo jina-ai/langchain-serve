@@ -235,7 +235,7 @@ class LangchainAgentGateway(CompositeGateway):
 class ServingGateway(FastAPIBaseGateway):
     def __init__(self, modules: Tuple[str] = (), *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.logger.info(f'Loading modules/files: {",".join(modules)}')
+        self.logger.debug(f'Loading modules/files: {",".join(modules)}')
         self._fix_sys_path()
         self._app = FastAPI()
         self._register_healthz()
@@ -268,7 +268,6 @@ class ServingGateway(FastAPIBaseGateway):
 
     def _register_mod(self, mod: str):
         try:
-            print(f'Importing {mod}. Current dir: {os.getcwd()}')
             app_module = import_module(mod)
             for name, func in inspect.getmembers(app_module, inspect.isfunction):
                 if getattr(func, '__serving__', False):
