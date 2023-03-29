@@ -1,3 +1,4 @@
+import asyncio
 import os
 import subprocess
 import threading
@@ -21,6 +22,21 @@ LANGCHAIN_PLAYGROUND_PORT = os.environ.get('LANGCHAIN_PLAYGROUND_PORT', 8501)
 
 import sys
 from io import StringIO
+
+
+def get_or_create_eventloop():
+    try:
+        return asyncio.get_event_loop()
+    except RuntimeError as ex:
+        if "There is no current event loop in thread" in str(ex):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return asyncio.get_event_loop()
+
+
+def asyncio_run(func, *args, **kwargs):
+    loop = get_or_create_eventloop()
+    return loop.run_until_complete(func(*args, **kwargs))
 
 
 def parse_uses_with(uses_with: Union[Dict, BaseModel, List]) -> Dict[str, Any]:

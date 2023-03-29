@@ -22,9 +22,11 @@ from .backend.playground.utils.helper import (
     AGENT_OUTPUT,
     DEFAULT_KEY,
     RESULT,
+    asyncio_run,
     parse_uses_with,
 )
 
+APP_NAME = 'langchain'
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
 
@@ -236,12 +238,27 @@ def get_gateway_uses(id: str) -> str:
     return f'jinahub+docker://{id}'
 
 
-def get_global_jcloud_args(name: str = 'langchain') -> Dict:
+def get_existing_name(app_id: str) -> str:
+    flow_obj = asyncio_run(CloudFlow(flow_id=app_id).status)
+    if (
+        'spec' in flow_obj
+        and 'jcloud' in flow_obj['spec']
+        and 'name' in flow_obj['spec']['jcloud']
+    ):
+        return flow_obj['spec']['jcloud']['name']
+
+
+def get_global_jcloud_args(app_id: str = None, name: str = APP_NAME) -> Dict:
+    if app_id is not None:
+        _name = get_existing_name(app_id)
+        if _name is not None:
+            name = _name
+
     return {
         'jcloud': {
             'name': name,
             'label': {
-                'app': 'langchain',
+                'app': APP_NAME,
             },
             'monitor': {
                 'traces': {
@@ -322,13 +339,14 @@ def get_flow_dict(
     module: Union[str, List[str]],
     jcloud: bool = False,
     port: int = 8080,
-    name: str = 'langchain',
+    name: str = APP_NAME,
+    app_id: str = None,
     gateway_id: str = None,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
 
-    uses = get_gateway_uses(gateway_id) if jcloud else get_gateway_config_yaml_path()
+    uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
     return {
         'jtype': 'Flow',
         **(get_with_args_for_jcloud() if jcloud else {}),
@@ -341,7 +359,7 @@ def get_flow_dict(
             'protocol': ['http'],
             **(get_gateway_jcloud_args() if jcloud else {}),
         },
-        **(get_global_jcloud_args(name) if jcloud else {}),
+        **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
         **(get_dummy_executor_args() if jcloud else {}),
     }
 
@@ -350,16 +368,32 @@ def get_flow_yaml(
     module: Union[str, List[str]],
     jcloud: bool = False,
     port: int = 8080,
-    name: str = 'lc',
+    name: str = APP_NAME,
 ) -> str:
-    return yaml.safe_dump(get_flow_dict(module, jcloud, port, name), sort_keys=False)
+    return yaml.safe_dump(
+        get_flow_dict(module=module, jcloud=jcloud, port=port, name=name),
+        sort_keys=False,
+    )
 
 
-def deploy_app_on_jcloud(flow_dict: Dict):
+def deploy_app_on_jcloud(flow_dict: Dict, app_id: str = None) -> Tuple[str, str]:
     with tempfile.TemporaryDirectory() as tmpdir:
         flow_path = os.path.join(tmpdir, 'flow.yml')
         with open(flow_path, 'w') as f:
             yaml.safe_dump(flow_dict, f, sort_keys=False)
 
-        flow = CloudFlow(path=flow_path).__enter__()
-        print(f'Flow deployed with endpoint: {flow.endpoints}')
+        if app_id is None:  # appid is None means we are deploying a new app
+            jcloud_flow = CloudFlow(path=flow_path).__enter__()
+            print(f'Flow deployed with endpoint: {jcloud_flow.endpoints}')
+            app_id = jcloud_flow.flow_id
+
+        else:  # appid is not None means we are updating an existing app
+            jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
+            asyncio_run(jcloud_flow.update)
+            print(f'Flow updated with endpoint: {jcloud_flow.endpoints}')
+
+        for k, v in jcloud_flow.endpoints.items():
+            if k.lower() == 'gateway (http)':
+                return app_id, v
+
+    return None, None

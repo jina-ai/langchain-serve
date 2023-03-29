@@ -59,9 +59,9 @@ setup(
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-            'langchain-serve=lcserve.__main__:main',
-            'lc-serve=lcserve.__main__:main',
-            'lcserve=lcserve.__main__:main',
+            'langchain-serve=lcserve.__main__:serve',
+            'lc-serve=lcserve.__main__:serve',
+            'lcserve=lcserve.__main__:serve',
         ],
     },
     classifiers=[
