@@ -1,6 +1,7 @@
 import os
 import subprocess
 import threading
+import uuid
 from collections import defaultdict
 from typing import Any, Dict, List, Union
 
@@ -114,3 +115,7 @@ def run_cmd(command, std_output=False, wait=True):
     if wait:
         output, error = process.communicate()
         return output, error
+
+
+def get_random_name():
+    return 'lc-' + uuid.uuid4().hex[:6]

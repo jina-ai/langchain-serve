@@ -1,11 +1,19 @@
 import os
+import sys
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union
+from http import HTTPStatus
+from importlib import import_module
+from shutil import copytree
+from tempfile import mkdtemp
+from typing import Dict, List, Optional, Tuple, Union
 
+import requests
 import yaml
 from docarray import Document, DocumentArray
+from hubble.executor.hubio import HubIO
+from hubble.executor.parsers import set_hub_push_parser
 from jcloud.flow import CloudFlow
 from jina import Flow
 
@@ -113,6 +121,90 @@ def InteractWithAgent(
             return r
 
 
+def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
+    return (
+        requests.get(
+            url='https://api.hubble.jina.ai/v2/executor/getMeta',
+            params={'id': name, 'secret': secret},
+        ).status_code
+        == HTTPStatus.OK
+    )
+
+
+def push_app_to_hubble(
+    mod: str,
+    name: str,
+    tag: str = 'latest',
+    verbose: Optional[bool] = False,
+) -> str:
+    try:
+        sys.path.append(os.getcwd())
+        file = import_module(mod).__file__
+        if file.endswith('.py'):
+            appdir = os.path.dirname(file)
+        else:
+            print(f'Unknown file type for module {mod}')
+            sys.exit(1)
+    except ModuleNotFoundError:
+        print(f'Could not find module {mod}')
+        sys.exit(1)
+    except AttributeError:
+        print(f'Could not find appdir for module {mod}')
+        sys.exit(1)
+    except Exception as e:
+        print(f'Unknown error: {e}')
+        sys.exit(1)
+
+    tmpdir = mkdtemp()
+
+    # Copy appdir to tmpdir
+    copytree(appdir, tmpdir, dirs_exist_ok=True)
+    # Copy lcserve to tmpdir
+    copytree(
+        os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
+    )
+
+    # Create the Dockerfile
+    with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
+        dockerfile = [
+            'FROM jinawolf/serving-gateway:latest',
+            'COPY . /appdir/',
+            'RUN if [ -e /appdir/requirements.txt ]; then pip install -r /appdir/requirements.txt; fi',
+            'ENTRYPOINT [ "jina", "gateway", "--uses", "config.yml" ]',
+        ]
+        f.write('\n\n'.join(dockerfile))
+
+    # Create the config.yml
+    with open(os.path.join(tmpdir, 'config.yml'), 'w') as f:
+        config_dict = {
+            'jtype': 'ServingGateway',
+            'py_modules': ['lcserve/backend/__init__.py'],
+            'metas': {
+                'name': name,
+            },
+        }
+        f.write(yaml.safe_dump(config_dict, sort_keys=False))
+
+    args_list = [
+        tmpdir,
+        '--tag',
+        tag,
+        '--secret',
+        'somesecret',
+        '--public',
+        # '--no-usage',
+    ]
+    if verbose:
+        args_list.append('--verbose')
+
+    args = set_hub_push_parser().parse_args(args_list)
+
+    if hubble_exists(name):
+        args.force_update = name
+
+    return HubIO(args).push().get('id')
+
+
 @dataclass
 class Defaults:
     instance: str = 'C2'
@@ -136,17 +228,18 @@ class Defaults:
             )
 
 
-def gateway_config_yaml_path() -> str:
+def get_gateway_config_yaml_path() -> str:
     return os.path.join(os.path.dirname(__file__), ServingGatewayConfigFile)
 
 
-def gateway_docker_image() -> str:
-    return 'docker://jinawolf/12345-gateway:latest'
+def get_gateway_uses(id: str) -> str:
+    return f'jinahub+docker://{id}'
 
 
-def get_global_jcloud_args() -> Dict:
+def get_global_jcloud_args(name: str = 'langchain') -> Dict:
     return {
         'jcloud': {
+            'name': name,
             'label': {
                 'app': 'langchain',
             },
@@ -226,48 +319,47 @@ def get_dummy_executor_args() -> Dict:
 
 
 def get_flow_dict(
-    mods: Union[str, List[str]],
+    module: Union[str, List[str]],
     jcloud: bool = False,
     port: int = 8080,
+    name: str = 'langchain',
+    gateway_id: str = None,
 ) -> Dict:
-    if isinstance(mods, str):
-        mods = [mods]
+    if isinstance(module, str):
+        module = [module]
 
-    flow_dict = {
+    uses = get_gateway_uses(gateway_id) if jcloud else get_gateway_config_yaml_path()
+    return {
         'jtype': 'Flow',
         **(get_with_args_for_jcloud() if jcloud else {}),
         'gateway': {
-            'uses': gateway_docker_image() if jcloud else gateway_config_yaml_path(),
+            'uses': uses,
             'uses_with': {
-                'modules': mods,
+                'modules': module,
             },
             'port': [port],
             'protocol': ['http'],
             **(get_gateway_jcloud_args() if jcloud else {}),
         },
-        **(get_global_jcloud_args() if jcloud else {}),
+        **(get_global_jcloud_args(name) if jcloud else {}),
         **(get_dummy_executor_args() if jcloud else {}),
     }
-    return flow_dict
 
 
 def get_flow_yaml(
-    mods: Union[str, List[str]],
+    module: Union[str, List[str]],
     jcloud: bool = False,
     port: int = 8080,
+    name: str = 'lc',
 ) -> str:
-    return yaml.safe_dump(get_flow_dict(mods, jcloud, port), sort_keys=False)
+    return yaml.safe_dump(get_flow_dict(module, jcloud, port, name), sort_keys=False)
 
 
-def serve_on_jcloud(flow_dict: Dict):
+def deploy_app_on_jcloud(flow_dict: Dict):
     with tempfile.TemporaryDirectory() as tmpdir:
         flow_path = os.path.join(tmpdir, 'flow.yml')
         with open(flow_path, 'w') as f:
             yaml.safe_dump(flow_dict, f, sort_keys=False)
-
-        print(f'Flow YAML written to {os.path.join(tmpdir, "flow.yml")}')
-        with open(flow_path, 'r') as f:
-            print(f.read())
 
         flow = CloudFlow(path=flow_path).__enter__()
         print(f'Flow deployed with endpoint: {flow.endpoints}')
