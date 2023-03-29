@@ -3,6 +3,7 @@ from typing import List, Union
 import click
 from jina import Flow
 
+from .backend.playground.utils.helper import get_random_tag
 from .flow import (
     APP_NAME,
     deploy_app_on_jcloud,
@@ -25,14 +26,15 @@ def serve_on_jcloud(
     app_id: str = None,
     verbose: bool = False,
 ):
-    gateway_id = push_app_to_hubble(module, name, 'latest', verbose=verbose)
+    tag = get_random_tag()
+    gateway_id_wo_tag = push_app_to_hubble(module, name, tag, verbose=verbose)
     app_id, endpoint = deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
             module,
             jcloud=True,
             port=8080,
             name=name,
-            gateway_id=gateway_id,
+            gateway_id=gateway_id_wo_tag + ':' + tag,
         ),
         app_id=app_id,
     )

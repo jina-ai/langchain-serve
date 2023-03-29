@@ -133,5 +133,5 @@ def run_cmd(command, std_output=False, wait=True):
         return output, error
 
 
-def get_random_name():
-    return 'lc-' + uuid.uuid4().hex[:6]
+def get_random_tag():
+    return 'lc-' + uuid.uuid4().hex[:5]
