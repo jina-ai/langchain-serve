@@ -1,4 +1,6 @@
 jina
 click
 jcloud
+requests
 langchain
+jina-hubble-sdk
