@@ -3,7 +3,6 @@ from typing import List, Union
 import click
 from jcloud.constants import Phase
 from jina import Flow
-from rich import print
 
 from .flow import (
     APP_NAME,
@@ -21,6 +20,7 @@ from .flow import (
 def serve_locally(module: Union[str, List[str]], port: int = 8080):
     f_yaml = get_flow_yaml(module, jcloud=False, port=port)
     with Flow.load_config(f_yaml) as f:
+        # TODO: add local description
         f.block()
 
 
@@ -33,8 +33,8 @@ async def serve_on_jcloud(
     from .backend.playground.utils.helper import get_random_tag
 
     tag = get_random_tag()
-    gateway_id_wo_tag = push_app_to_hubble(module, name, tag, verbose=verbose)
-    app_id, endpoint = deploy_app_on_jcloud(
+    gateway_id_wo_tag = push_app_to_hubble(module, tag=tag, verbose=verbose)
+    app_id, endpoint = await deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
             module,
             jcloud=True,

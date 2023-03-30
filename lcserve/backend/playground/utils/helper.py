@@ -139,4 +139,8 @@ def run_cmd(command, std_output=False, wait=True):
 
 
 def get_random_tag():
-    return 'lc-' + uuid.uuid4().hex[:5]
+    return 't-' + uuid.uuid4().hex[:5]
+
+
+def get_random_name():
+    return 'n-' + uuid.uuid4().hex[:5]

@@ -147,12 +147,13 @@ def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
 
 def push_app_to_hubble(
     mod: str,
-    name: str,
     tag: str = 'latest',
     verbose: Optional[bool] = False,
 ) -> str:
     from hubble.executor.hubio import HubIO
     from hubble.executor.parsers import set_hub_push_parser
+
+    from .backend.playground.utils.helper import get_random_name
 
     try:
         sys.path.append(os.getcwd())
@@ -181,6 +182,7 @@ def push_app_to_hubble(
         os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
     )
 
+    name = get_random_name()
     # Create the Dockerfile
     with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
         dockerfile = [
@@ -210,6 +212,7 @@ def push_app_to_hubble(
         'somesecret',
         '--public',
         '--no-usage',
+        '--no-cache',
     ]
     if verbose:
         args_list.remove('--no-usage')
@@ -387,13 +390,11 @@ async def deploy_app_on_jcloud(
 
         if app_id is None:  # appid is None means we are deploying a new app
             jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
-            print(f'Flow deployed with endpoint: {jcloud_flow.endpoints}')
             app_id = jcloud_flow.flow_id
 
         else:  # appid is not None means we are updating an existing app
             jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
             await jcloud_flow.update()
-            print(f'Flow updated with endpoint: {jcloud_flow.endpoints}')
 
         for k, v in jcloud_flow.endpoints.items():
             if k.lower() == 'gateway (http)':
