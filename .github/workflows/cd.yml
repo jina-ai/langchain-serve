@@ -25,3 +25,6 @@ jobs:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
           JINA_SLACK_WEBHOOK: ${{ secrets.JINA_SLACK_WEBHOOK }}
+      - name: Setup tmate session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
