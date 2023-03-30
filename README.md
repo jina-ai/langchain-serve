@@ -26,7 +26,6 @@
 
 - [ ] 🔑 Authorize API endpoints
 - [ ] 🛠️ Enable Streamlit playground deployment for your apps
-- [ ] 📄 Agent examples on Jina AI Cloud with vector stores
 
 
 If you have any feature requests or faced any issue, please [let us know](https://github.com/jina-ai/langchain-serve/issues/new)!
