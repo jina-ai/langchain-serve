@@ -2,7 +2,7 @@
 
 [Jina](https://github.com/jina-ai/jina) is an open-source framework to build, deploy & manage machine learning applications at scale. [LangChain](https://python.langchain.com/en/latest/index.html) is another open-source framework for building applications powered by language models. 
 
-`langchain-serve` helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development.
+**langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development.
 
 
 #### 🎉 To production in 4 simple steps
@@ -262,10 +262,14 @@ curl -X 'POST' \
 
 ### Step 4:
 
-**Run `lc-serve deploy cloud app` to deploy your API to Jina AI Cloud.**
+**Run `lc-serve deploy jcloud app` to deploy your API to Jina AI Cloud.**
 
 ```bash
-lc-serve deploy cloud app
+# Login to Jina AI Cloud
+jina auth login
+
+# Deploy your app to Jina AI Cloud
+lc-serve deploy jcloud app
 ```
 
 <details>
@@ -364,6 +368,24 @@ curl -X 'POST' \
 
 
 📣 Got your attention? [Join us on Slack](https://jina.ai/slack/) and we'd be happy to help you out.
+
+---
+
+
+### `lc-serve`
+
+`lc-serve` is a CLI tool that helps you to deploy your agents on Jina AI Cloud.
+
+
+| Description | Command | 
+| --- | ---: |
+| Deploy your app locally | `lc-serve deploy local app` |
+| Deploy your app on Jina AI Cloud | `lc-serve deploy jcloud app` |
+| Update existing app on Jina AI Cloud | `lc-serve deploy jcloud app --app-id <app-id>` |
+| Get app status on Jina AI Cloud | `lc-serve status <app-id>` |
+| List all apps on Jina AI Cloud | `lc-serve list` |
+| Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
+
 
 ---
 
