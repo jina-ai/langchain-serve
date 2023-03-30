@@ -1,8 +1,10 @@
+import asyncio
 import os
 import sys
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
+from functools import wraps
 from http import HTTPStatus
 from importlib import import_module
 from shutil import copytree
@@ -12,28 +14,25 @@ from typing import Dict, List, Optional, Tuple, Union
 import requests
 import yaml
 from docarray import Document, DocumentArray
-from hubble.executor.hubio import HubIO
-from hubble.executor.parsers import set_hub_push_parser
-from jcloud.flow import CloudFlow
 from jina import Flow
-
-from .backend.gateway import PlaygroundGateway
-from .backend.playground.utils.helper import (
-    AGENT_OUTPUT,
-    DEFAULT_KEY,
-    RESULT,
-    asyncio_run,
-    asyncio_run_property,
-    parse_uses_with,
-)
 
 APP_NAME = 'langchain'
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
 
 
+def syncify(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+
+    return wrapper
+
+
 @contextmanager
 def StartFlow(protocol, uses, uses_with: Dict = None, port=12345):
+    from .backend.playground.utils.helper import parse_uses_with
+
     with Flow(port=port, protocol=protocol).add(
         uses=uses,
         uses_with=parse_uses_with(uses_with) if uses_with else None,
@@ -45,6 +44,9 @@ def StartFlow(protocol, uses, uses_with: Dict = None, port=12345):
 
 @contextmanager
 def StartFlowWithPlayground(protocol, uses, uses_with: Dict = None, port=12345):
+    from .backend.gateway import PlaygroundGateway
+    from .backend.playground.utils.helper import parse_uses_with
+
     with (
         Flow(port=port)
         .config_gateway(uses=PlaygroundGateway, protocol=protocol)
@@ -73,6 +75,8 @@ def ServeWebSocket(uses, uses_with: Dict = None, port=12345):
 def Interact(host, inputs: Union[str, Dict], output_key='text'):
     from jina import Client
 
+    from .backend.playground.utils.helper import DEFAULT_KEY, RESULT
+
     if isinstance(inputs, str):
         inputs = {DEFAULT_KEY: inputs}
 
@@ -97,6 +101,13 @@ def InteractWithAgent(
     host: str, inputs: str, parameters: Dict, envs: Dict = {}
 ) -> Union[str, Tuple[str, str]]:
     from jina import Client
+
+    from .backend.playground.utils.helper import (
+        AGENT_OUTPUT,
+        DEFAULT_KEY,
+        RESULT,
+        parse_uses_with,
+    )
 
     _parameters = parse_uses_with(parameters)
     if envs and 'env' in _parameters:
@@ -140,6 +151,9 @@ def push_app_to_hubble(
     tag: str = 'latest',
     verbose: Optional[bool] = False,
 ) -> str:
+    from hubble.executor.hubio import HubIO
+    from hubble.executor.parsers import set_hub_push_parser
+
     try:
         sys.path.append(os.getcwd())
         file = import_module(mod).__file__
@@ -195,9 +209,10 @@ def push_app_to_hubble(
         '--secret',
         'somesecret',
         '--public',
-        # '--no-usage',
+        '--no-usage',
     ]
     if verbose:
+        args_list.remove('--no-usage')
         args_list.append('--verbose')
 
     args = set_hub_push_parser().parse_args(args_list)
@@ -240,6 +255,10 @@ def get_gateway_uses(id: str) -> str:
 
 
 def get_existing_name(app_id: str) -> str:
+    from jcloud.flow import CloudFlow
+
+    from .backend.playground.utils.helper import asyncio_run_property
+
     flow_obj = asyncio_run_property(CloudFlow(flow_id=app_id).status)
     if (
         'spec' in flow_obj
@@ -258,7 +277,7 @@ def get_global_jcloud_args(app_id: str = None, name: str = APP_NAME) -> Dict:
     return {
         'jcloud': {
             'name': name,
-            'label': {
+            'labels': {
                 'app': APP_NAME,
             },
             'monitor': {
@@ -314,28 +333,6 @@ def get_gateway_jcloud_args(
     }
 
 
-def get_dummy_executor_args() -> Dict:
-    # Because jcloud doesn't support deploying Flows without Executors
-    return {
-        'executors': [
-            {
-                'uses': 'jinahub+docker://Sentencizer',
-                'name': 'sentencizer',
-                'jcloud': {
-                    'expose': False,
-                    'resources': {
-                        'capacity': 'spot',
-                    },
-                    'autoscale': {
-                        'min': 0,
-                        'max': 1,
-                    },
-                },
-            }
-        ]
-    }
-
-
 def get_flow_dict(
     module: Union[str, List[str]],
     jcloud: bool = False,
@@ -361,7 +358,6 @@ def get_flow_dict(
             **(get_gateway_jcloud_args() if jcloud else {}),
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
-        **(get_dummy_executor_args() if jcloud else {}),
     }
 
 
@@ -377,20 +373,26 @@ def get_flow_yaml(
     )
 
 
-def deploy_app_on_jcloud(flow_dict: Dict, app_id: str = None) -> Tuple[str, str]:
+async def deploy_app_on_jcloud(
+    flow_dict: Dict, app_id: str = None, verbose: bool = False
+) -> Tuple[str, str]:
+    os.environ['JCLOUD_LOGLEVEL'] = 'INFO' if verbose else 'ERROR'
+
+    from jcloud.flow import CloudFlow
+
     with tempfile.TemporaryDirectory() as tmpdir:
         flow_path = os.path.join(tmpdir, 'flow.yml')
         with open(flow_path, 'w') as f:
             yaml.safe_dump(flow_dict, f, sort_keys=False)
 
         if app_id is None:  # appid is None means we are deploying a new app
-            jcloud_flow = CloudFlow(path=flow_path).__enter__()
+            jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
             print(f'Flow deployed with endpoint: {jcloud_flow.endpoints}')
             app_id = jcloud_flow.flow_id
 
         else:  # appid is not None means we are updating an existing app
             jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
-            asyncio_run(jcloud_flow.update)
+            await jcloud_flow.update()
             print(f'Flow updated with endpoint: {jcloud_flow.endpoints}')
 
         for k, v in jcloud_flow.endpoints.items():
@@ -398,3 +400,92 @@ def deploy_app_on_jcloud(flow_dict: Dict, app_id: str = None) -> Tuple[str, str]
                 return app_id, v
 
     return None, None
+
+
+async def get_app_status_on_jcloud(app_id: str):
+    from jcloud.flow import CloudFlow
+    from rich import box
+    from rich.align import Align
+    from rich.console import Console
+    from rich.table import Table
+
+    _t = Table(
+        'Attribute',
+        'Value',
+        show_header=False,
+        box=box.ROUNDED,
+        highlight=True,
+        show_lines=True,
+    )
+
+    def _add_row(
+        key,
+        value,
+        bold_key: bool = False,
+        bold_value: bool = False,
+        center_align: bool = True,
+    ):
+        return _t.add_row(
+            Align(f'[bold]{key}' if bold_key else key, vertical='middle'),
+            Align(f'[bold]{value}[/bold]' if bold_value else value, align='center')
+            if center_align
+            else value,
+        )
+
+    console = Console()
+    with console.status(f'[bold]Getting app status for [green]{app_id}[/green]'):
+        flow_status = await CloudFlow(flow_id=app_id).status
+        if 'status' not in flow_status:
+            return
+
+        status: Dict = flow_status['status']
+        endpoint = status.get('endpoints', {}).get('gateway (http)', '')
+        _add_row('AppID', app_id, bold_key=True, bold_value=True)
+        _add_row('Phase', status.get('phase', ''))
+        _add_row('Endpoint', endpoint)
+        _add_row('Swagger UI', f'{endpoint}/docs')
+        _add_row('OpenAPI JSON', f'{endpoint}/openapi.json')
+        console.print(_t)
+
+
+async def list_apps_on_jcloud(phase: str, name: str):
+    from jcloud.flow import CloudFlow
+    from jcloud.helper import cleanup_dt, get_phase_from_response
+    from rich import box, print
+    from rich.console import Console
+    from rich.table import Table
+
+    _t = Table(
+        'AppID',
+        'Phase',
+        'Endpoint',
+        'Created',
+        box=box.ROUNDED,
+        highlight=True,
+    )
+
+    console = Console()
+    with console.status(f'[bold]Listing all apps'):
+        all_apps = await CloudFlow().list_all(
+            phase=phase, name=name, labels=f'app={APP_NAME}'
+        )
+        if not all_apps:
+            print('No apps found')
+            return
+
+        for app in all_apps['flows']:
+            _t.add_row(
+                app['id'],
+                get_phase_from_response(app),
+                app.get('status', {}).get('endpoints', {}).get('gateway (http)', ''),
+                cleanup_dt(app['ctime']),
+            )
+        console.print(_t)
+
+
+async def remove_app_on_jcloud(app_id: str) -> None:
+    from jcloud.flow import CloudFlow
+    from rich import print
+
+    await CloudFlow(flow_id=app_id).__aexit__()
+    print(f'App [bold][green]{app_id}[/green][/bold] removed successfully!')

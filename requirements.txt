@@ -1,4 +1,4 @@
-jina
+jina==3.14.1
 click
 jcloud
 requests
