@@ -219,6 +219,7 @@ Let's open the [Swagger UI](http://localhost:8080/docs) to test our API locally.
 
 <details>
 <summary>Show Swagger UI</summary>
+
 ![Local Swagger UI](.github/images/local-swagger-ui.png)
 
 </details>
@@ -347,6 +348,10 @@ curl -X 'POST' \
 - In a matter of few seconds, we've deployed our API on Jina AI Cloud 🎉
 - The API is serverless and scalable, so we can scale up the API to handle more requests. 
 - You might observe a delay in the first request, that's due to the warm-up time of the API. Subsequent requests will be faster.
+- The API includes a Swagger UI and the OpenAPI specification, so it can be easily integrated with other services. 
+- Now, other agents can integrate with your agents on Jina AI Cloud thanks to the [OpenAPI Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/openapi.html) 💡
+
+
 
 ---
 
@@ -358,7 +363,7 @@ curl -X 'POST' \
 - Do you want to setup custom authorization for your API?
 
 
-📣 Got your attention? [Join us on Slack](https://jina.ai/contact) and we'd be happy to help you out.
+📣 Got your attention? [Join us on Slack](https://jina.ai/slack/) and we'd be happy to help you out.
 
 ---
 
