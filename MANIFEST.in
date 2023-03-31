@@ -1,0 +1,7 @@
+recursive-include lcserve/ *
+global-exclude __pycache__/*
+include LICENSE
+prune test/
+prune **/tests/
+include requirements.txt
+recursive-include */*-requirements.txt

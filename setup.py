@@ -49,7 +49,7 @@ setup(
     packages=find_packages(),
     version=__version__,
     include_package_data=True,
-    description='Langchain Serve - serve your langchain agents on Jina AI Cloud.',
+    description='Langchain Serve - serve your langchain apps on Jina AI Cloud.',
     author='Jina AI',
     author_email='hello@jina.ai',
     license='Apache 2.0',
@@ -86,5 +86,5 @@ setup(
         'Source': 'https://github.com/jina-ai/now',
         'Tracker': 'https://github.com/jina-ai/now/issues',
     },
-    keywords='jina neural-search neural-network deep-learning now private data democratization',
+    keywords='jina langchain llm neural-network deep-learning data democratization',
 )
