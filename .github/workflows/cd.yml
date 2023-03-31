@@ -18,17 +18,10 @@ jobs:
           fetch-depth: 100
       - name: Pre-release (.devN)
         run: |
-          echo "Before get fetch"
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "After get fetch"
           pip install twine wheel
-          echo "After pip install"
           ./scripts/release.sh
-          echo "After release"
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
           JINA_SLACK_WEBHOOK: ${{ secrets.JINA_SLACK_WEBHOOK }}
-      - name: Setup tmate session
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
