@@ -16,7 +16,7 @@ def get_requirements_list(f):
 
 
 if sys.version_info < (3, 7, 0):
-    raise OSError(f'Jina NOW requires Python >=3.7, but yours is {sys.version}')
+    raise OSError(f'langchain-serve requires Python >=3.7, but yours is {sys.version}')
 
 try:
     pkg_name = 'langchain-serve'
@@ -35,9 +35,12 @@ try:
 except FileNotFoundError:
     _long_description = ''
 
+import os
 import pathlib
 
-install_requires = get_requirements_list('requirements.txt')
+install_requires = get_requirements_list(
+    os.path.join(os.path.dirname(__file__), 'requirements.txt')
+)
 sys_platform = platform.system().lower()
 
 
