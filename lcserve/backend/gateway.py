@@ -8,16 +8,12 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 
-import streamlit.web.bootstrap
 from docarray import Document, DocumentArray
-from fastapi import Body, FastAPI
 from jina import Gateway
 from jina.enums import GatewayProtocolType
 from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from pydantic import create_model
-from streamlit.file_util import get_streamlit_file_path
-from streamlit.web.server import Server as StreamlitServer
 
 from .playground.utils.helper import (
     AGENT_OUTPUT,
@@ -38,6 +34,8 @@ cur_dir = os.path.dirname(__file__)
 
 class PlaygroundGateway(Gateway):
     def __init__(self, **kwargs):
+        from streamlit.file_util import get_streamlit_file_path
+
         super().__init__(**kwargs)
         self.streamlit_script = 'playground/app.py'
         # copy playground/config.toml to streamlit config.toml
@@ -48,6 +46,9 @@ class PlaygroundGateway(Gateway):
         shutil.copyfile(streamlit_config_toml_src, streamlit_config_toml_dest)
 
     async def setup_server(self):
+        import streamlit.web.bootstrap
+        from streamlit.web.server import Server as StreamlitServer
+
         streamlit.web.bootstrap._fix_sys_path(self.streamlit_script)
         streamlit.web.bootstrap._fix_sys_path(os.path.join(cur_dir, 'playground'))
         streamlit.web.bootstrap._fix_matplotlib_crash()
@@ -60,6 +61,8 @@ class PlaygroundGateway(Gateway):
         )
 
     async def run_server(self):
+        import streamlit.web.bootstrap
+
         await self.streamlit_server.start()
         streamlit.web.bootstrap._on_server_start(self.streamlit_server)
         streamlit.web.bootstrap._set_up_signal_handler(self.streamlit_server)
@@ -71,6 +74,8 @@ class PlaygroundGateway(Gateway):
 class LangchainFastAPIGateway(FastAPIBaseGateway):
     @property
     def app(self):
+        from fastapi import Body, FastAPI
+
         app = FastAPI()
 
         @app.post("/run")
@@ -234,6 +239,8 @@ class LangchainAgentGateway(CompositeGateway):
 
 class ServingGateway(FastAPIBaseGateway):
     def __init__(self, modules: Tuple[str] = (), *args, **kwargs):
+        from fastapi import FastAPI
+
         super().__init__(*args, **kwargs)
         self.logger.debug(f'Loading modules/files: {",".join(modules)}')
         self._fix_sys_path()
