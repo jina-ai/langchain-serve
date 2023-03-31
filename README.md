@@ -10,7 +10,7 @@
   1. Refactor your code to function(s) that should be served with `@serving` decorator.
   1. Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.
   1. Run `lc-serve deploy local app` to test your API locally.
-  1. Run `lc-serve deploy jcloud app` to deploy on Jina AI Cloud.
+  1. Run `lc-serve deploy jcloud app` to deploy on [Jina AI Cloud](https://jina.ai/product/cloud/).
 
 
 #### 🔥 Scalable, Serverless RESTful APIs on Jina AI Cloud
