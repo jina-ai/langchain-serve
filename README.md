@@ -234,7 +234,7 @@ curl -X 'POST' \
   "input": "How many people live in canada as of 2023?",
   "envs": {
     "OPENAI_API_KEY": "'"${OPENAI_API_KEY}"'",
-    "SERPAPI_API_KEY": "'"${OPENAI_API_KEY}"'"
+    "SERPAPI_API_KEY": "'"${SERPAPI_API_KEY}"'"
   }
 }'
 ```
@@ -321,10 +321,10 @@ Let's open the Swagger UI to test our API on Jina AI Cloud. With `Try it out` bu
 </details>
 
 
-Let's test the API on JCloud with `How many people live in canada as of 2023?` input with a cURL command.
+Let's test the API on JCloud with `How many people live in canada as of 2023?` input with a cURL command (Replace the Hostname with your own hostname):
 
 ```bash
-curl -X 'POST' \                             
+curl -X 'POST' \
   'https://langchain-ee4aef57d9-http.wolf.jina.ai/ask' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
@@ -332,10 +332,9 @@ curl -X 'POST' \
   "input": "How many people live in canada as of 2023?",
   "envs": {
     "OPENAI_API_KEY": "'"${OPENAI_API_KEY}"'",
-    "SERPAPI_API_KEY": "'"${OPENAI_API_KEY}"'"
+    "SERPAPI_API_KEY": "'"${SERPAPI_API_KEY}"'"
   }
-}' 
-
+}'
 ```
 
 ```json
