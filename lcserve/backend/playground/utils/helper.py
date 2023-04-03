@@ -1,11 +1,14 @@
 import asyncio
 import os
 import subprocess
+import sys
 import threading
 import uuid
 from collections import defaultdict
+from io import StringIO
 from typing import Any, Dict, List, Union
 
+import nest_asyncio
 from pydantic import BaseModel
 
 CLS = 'cls'
@@ -20,8 +23,8 @@ APPDIR = '/appdir'
 LANGCHAIN_API_PORT = os.environ.get('LANGCHAIN_API_PORT', 8080)
 LANGCHAIN_PLAYGROUND_PORT = os.environ.get('LANGCHAIN_PLAYGROUND_PORT', 8501)
 
-import sys
-from io import StringIO
+
+nest_asyncio.apply()
 
 
 def get_or_create_eventloop():
