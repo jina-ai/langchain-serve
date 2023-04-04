@@ -334,7 +334,14 @@ def get_with_args_for_jcloud() -> Dict:
 def get_gateway_jcloud_args(
     instance: str = Defaults.instance,
     autoscale: AutoscaleConfig = AutoscaleConfig(),
+    websocket: bool = False,
 ) -> Dict:
+    _autoscale_args = autoscale.to_dict() if autoscale else {}
+    if (
+        websocket
+    ):  # # TODO: remove this when websocket + autoscale is supported in JCloud
+        _autoscale_args = {}
+
     return {
         'jcloud': {
             'expose': True,
@@ -342,7 +349,8 @@ def get_gateway_jcloud_args(
                 'instance': instance,
                 'capacity': 'spot',
             },
-            **(autoscale.to_dict() if autoscale else {}),
+            'healthcheck': False if websocket else True,
+            **_autoscale_args,
         }
     }
 
@@ -360,13 +368,6 @@ def get_flow_dict(
         module = [module]
 
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
-
-    gateway_jcloud_args = {}
-    if jcloud:
-        gateway_jcloud_args = get_gateway_jcloud_args()
-    if websocket:  # TODO: remove this when websocket + autoscale is supported in JCloud
-        gateway_jcloud_args = {}
-
     return {
         'jtype': 'Flow',
         **(get_with_args_for_jcloud() if jcloud else {}),
@@ -377,7 +378,7 @@ def get_flow_dict(
             },
             'port': [port],
             'protocol': ['websocket'] if websocket else ['http'],
-            **gateway_jcloud_args,
+            **(get_gateway_jcloud_args(websocket=websocket) if jcloud else {}),
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
