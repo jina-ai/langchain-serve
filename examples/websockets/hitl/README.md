@@ -4,10 +4,19 @@ This directory contains 2 files
 
 ##### `hitl.py` 
 
-- This defines a function `hitl` decorated with `@serving` with `websocket=True`.
-- Accepts `streaming_handler` from kwargs and passes it to `ChatOpenAI` and `OpenAI` callback managers. This handler is responsible to stream the response to the client.
-- Returns `agent.run` output which is a `str`.
+1. Defines a function `hitl` decorated with `@serving` with `websocket=True`.
 
+https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L11-L12
+
+2. Accepts `streaming_handler` from kwargs and passes it to `ChatOpenAI` and `OpenAI` callback managers. This handler is responsible to stream the response to the client.
+
+https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L19-L22
+
+https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L26-L30
+
+3. Returns `agent.run` output which is a `str`.
+
+https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L43
 
 ##### `hitl_client.py`
 
