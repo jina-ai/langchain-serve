@@ -419,7 +419,7 @@ async def deploy_app_on_jcloud(
             await jcloud_flow.update()
 
         for k, v in jcloud_flow.endpoints.items():
-            if k.lower() == 'gateway (http)':
+            if k.lower() == 'gateway (http)' or k.lower() == 'gateway (websocket)':
                 return app_id, v
 
     return None, None
@@ -457,17 +457,27 @@ async def get_app_status_on_jcloud(app_id: str):
 
     console = Console()
     with console.status(f'[bold]Getting app status for [green]{app_id}[/green]'):
-        flow_status = await CloudFlow(flow_id=app_id).status
-        if 'status' not in flow_status:
+        app_status = await CloudFlow(flow_id=app_id).status
+        if app_status is None:
             return
 
-        status: Dict = flow_status['status']
-        endpoint = status.get('endpoints', {}).get('gateway (http)', '')
+        if 'status' not in app_status:
+            return
+
+        def _get_endpoint(app):
+            endpoints = app.get('endpoints', {})
+            return list(endpoints.values())[0] if endpoints else ''
+
+        def _replace_wss_with_https(endpoint: str):
+            return endpoint.replace('wss://', 'https://')
+
+        status: Dict = app_status['status']
+        endpoint = _get_endpoint(status)
         _add_row('AppID', app_id, bold_key=True, bold_value=True)
         _add_row('Phase', status.get('phase', ''))
         _add_row('Endpoint', endpoint)
-        _add_row('Swagger UI', f'{endpoint}/docs')
-        _add_row('OpenAPI JSON', f'{endpoint}/openapi.json')
+        _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
+        _add_row('OpenAPI JSON', _replace_wss_with_https(f'{endpoint}/openapi.json'))
         console.print(_t)
 
 
