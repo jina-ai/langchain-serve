@@ -23,7 +23,7 @@ This directory contains 3 files
 
 #### `requirements.txt`
 
-- Contains the dependencies for the `hitl` endpoint.
+Contains the dependencies for the `hitl` endpoint.
 
 ---
 
@@ -36,9 +36,9 @@ A simple client
 
 ```json
 {
-    "question": question, 
+    "question": "${question}", 
     "envs": {
-        "OPENAI_API_KEY": OPENAI_API_KEY
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
     }
 }
 ```
