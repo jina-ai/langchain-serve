@@ -34,6 +34,22 @@ Contains the dependencies for the `hitl` endpoint.
 lc-serve deploy jcloud hitl
 ```
 
+```text
+╭──────────────┬──────────────────────────────────────────────────────────────────╮
+│ AppID        │                       langchain-1da55ad36a                       │
+├──────────────┼──────────────────────────────────────────────────────────────────┤
+│ Phase        │                             Serving                              │
+├──────────────┼──────────────────────────────────────────────────────────────────┤
+│ Endpoint     │        wss://langchain-1da55ad36a-websocket.wolf.jina.ai         │
+├──────────────┼──────────────────────────────────────────────────────────────────┤
+│ Swagger UI   │     https://langchain-1da55ad36a-websocket.wolf.jina.ai/docs     │
+├──────────────┼──────────────────────────────────────────────────────────────────┤
+│ OpenAPI JSON │ https://langchain-1da55ad36a-websocket.wolf.jina.ai/openapi.json │
+╰──────────────┴──────────────────────────────────────────────────────────────────╯
+```
+
+---
+
 
 
 #### `hitl_client.py`
