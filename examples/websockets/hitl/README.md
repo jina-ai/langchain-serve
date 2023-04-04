@@ -34,14 +34,14 @@ A simple client
 
 1. Connects to the websocket server and sends the following to the `hitl` endpoint.
 
-```json
-{
-    "question": "${question}", 
-    "envs": {
-        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+    ```json
+    {
+        "question": "${question}", 
+        "envs": {
+            "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+        }
     }
-}
-```
+    ```
 
     https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L24-L29
 
@@ -51,11 +51,11 @@ A simple client
 
 3. When it receives a response in the following format, it asks the prompt to the user using the client and waits for the user to input the answer. (This is how human is brought into the loop). Next, this answer is then sent to the server.
 
-```json
-{
-    "prompt": prompt
-}
-```
+    ```json
+    {
+        "prompt": "$prompt"
+    }
+    ```
 
     https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L42-L44
 
