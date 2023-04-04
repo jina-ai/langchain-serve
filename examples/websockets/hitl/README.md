@@ -28,6 +28,14 @@ Contains the dependencies for the `hitl` endpoint.
 ---
 
 
+#### Deploy using `lc-serve`
+
+```bash
+lc-serve deploy jcloud hitl
+```
+
+
+
 #### `hitl_client.py`
 
 A simple client
