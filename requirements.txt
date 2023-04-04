@@ -4,3 +4,4 @@ jcloud>=0.2.6
 requests
 langchain
 jina-hubble-sdk
+nest-asyncio

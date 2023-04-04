@@ -279,13 +279,29 @@ class ServingGateway(FastAPIBaseGateway):
             sys.path.append(APPDIR)
 
     def _register_healthz(self):
-        @self._app.get("/healthz")
+        @self.app.get("/healthz")
         async def __healthz():
             return {'status': 'ok'}
 
-        @self._app.get("/dry_run")
+        @self.app.get("/dry_run")
         async def __dry_run():
             return {'status': 'ok'}
+
+    def _update_dry_run_with_ws(self):
+        """Update the dry_run endpoint to a websocket endpoint"""
+        from fastapi import WebSocket
+        from fastapi.routing import APIRoute
+
+        for route in self.app.routes:
+            if route.path == '/dry_run' and isinstance(route, APIRoute):
+                self.app.routes.remove(route)
+                break
+
+        @self.app.websocket("/dry_run")
+        async def __dry_run(websocket: WebSocket):
+            await websocket.accept()
+            await websocket.send_json({'status': 'ok'})
+            await websocket.close()
 
     def _register_mod(self, mod: str):
         try:
@@ -366,6 +382,8 @@ class ServingGateway(FastAPIBaseGateway):
                     _return, '__next__'
                 ):  # if a Generator, return the first type
                     return _return.__next__.__annotations__['return']
+                elif _return is None:
+                    return str
                 else:
                     return _return
             else:
@@ -427,13 +445,16 @@ class ServingGateway(FastAPIBaseGateway):
 
         elif route_type == RouteType.WEBSOCKET:
             self.logger.info(f'Registering Websocket route: {func.__name__}')
+            self._update_dry_run_with_ws()
 
             @self.app.websocket(path=f'/{func.__name__}', name=_name)
             async def _create_ws_route(websocket: WebSocket):
                 import builtins
 
                 # replace input with a websocket input to support human-in-the-loop
-                builtins.input = InputWrapper(websocket)
+                builtins.input = InputWrapper(
+                    websocket=websocket, recv_lock=_ws_recv_lock
+                )
 
                 await websocket.accept()
                 try:
@@ -488,12 +509,6 @@ class ServingGateway(FastAPIBaseGateway):
                                         )
                                         await websocket.send_text(_data.json())
 
-                                    # Once the generator is exhausted, send a close message
-                                    self.logger.info(
-                                        f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
-                                    )
-                                    await websocket.close()
-                                    break
                                 else:
                                     # If the function is not a generator, we send the result back to the client.
                                     _data = output_model(
@@ -501,6 +516,13 @@ class ServingGateway(FastAPIBaseGateway):
                                         error=_ws_serving_error,
                                     )
                                     await websocket.send_text(_data.json())
+
+                                # Once the generator is exhausted/ function call is completed, send a close message
+                                self.logger.info(
+                                    f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
+                                )
+                                await websocket.close()
+                                break
 
                             except Exception as e:
                                 self.logger.error(f'Got an exception: {e}')

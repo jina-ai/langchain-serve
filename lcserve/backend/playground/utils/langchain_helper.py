@@ -1,12 +1,9 @@
 import asyncio
-from typing import TYPE_CHECKING
 
-from pydantic import BaseModel
-
-if TYPE_CHECKING:
-    from fastapi import WebSocket
-
+from fastapi import WebSocket
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.tools.human.tool import HumanInputRun
+from pydantic import BaseModel, Extra
 
 
 class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
