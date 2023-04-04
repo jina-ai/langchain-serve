@@ -1,8 +1,10 @@
+import asyncio
 import inspect
 import os
 import shutil
 import sys
 import time
+from enum import Enum
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
@@ -13,7 +15,7 @@ from jina import Gateway
 from jina.enums import GatewayProtocolType
 from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-from pydantic import create_model
+from pydantic import Field, ValidationError, create_model
 
 from .playground.utils.helper import (
     AGENT_OUTPUT,
@@ -28,8 +30,20 @@ from .playground.utils.helper import (
     parse_uses_with,
     run_cmd,
 )
+from .playground.utils.langchain_helper import (
+    AsyncStreamingWebsocketCallbackHandler,
+    InputWrapper,
+    StreamingWebsocketCallbackHandler,
+)
 
 cur_dir = os.path.dirname(__file__)
+
+
+class RouteType(str, Enum):
+    """RouteType is the type of route"""
+
+    HTTP = 'http'
+    WEBSOCKET = 'websocket'
 
 
 class PlaygroundGateway(Gateway):
@@ -265,20 +279,35 @@ class ServingGateway(FastAPIBaseGateway):
             sys.path.append(APPDIR)
 
     def _register_healthz(self):
-        @self._app.get("/healthz")
+        @self.app.get("/healthz")
         async def __healthz():
             return {'status': 'ok'}
 
-        @self._app.get("/dry_run")
+        @self.app.get("/dry_run")
         async def __dry_run():
             return {'status': 'ok'}
+
+    def _update_dry_run_with_ws(self):
+        """Update the dry_run endpoint to a websocket endpoint"""
+        from fastapi import WebSocket
+        from fastapi.routing import APIRoute
+
+        for route in self.app.routes:
+            if route.path == '/dry_run' and isinstance(route, APIRoute):
+                self.app.routes.remove(route)
+                break
+
+        @self.app.websocket("/dry_run")
+        async def __dry_run(websocket: WebSocket):
+            await websocket.accept()
+            await websocket.send_json({'status': 'ok'})
+            await websocket.close()
 
     def _register_mod(self, mod: str):
         try:
             app_module = import_module(mod)
-            for name, func in inspect.getmembers(app_module, inspect.isfunction):
-                if getattr(func, '__serving__', False):
-                    self._register_route(func)
+            for _, func in inspect.getmembers(app_module, inspect.isfunction):
+                self._register_func(func)
         except ModuleNotFoundError:
             print(f'Unable to import module: {mod}')
 
@@ -287,14 +316,41 @@ class ServingGateway(FastAPIBaseGateway):
             spec = spec_from_file_location(file.stem, file)
             mod = module_from_spec(spec)
             spec.loader.exec_module(mod)
-
-            for name, func in inspect.getmembers(mod, inspect.isfunction):
-                if getattr(func, '__serving__', False):
-                    self._register_route(func)
+            for _, func in inspect.getmembers(mod, inspect.isfunction):
+                self._register_func(func)
         except Exception as e:
             print(f'Unable to import {file}: {e}')
 
-    def _register_route(self, func: Callable, **kwargs):
+    def _register_func(self, func: Callable):
+        if hasattr(func, '__serving__'):
+            self._register_http_route(func)
+        elif hasattr(func, '__ws_serving__'):
+            _decorator_params = getattr(func, '__ws_serving__').get('params', {})
+            if 'include_callback_handlers' in _decorator_params:
+                self._register_ws_route(
+                    func,
+                    include_callback_handlers=_decorator_params[
+                        'include_callback_handlers'
+                    ],
+                )
+            else:
+                self._register_ws_route(func)
+
+    def _register_http_route(self, func: Callable, **kwargs):
+        return self._register_route(func, route_type=RouteType.HTTP, **kwargs)
+
+    def _register_ws_route(self, func: Callable, **kwargs):
+        return self._register_route(func, route_type=RouteType.WEBSOCKET, **kwargs)
+
+    def _register_route(
+        self,
+        func: Callable,
+        route_type: RouteType = RouteType.HTTP,
+        include_callback_handlers: bool = False,
+        **kwargs,
+    ):
+        from fastapi import WebSocket, WebSocketDisconnect
+
         _name = func.__name__.title().replace('_', '')
 
         # check if _name is already registered
@@ -308,17 +364,35 @@ class ServingGateway(FastAPIBaseGateway):
         ]
 
         _input_model_fields = {
-            name: (field_type, ...) for name, field_type in _input_params
+            name: (field_type, ...)
+            for name, field_type in _input_params
+            if name != 'kwargs'
         }
+
+        _ws_recv_lock = asyncio.Lock()
+
+        def _get_result_type():
+            if 'return' in func.__annotations__:
+                _return = func.__annotations__['return']
+                if hasattr(
+                    _return, '__origin__'
+                ):  # if  a Generic, return the first type
+                    return _return.__args__[0]
+                elif hasattr(
+                    _return, '__next__'
+                ):  # if a Generator, return the first type
+                    return _return.__next__.__annotations__['return']
+                elif _return is None:
+                    return str
+                else:
+                    return _return
+            else:
+                return str
+
         _output_model_fields = {
-            'result': (
-                func.__annotations__['return']
-                if 'return' in func.__annotations__
-                else str,
-                ...,
-            ),
+            'result': (_get_result_type(), ...),
             'error': (str, ...),
-            'stdout': (str, ...),
+            'stdout': (str, Field(default='', alias='stdout')),
         }
 
         class Config:
@@ -328,7 +402,7 @@ class ServingGateway(FastAPIBaseGateway):
             f'Input{_name}',
             __config__=Config,
             **_input_model_fields,
-            **{'envs': (Dict[str, str], ...)},
+            **{'envs': (Dict[str, str], Field(default={}, alias='envs'))},
         )
 
         output_model = create_model(
@@ -337,31 +411,124 @@ class ServingGateway(FastAPIBaseGateway):
             **_output_model_fields,
         )
 
-        @self.app.post(
-            path=f'/{func.__name__}',
-            name=_name,
-            description=func.__doc__ or '',
-            tags=[SERVING],
-        )
-        async def _create_route(input_data: input_model) -> output_model:
-            output, error = '', ''
-            envs = {}
-            if hasattr(input_data, 'envs'):
-                envs = input_data.envs
-                del input_data.envs
+        if route_type == RouteType.HTTP:
+            self.logger.info(f'Registering HTTP route: {func.__name__}')
 
-            with EnvironmentVarCtxtManager(envs):
-                with Capturing() as stdout:
-                    try:
-                        output = func(**dict(input_data))
-                    except Exception as e:
-                        print(f'Got an exception: {e}')
-                        error = str(e)
+            @self.app.post(
+                path=f'/{func.__name__}',
+                name=_name,
+                description=func.__doc__ or '',
+                tags=[SERVING],
+            )
+            async def _create_http_route(input_data: input_model) -> output_model:
+                output, error = '', ''
+                _envs = {}
+                if hasattr(input_data, 'envs'):
+                    _envs = input_data.envs
+                    del input_data.envs
 
-                if error != '':
-                    print(f'Error: {error}')
-                return output_model(
-                    result=output,
-                    error=error,
-                    stdout='\n'.join(stdout),
+                with EnvironmentVarCtxtManager(_envs):
+                    with Capturing() as stdout:
+                        try:
+                            output = func(**dict(input_data))
+                        except Exception as e:
+                            self.logger.error(f'Got an exception: {e}')
+                            error = str(e)
+
+                    if error != '':
+                        print(f'Error: {error}')
+                    return output_model(
+                        result=output,
+                        error=error,
+                        stdout='\n'.join(stdout),
+                    )
+
+        elif route_type == RouteType.WEBSOCKET:
+            self.logger.info(f'Registering Websocket route: {func.__name__}')
+            self._update_dry_run_with_ws()
+
+            @self.app.websocket(path=f'/{func.__name__}', name=_name)
+            async def _create_ws_route(websocket: WebSocket):
+                import builtins
+
+                # replace input with a websocket input to support human-in-the-loop
+                builtins.input = InputWrapper(
+                    websocket=websocket, recv_lock=_ws_recv_lock
                 )
+
+                await websocket.accept()
+                try:
+                    while True:
+                        async with _ws_recv_lock:
+                            _data = await websocket.receive_json()
+
+                        try:
+                            _input_data = input_model(**_data)
+                        except ValidationError as e:
+                            self.logger.error(f'Got an exception: {e}')
+                            _ws_serving_error = str(e)
+                            _data = output_model(
+                                result='',
+                                error=_ws_serving_error,
+                            )
+                            await websocket.send_text(_data.json())
+                            continue
+
+                        _returned_data, _ws_serving_error = '', ''
+                        _envs = {}
+                        if hasattr(_input_data, 'envs'):
+                            _envs = _input_data.envs
+                            del _input_data.envs
+
+                        with EnvironmentVarCtxtManager(_envs):
+                            try:
+                                _input_data_dict = dict(_input_data)
+                                # If the function is a streaming response, we pass the callback handler,
+                                # so that stream data can be sent back to the client.
+                                if include_callback_handlers:
+                                    _input_data_dict.update(
+                                        {
+                                            'streaming_handler': StreamingWebsocketCallbackHandler(
+                                                websocket=websocket,
+                                                output_model=output_model,
+                                            ),
+                                            'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
+                                                websocket=websocket,
+                                                output_model=output_model,
+                                            ),
+                                        }
+                                    )
+
+                                _returned_data = func(**_input_data_dict)
+                                if inspect.isgenerator(_returned_data):
+                                    # If the function is a generator, we iterate through the generator and send each item back to the client.
+                                    for _stream in _returned_data:
+                                        _data = output_model(
+                                            result=_stream,
+                                            error=_ws_serving_error,
+                                        )
+                                        await websocket.send_text(_data.json())
+
+                                else:
+                                    # If the function is not a generator, we send the result back to the client.
+                                    _data = output_model(
+                                        result=_returned_data,
+                                        error=_ws_serving_error,
+                                    )
+                                    await websocket.send_text(_data.json())
+
+                                # Once the generator is exhausted/ function call is completed, send a close message
+                                self.logger.info(
+                                    f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
+                                )
+                                await websocket.close()
+                                break
+
+                            except Exception as e:
+                                self.logger.error(f'Got an exception: {e}')
+                                _ws_serving_error = str(e)
+                            if _ws_serving_error != '':
+                                print(f'Error: {_ws_serving_error}')
+
+                except WebSocketDisconnect:
+                    self.logger.info('Client disconnected')
