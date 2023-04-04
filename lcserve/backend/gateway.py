@@ -8,14 +8,14 @@ from enum import Enum
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple, TypeVar
+from typing import Callable, Dict, List, Tuple
 
 from docarray import Document, DocumentArray
 from jina import Gateway
 from jina.enums import GatewayProtocolType
 from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-from pydantic import BaseModel, Field, ValidationError, create_model
+from pydantic import Field, ValidationError, create_model
 
 from .playground.utils.helper import (
     AGENT_OUTPUT,
@@ -25,12 +25,15 @@ from .playground.utils.helper import (
     LANGCHAIN_PLAYGROUND_PORT,
     RESULT,
     SERVING,
-    AsyncStreamingWebsocketCallbackHandler,
     Capturing,
     EnvironmentVarCtxtManager,
-    StreamingWebsocketCallbackHandler,
     parse_uses_with,
     run_cmd,
+)
+from .playground.utils.langchain_helper import (
+    AsyncStreamingWebsocketCallbackHandler,
+    InputWrapper,
+    StreamingWebsocketCallbackHandler,
 )
 
 cur_dir = os.path.dirname(__file__)
@@ -352,26 +355,6 @@ class ServingGateway(FastAPIBaseGateway):
 
         _ws_recv_lock = asyncio.Lock()
 
-        class _HumanInput(BaseModel):
-            prompt: str
-
-        class InputWrapper:
-            def __init__(self, websocket: WebSocket):
-                self.websocket = websocket
-
-            async def __acall__(self, __prompt: str = ''):
-                _human_input = _HumanInput(prompt=__prompt)
-                async with _ws_recv_lock:
-                    await self.websocket.send_json(_human_input.dict())
-                return await self.websocket.receive_text()
-
-            def __call__(self, __prompt: str = ''):
-                from .playground.utils.helper import get_or_create_eventloop
-
-                return get_or_create_eventloop().run_until_complete(
-                    self.__acall__(__prompt)
-                )
-
         def _get_result_type():
             if 'return' in func.__annotations__:
                 _return = func.__annotations__['return']
@@ -524,5 +507,6 @@ class ServingGateway(FastAPIBaseGateway):
                                 _ws_serving_error = str(e)
                             if _ws_serving_error != '':
                                 print(f'Error: {_ws_serving_error}')
+
                 except WebSocketDisconnect:
                     self.logger.info('Client disconnected')

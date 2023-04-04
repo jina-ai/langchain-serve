@@ -6,14 +6,11 @@ import threading
 import uuid
 from collections import defaultdict
 from io import StringIO
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import nest_asyncio
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from pydantic import BaseModel
 
-if TYPE_CHECKING:
-    from fastapi import WebSocket
 
 CLS = 'cls'
 RESULT = 'result'
@@ -151,24 +148,3 @@ def get_random_tag():
 
 def get_random_name():
     return 'n-' + uuid.uuid4().hex[:5]
-
-
-class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
-    def __init__(self, websocket: 'WebSocket', output_model: BaseModel):
-        super().__init__()
-        self.websocket = websocket
-        self.output_model = output_model
-
-    def is_async(self) -> bool:
-        return True
-
-    async def on_llm_new_token(self, token: str, **kwargs) -> None:
-        await self.websocket.send_json(self.output_model(result=token, error='').dict())
-
-
-class StreamingWebsocketCallbackHandler(AsyncStreamingWebsocketCallbackHandler):
-    def is_async(self) -> bool:
-        return False
-
-    def on_llm_new_token(self, token: str, **kwargs) -> None:
-        asyncio.run(super().on_llm_new_token(token, **kwargs))
