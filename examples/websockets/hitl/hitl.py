@@ -23,8 +23,8 @@ def hitl(question: str, **kwargs) -> str:
     )
     math_llm = OpenAI(
         temperature=0.0,
-        streaming=True,  # Pass `streaming=True` to make sure the client receives the data.
         verbose=True,
+        streaming=True,  # Pass `streaming=True` to make sure the client receives the data.
         callback_manager=CallbackManager(
             [streaming_handler]
         ),  # Pass the callback handler
