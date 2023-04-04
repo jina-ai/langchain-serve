@@ -10,13 +10,13 @@ https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9
 
 2. Accepts `streaming_handler` from kwargs and passes it to `ChatOpenAI` and `OpenAI` callback managers. This handler is responsible to stream the response to the client.
 
-https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L19-L22
+https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L19-L22
 
-https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L26-L30
+https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L27-L30
 
 3. Returns `agent.run` output which is a `str`.
 
-https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L43
+https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L43
 
 ##### `hitl_client.py`
 
