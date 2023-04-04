@@ -61,6 +61,7 @@ A simple client
 
 4. Finally, the client is disconnected from the server automatically when the `hitl` function is done executing.
 
+---
 
 
 ### Example run on localhost
