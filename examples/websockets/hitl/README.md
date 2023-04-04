@@ -6,22 +6,26 @@ This directory contains 3 files
 
 1. Defines a function `hitl` decorated with `@serving` with `websocket=True`.
 
-https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L11-L12
+    https://github.com/jina-ai/langchain-serve/blob/d0726b8e730f4646fd9e54561a7648f9c3b1af60/examples/websockets/hitl/hitl.py#L11-L12
 
 2. Accepts `streaming_handler` from kwargs and passes it to `ChatOpenAI` and `OpenAI` callback managers. This handler is responsible to stream the response to the client.
 
-https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L19-L22
+    https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L19-L22
 
-https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L27-L30
+    https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L27-L30
 
 3. Returns `agent.run` output which is a `str`.
 
-https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L43
+    https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L43
 
+
+---
 
 #### `requirements.txt`
 
 - Contains the dependencies for the `hitl` endpoint.
+
+---
 
 
 #### `hitl_client.py`
@@ -39,11 +43,11 @@ A simple client
 }
 ```
 
-https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L24-L29
+    https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L24-L29
 
 2. Listens to the stream of responses and prints it to the console
 
-https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L31-L39
+    https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L31-L39
 
 3. When it receives a response in the following format, it asks the prompt to the user using the client and waits for the user to input the answer. (This is how human is brought into the loop). Next, this answer is then sent to the server.
 
@@ -53,7 +57,7 @@ https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e
 }
 ```
 
-https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L42-L44
+    https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L42-L44
 
 4. Finally, the client is disconnected from the server automatically when the `hitl` function is done executing.
 
