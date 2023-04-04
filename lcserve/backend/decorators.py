@@ -10,7 +10,10 @@ def serving(_func=None, *, websocket: bool = False):
         _args = {
             'name': func.__name__,
             'doc': func.__doc__,
-            'params': {},
+            'params': {
+                'include_callback_handlers': websocket,
+                # If websocket is True, pass the callback handlers to the client.
+            },
         }
         if websocket:
             wrapper.__ws_serving__ = _args

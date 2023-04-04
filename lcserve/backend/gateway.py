@@ -8,14 +8,13 @@ from enum import Enum
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple, TypeVar, get_args, get_origin
+from typing import Callable, Dict, List, Tuple, TypeVar
 
 from docarray import Document, DocumentArray
 from jina import Gateway
 from jina.enums import GatewayProtocolType
 from jina.serve.runtimes.gateway import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from pydantic import BaseModel, Field, ValidationError, create_model
 
 from .playground.utils.helper import (
@@ -26,18 +25,13 @@ from .playground.utils.helper import (
     LANGCHAIN_PLAYGROUND_PORT,
     RESULT,
     SERVING,
+    AsyncStreamingWebsocketCallbackHandler,
     Capturing,
     EnvironmentVarCtxtManager,
+    StreamingWebsocketCallbackHandler,
     parse_uses_with,
     run_cmd,
 )
-
-StreamingResponse = TypeVar('StreamingResponse')
-
-
-def is_type_streaming_response(_type):
-    return _type.__name__ == StreamingResponse.__name__
-
 
 cur_dir = os.path.dirname(__file__)
 
@@ -293,11 +287,8 @@ class ServingGateway(FastAPIBaseGateway):
     def _register_mod(self, mod: str):
         try:
             app_module = import_module(mod)
-            for name, func in inspect.getmembers(app_module, inspect.isfunction):
-                if hasattr(func, '__serving__'):
-                    self._register_http_route(func)
-                elif hasattr(func, '__ws_serving__'):
-                    self._register_ws_route(func)
+            for _, func in inspect.getmembers(app_module, inspect.isfunction):
+                self._register_func(func)
         except ModuleNotFoundError:
             print(f'Unable to import module: {mod}')
 
@@ -306,14 +297,25 @@ class ServingGateway(FastAPIBaseGateway):
             spec = spec_from_file_location(file.stem, file)
             mod = module_from_spec(spec)
             spec.loader.exec_module(mod)
-
-            for name, func in inspect.getmembers(mod, inspect.isfunction):
-                if hasattr(func, '__serving__'):
-                    self._register_http_route(func)
-                elif hasattr(func, '__ws_serving__'):
-                    self._register_ws_route(func)
+            for _, func in inspect.getmembers(mod, inspect.isfunction):
+                self._register_func(func)
         except Exception as e:
             print(f'Unable to import {file}: {e}')
+
+    def _register_func(self, func: Callable):
+        if hasattr(func, '__serving__'):
+            self._register_http_route(func)
+        elif hasattr(func, '__ws_serving__'):
+            _decorator_params = getattr(func, '__ws_serving__').get('params', {})
+            if 'include_callback_handlers' in _decorator_params:
+                self._register_ws_route(
+                    func,
+                    include_callback_handlers=_decorator_params[
+                        'include_callback_handlers'
+                    ],
+                )
+            else:
+                self._register_ws_route(func)
 
     def _register_http_route(self, func: Callable, **kwargs):
         return self._register_route(func, route_type=RouteType.HTTP, **kwargs)
@@ -325,6 +327,7 @@ class ServingGateway(FastAPIBaseGateway):
         self,
         func: Callable,
         route_type: RouteType = RouteType.HTTP,
+        include_callback_handlers: bool = False,
         **kwargs,
     ):
         from fastapi import WebSocket, WebSocketDisconnect
@@ -428,7 +431,7 @@ class ServingGateway(FastAPIBaseGateway):
                         try:
                             output = func(**dict(input_data))
                         except Exception as e:
-                            print(f'Got an exception: {e}')
+                            self.logger.error(f'Got an exception: {e}')
                             error = str(e)
 
                     if error != '':
@@ -441,28 +444,6 @@ class ServingGateway(FastAPIBaseGateway):
 
         elif route_type == RouteType.WEBSOCKET:
             self.logger.info(f'Registering Websocket route: {func.__name__}')
-
-            class AsyncStreamingWebsocketCallbackHandler(
-                StreamingStdOutCallbackHandler
-            ):
-                def __init__(self, websocket: WebSocket):
-                    super().__init__()
-                    self.websocket = websocket
-
-                def is_async(self) -> bool:
-                    return True
-
-                async def on_llm_new_token(self, token: str, **kwargs) -> None:
-                    print(f'Got token {token}')
-                    await self.websocket.send_json(
-                        output_model(result=token, error='').dict()
-                    )
-
-            class StreamingWebsocketCallbackHandler(
-                AsyncStreamingWebsocketCallbackHandler
-            ):
-                def on_llm_new_token(self, token: str, **kwargs) -> None:
-                    asyncio.run(super().on_llm_new_token(token, **kwargs))
 
             @self.app.websocket(path=f'/{func.__name__}', name=_name)
             async def _create_ws_route(websocket: WebSocket):
@@ -480,7 +461,7 @@ class ServingGateway(FastAPIBaseGateway):
                         try:
                             _input_data = input_model(**_data)
                         except ValidationError as e:
-                            print(f'Got an exception: {e}')
+                            self.logger.error(f'Got an exception: {e}')
                             _ws_serving_error = str(e)
                             _data = output_model(
                                 result='',
@@ -489,7 +470,7 @@ class ServingGateway(FastAPIBaseGateway):
                             await websocket.send_text(_data.json())
                             continue
 
-                        _ws_serving_output, _ws_serving_error = '', ''
+                        _returned_data, _ws_serving_error = '', ''
                         _envs = {}
                         if hasattr(_input_data, 'envs'):
                             _envs = _input_data.envs
@@ -497,45 +478,51 @@ class ServingGateway(FastAPIBaseGateway):
 
                         with EnvironmentVarCtxtManager(_envs):
                             try:
-                                if is_type_streaming_response(
-                                    inspect.signature(func).return_annotation
-                                ):
-                                    _input_data_dict = dict(_input_data)
+                                _input_data_dict = dict(_input_data)
+                                # If the function is a streaming response, we pass the callback handler,
+                                # so that stream data can be sent back to the client.
+                                if include_callback_handlers:
                                     _input_data_dict.update(
                                         {
                                             'streaming_handler': StreamingWebsocketCallbackHandler(
-                                                websocket=websocket
+                                                websocket=websocket,
+                                                output_model=output_model,
                                             ),
                                             'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
-                                                websocket=websocket
+                                                websocket=websocket,
+                                                output_model=output_model,
                                             ),
                                         }
                                     )
-                                    func(**_input_data_dict)
-                                else:
-                                    _ws_serving_output = func(**dict(_input_data))
-                                    if inspect.isgenerator(_ws_serving_output):
-                                        for _stream in _ws_serving_output:
-                                            _data = output_model(
-                                                result=_stream,
-                                                error=_ws_serving_error,
-                                            )
-                                            await websocket.send_text(_data.json())
 
-                                        # Once the generator is exhausted, send a close message
-                                        await websocket.close()
-                                        break
-                                    else:
+                                _returned_data = func(**_input_data_dict)
+                                if inspect.isgenerator(_returned_data):
+                                    # If the function is a generator, we iterate through the generator and send each item back to the client.
+                                    for _stream in _returned_data:
                                         _data = output_model(
-                                            result=_ws_serving_output,
+                                            result=_stream,
                                             error=_ws_serving_error,
                                         )
                                         await websocket.send_text(_data.json())
 
+                                    # Once the generator is exhausted, send a close message
+                                    self.logger.info(
+                                        f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
+                                    )
+                                    await websocket.close()
+                                    break
+                                else:
+                                    # If the function is not a generator, we send the result back to the client.
+                                    _data = output_model(
+                                        result=_returned_data,
+                                        error=_ws_serving_error,
+                                    )
+                                    await websocket.send_text(_data.json())
+
                             except Exception as e:
-                                print(f'Got an exception: {e}')
+                                self.logger.error(f'Got an exception: {e}')
                                 _ws_serving_error = str(e)
                             if _ws_serving_error != '':
                                 print(f'Error: {_ws_serving_error}')
                 except WebSocketDisconnect:
-                    print('Client disconnected')
+                    self.logger.info('Client disconnected')

@@ -12,6 +12,6 @@ def _ignore_warnings():
 
 _ignore_warnings()
 
-from .backend import StreamingResponse, serving
+from .backend import serving
 
 __version__ = '0.0.2'
