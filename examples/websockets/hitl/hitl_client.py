@@ -1,4 +1,6 @@
 import asyncio
+import os
+from typing import Dict
 
 import aiohttp
 from pydantic import BaseModel, ValidationError
@@ -14,11 +16,17 @@ class HumanPrompt(BaseModel):
     prompt: str
 
 
-async def hitl_client(url: str, name: str, question: str):
+async def hitl_client(url: str, name: str, question: str, envs: Dict = {}):
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect(f'{url}/{name}') as ws:
             print(f'Connected to {url}/{name}.')
-            await ws.send_json({"question": question})
+
+            await ws.send_json(
+                {
+                    "question": question,
+                    "envs": envs if envs else {},
+                }
+            )
 
             async for msg in ws:
                 if msg.type == aiohttp.WSMsgType.TEXT:
@@ -45,8 +53,11 @@ async def hitl_client(url: str, name: str, question: str):
 
 asyncio.run(
     hitl_client(
-        url='ws://localhost:8080',
+        url='wss://langchain-9468f429d4-websocket.wolf.jina.ai',
         name='hitl',
         question='What is Eric Zhu\'s birthday?',
+        envs={
+            'OPENAI_API_KEY': os.environ['OPENAI_API_KEY'],
+        },
     )
 )
