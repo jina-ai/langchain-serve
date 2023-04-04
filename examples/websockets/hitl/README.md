@@ -1,8 +1,8 @@
 ## Human in the Loop
 
-This directory contains 2 files
+This directory contains 3 files
 
-##### `hitl.py` 
+#### `hitl.py` 
 
 1. Defines a function `hitl` decorated with `@serving` with `websocket=True`.
 
@@ -18,11 +18,44 @@ https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694
 
 https://github.com/jina-ai/langchain-serve/blob/9f793f4311007f6cb775e9ac19f89694eb97b80d/examples/websockets/hitl/hitl.py#L43
 
-##### `hitl_client.py`
 
-- This is a simple client that connects to the websocket server and sends a `question` to the `hitl` endpoint.
-- Listens to the stream of responses and prints it to the console.
-- When it receives a response in the format of `{"prompt": "..."}`, it sends the prompt to the user and waits for the user to input the answer. This is how human is brought into the loop.
+#### `requirements.txt`
+
+- Contains the dependencies for the `hitl` endpoint.
+
+
+#### `hitl_client.py`
+
+A simple client
+
+1. Connects to the websocket server and sends the following to the `hitl` endpoint.
+
+```json
+{
+    "question": question, 
+    "envs": {
+        "OPENAI_API_KEY": OPENAI_API_KEY
+    }
+}
+```
+
+https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L24-L29
+
+2. Listens to the stream of responses and prints it to the console
+
+https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L31-L39
+
+3. When it receives a response in the following format, it asks the prompt to the user using the client and waits for the user to input the answer. (This is how human is brought into the loop). Next, this answer is then sent to the server.
+
+```json
+{
+    "prompt": prompt
+}
+```
+
+https://github.com/jina-ai/langchain-serve/blob/fe9401618fa1635b17c5a117eea0463e79f85805/examples/websockets/hitl/hitl_client.py#L42-L44
+
+4. Finally, the client is disconnected from the server automatically when the `hitl` function is done executing.
 
 
 
