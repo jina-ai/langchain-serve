@@ -33,15 +33,16 @@ async def serve_on_jcloud(
     from .backend.playground.utils.helper import get_random_tag
 
     tag = get_random_tag()
-    gateway_id_wo_tag = push_app_to_hubble(module, tag=tag, verbose=verbose)
+    gateway_id_wo_tag, websocket = push_app_to_hubble(module, tag=tag, verbose=verbose)
     app_id, endpoint = await deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
-            module,
+            module=module,
             jcloud=True,
             port=8080,
             name=name,
             app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
+            websocket=websocket,
         ),
         app_id=app_id,
         verbose=verbose,

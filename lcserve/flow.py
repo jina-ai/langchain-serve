@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import os
 import sys
 import tempfile
@@ -145,11 +146,20 @@ def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
     )
 
 
+def _any_websocket_router(app) -> bool:
+    # Go through the module and find all functions decorated by `serving` decorator
+    for _, func in inspect.getmembers(app, inspect.isfunction):
+        if hasattr(func, '__ws_serving__'):
+            return True
+
+    return False
+
+
 def push_app_to_hubble(
     mod: str,
     tag: str = 'latest',
     verbose: Optional[bool] = False,
-) -> str:
+) -> Tuple[str, bool]:
     from hubble.executor.hubio import HubIO
     from hubble.executor.parsers import set_hub_push_parser
 
@@ -157,7 +167,8 @@ def push_app_to_hubble(
 
     try:
         sys.path.append(os.getcwd())
-        file = import_module(mod).__file__
+        app = import_module(mod)
+        file = app.__file__
         if file.endswith('.py'):
             appdir = os.path.dirname(file)
         else:
@@ -223,7 +234,7 @@ def push_app_to_hubble(
     if hubble_exists(name):
         args.force_update = name
 
-    return HubIO(args).push().get('id')
+    return HubIO(args).push().get('id'), _any_websocket_router(app)
 
 
 @dataclass
@@ -343,11 +354,19 @@ def get_flow_dict(
     name: str = APP_NAME,
     app_id: str = None,
     gateway_id: str = None,
+    websocket: bool = False,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
 
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
+
+    gateway_jcloud_args = {}
+    if jcloud:
+        gateway_jcloud_args = get_gateway_jcloud_args()
+    if websocket:  # TODO: remove this when websocket + autoscale is supported in JCloud
+        gateway_jcloud_args = {}
+
     return {
         'jtype': 'Flow',
         **(get_with_args_for_jcloud() if jcloud else {}),
@@ -357,8 +376,8 @@ def get_flow_dict(
                 'modules': module,
             },
             'port': [port],
-            'protocol': ['http'],
-            **(get_gateway_jcloud_args() if jcloud else {}),
+            'protocol': ['websocket'] if websocket else ['http'],
+            **gateway_jcloud_args,
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
@@ -369,9 +388,12 @@ def get_flow_yaml(
     jcloud: bool = False,
     port: int = 8080,
     name: str = APP_NAME,
+    websocket: bool = False,
 ) -> str:
     return yaml.safe_dump(
-        get_flow_dict(module=module, jcloud=jcloud, port=port, name=name),
+        get_flow_dict(
+            module=module, jcloud=jcloud, port=port, name=name, websocket=websocket
+        ),
         sort_keys=False,
     )
 
@@ -474,11 +496,15 @@ async def list_apps_on_jcloud(phase: str, name: str):
             print('No apps found')
             return
 
+        def _get_endpoint(app):
+            endpoints = app.get('status', {}).get('endpoints', {})
+            return list(endpoints.values())[0] if endpoints else ''
+
         for app in all_apps['flows']:
             _t.add_row(
                 app['id'],
                 get_phase_from_response(app),
-                app.get('status', {}).get('endpoints', {}).get('gateway (http)', ''),
+                _get_endpoint(app),
                 cleanup_dt(app['ctime']),
             )
         console.print(_t)
