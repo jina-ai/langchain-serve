@@ -8,8 +8,9 @@ from enum import Enum
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
 
+import uvicorn
 from docarray import Document, DocumentArray
 from jina import Gateway
 from jina.enums import GatewayProtocolType
@@ -35,6 +36,9 @@ from .playground.utils.langchain_helper import (
     InputWrapper,
     StreamingWebsocketCallbackHandler,
 )
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI
 
 cur_dir = os.path.dirname(__file__)
 
@@ -268,7 +272,7 @@ class ServingGateway(FastAPIBaseGateway):
                 self._register_mod(mod)
 
     @property
-    def app(self):
+    def app(self) -> 'FastAPI':
         return self._app
 
     def _fix_sys_path(self):
