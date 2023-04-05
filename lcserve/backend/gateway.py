@@ -476,7 +476,9 @@ class ServingGateway(FastAPIBaseGateway):
                         try:
                             _input_data = input_model(**_data)
                         except ValidationError as e:
-                            self.logger.error(f'Got an exception: {e}')
+                            self.logger.error(
+                                f'Exception while converting data to input model: {e}'
+                            )
                             _ws_serving_error = str(e)
                             _data = output_model(
                                 result='',
