@@ -378,6 +378,10 @@ def get_flow_dict(
             },
             'port': [port],
             'protocol': ['websocket'] if websocket else ['http'],
+            'uvicorn_kwargs': {
+                'ws_ping_interval': None,
+                'ws_ping_timeout': None,
+            },
             **(get_gateway_jcloud_args(websocket=websocket) if jcloud else {}),
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
