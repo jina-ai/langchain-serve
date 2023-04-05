@@ -350,6 +350,7 @@ class ServingGateway(FastAPIBaseGateway):
         **kwargs,
     ):
         from fastapi import WebSocket, WebSocketDisconnect
+        from fastapi.websockets import WebSocketState
 
         _name = func.__name__.title().replace('_', '')
 
@@ -459,6 +460,16 @@ class ServingGateway(FastAPIBaseGateway):
                 await websocket.accept()
                 try:
                     while True:
+                        # if websocket is closed, break
+                        if websocket.client_state not in [
+                            WebSocketState.CONNECTED,
+                            WebSocketState.CONNECTING,
+                        ]:
+                            self.logger.info(
+                                f'Client {websocket.client} already disconnected from `{func.__name__}`. Breaking...'
+                            )
+                            break
+
                         async with _ws_recv_lock:
                             _data = await websocket.receive_json()
 
@@ -526,7 +537,7 @@ class ServingGateway(FastAPIBaseGateway):
 
                             except WebSocketDisconnect as e:
                                 self.logger.info(
-                                    f'Client {websocket.client} disconnected from {func.__name__} with code {e.code} and reason {e.reason}'
+                                    f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
                                 )
                                 break
 
@@ -544,4 +555,7 @@ class ServingGateway(FastAPIBaseGateway):
                                 print(f'Error: {_ws_serving_error}')
 
                 except WebSocketDisconnect:
-                    self.logger.info('Client disconnected')
+                    self.logger.info(
+                        f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
+                    )
+                    return
