@@ -323,10 +323,20 @@ class AutoscaleConfig:
         }
 
 
+def get_uvicorn_args() -> Dict:
+    return {
+        'uvicorn_kwargs': {
+            'ws_ping_interval': None,
+            'ws_ping_timeout': None,
+        }
+    }
+
+
 def get_with_args_for_jcloud() -> Dict:
     return {
         'with': {
             'extra_search_paths': ['/workdir/lcserve'],
+            **get_uvicorn_args(),
         }
     }
 
@@ -378,10 +388,7 @@ def get_flow_dict(
             },
             'port': [port],
             'protocol': ['websocket'] if websocket else ['http'],
-            'uvicorn_kwargs': {
-                'ws_ping_interval': None,
-                'ws_ping_timeout': None,
-            },
+            **get_uvicorn_args(),
             **(get_gateway_jcloud_args(websocket=websocket) if jcloud else {}),
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
