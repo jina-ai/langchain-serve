@@ -350,6 +350,7 @@ class ServingGateway(FastAPIBaseGateway):
         **kwargs,
     ):
         from fastapi import WebSocket, WebSocketDisconnect
+        from fastapi.websockets import WebSocketState
 
         _name = func.__name__.title().replace('_', '')
 
@@ -459,13 +460,25 @@ class ServingGateway(FastAPIBaseGateway):
                 await websocket.accept()
                 try:
                     while True:
+                        # if websocket is closed, break
+                        if websocket.client_state not in [
+                            WebSocketState.CONNECTED,
+                            WebSocketState.CONNECTING,
+                        ]:
+                            self.logger.info(
+                                f'Client {websocket.client} already disconnected from `{func.__name__}`. Breaking...'
+                            )
+                            break
+
                         async with _ws_recv_lock:
                             _data = await websocket.receive_json()
 
                         try:
                             _input_data = input_model(**_data)
                         except ValidationError as e:
-                            self.logger.error(f'Got an exception: {e}')
+                            self.logger.error(
+                                f'Exception while converting data to input model: {e}'
+                            )
                             _ws_serving_error = str(e)
                             _data = output_model(
                                 result='',
@@ -524,11 +537,27 @@ class ServingGateway(FastAPIBaseGateway):
                                 await websocket.close()
                                 break
 
+                            except WebSocketDisconnect as e:
+                                self.logger.info(
+                                    f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
+                                )
+                                break
+
                             except Exception as e:
                                 self.logger.error(f'Got an exception: {e}')
                                 _ws_serving_error = str(e)
+                                # For other errors, we send the error back to the client.
+                                _data = output_model(
+                                    result='',
+                                    error=_ws_serving_error,
+                                )
+                                await websocket.send_text(_data.json())
+
                             if _ws_serving_error != '':
                                 print(f'Error: {_ws_serving_error}')
 
                 except WebSocketDisconnect:
-                    self.logger.info('Client disconnected')
+                    self.logger.info(
+                        f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
+                    )
+                    return
