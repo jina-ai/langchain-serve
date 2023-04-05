@@ -1,5 +1,10 @@
 ## Human in the Loop
 
+Here is a simple example of how to use websockets to create a human in the loop (HITL) system. This demo uses `ChatOpenAI` in streaming mode to send responses to the client as soon as they are available. The client has the context available to it. When `human` action is needed, client asks the user for the input and sends it back to the server. The server then uses the context to continue the conversation.
+
+
+### Setup
+
 This directory contains 3 files
 
 #### `hitl.py` 
@@ -8,13 +13,13 @@ This directory contains 3 files
 
     https://github.com/jina-ai/langchain-serve/blob/c0af0de263c4494ce457faa4c9b82cab61992c5a/examples/websockets/hitl/hitl.py#L11-L12
 
-2. Accepts `streaming_handler` from kwargs and passes it to `ChatOpenAI` and `OpenAI` callback managers. This handler is responsible to stream the response to the client.
+2. Gets `streaming_handler` from kwargs and passes it to `ChatOpenAI` and `OpenAI` callback managers. This handler is responsible to stream the response to the client.
 
     https://github.com/jina-ai/langchain-serve/blob/c0af0de263c4494ce457faa4c9b82cab61992c5a/examples/websockets/hitl/hitl.py#L19-L22
 
     https://github.com/jina-ai/langchain-serve/blob/c0af0de263c4494ce457faa4c9b82cab61992c5a/examples/websockets/hitl/hitl.py#L27-L30
 
-3. Returns `agent.run` output which is a `str`.
+3. Returns `agent.run` output which is finally streamed to the client.
 
     https://github.com/jina-ai/langchain-serve/blob/c0af0de263c4494ce457faa4c9b82cab61992c5a/examples/websockets/hitl/hitl.py#L43
 
@@ -54,7 +59,10 @@ lc-serve deploy jcloud hitl
 
 #### `hitl_client.py`
 
-A simple client
+A simple python client that connects to the websocket server and sends the question to the `hitl` endpoint. It then listens to the stream of responses and prints it to the console. When it receives a response in the following format, it asks the prompt to the user using the client and waits for the user to input the answer. (This is how human is brought into the loop). Next, this answer is then sent to the server.
+
+This can be implemented in any language that supports websockets.
+
 
 1. Connects to the websocket server and sends the following to the `hitl` endpoint.
 

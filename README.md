@@ -33,11 +33,6 @@
 If you have any feature requests or faced any issue, please [let us know](https://github.com/jina-ai/langchain-serve/issues/new)!
 
 
-## Interested in enabling human-in-the-loop example with streaming?
-
-Check out this [example](examples/websockets/hitl/README.md).
-
-
 ## Usage
 
 Let's first install `langchain-serve` using pip.
@@ -46,7 +41,14 @@ Let's first install `langchain-serve` using pip.
 pip install langchain-serve
 ```
 
-## Example 
+## Enable Human-in-the-loop (HITL) for your agents
+
+HITL for LangChain agents on production can be challenging since the agents are typically running on servers where humans don't have direct access. **langchain-serve** bridges this gap by enabling websocket APIs that allow for real-time interaction and feedback between the agent and a human operator.
+
+Check out this [example](examples/websockets/hitl/README.md) to see how you can enable HITL for your agents.
+
+
+## Enable REST APIs 
 
 
 Let's build a custom agent using this example taken from [LangChain documentation](https://python.langchain.com/en/latest/modules/agents/agents/custom_agent.html). 
