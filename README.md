@@ -13,9 +13,11 @@
   1. Run `lc-serve deploy jcloud app` to deploy on [Jina AI Cloud](https://jina.ai/product/cloud/).
 
 
-#### 🔥 Scalable, Serverless RESTful APIs on Jina AI Cloud
+#### 🔥 Scalable, Serverless RESTful/Streaming Websocket APIs on Jina AI Cloud
 
-  - 🌎 RESTful APIs with TLS certs in just 2 lines of code change.
+  - 🌎 RESTful/Websocket APIs with TLS certs in just 2 lines of code change.
+  - 🌊 Stream LLM interactions in real-time with Websockets.
+  - 👥 Enable human in the loop for your agents.
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless apps that scales automatically with your traffic.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
