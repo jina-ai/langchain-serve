@@ -33,6 +33,10 @@
 If you have any feature requests or faced any issue, please [let us know](https://github.com/jina-ai/langchain-serve/issues/new)!
 
 
+## Interested in enabling human-in-the-loop example with streaming?
+
+Check out this [example](examples/websockets/hitl/README.md).
+
 
 ## Usage
 
