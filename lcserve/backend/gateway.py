@@ -524,9 +524,22 @@ class ServingGateway(FastAPIBaseGateway):
                                 await websocket.close()
                                 break
 
+                            except WebSocketDisconnect as e:
+                                self.logger.info(
+                                    f'Client {websocket.client} disconnected from {func.__name__} with code {e.code} and reason {e.reason}'
+                                )
+                                break
+
                             except Exception as e:
                                 self.logger.error(f'Got an exception: {e}')
                                 _ws_serving_error = str(e)
+                                # For other errors, we send the error back to the client.
+                                _data = output_model(
+                                    result='',
+                                    error=_ws_serving_error,
+                                )
+                                await websocket.send_text(_data.json())
+
                             if _ws_serving_error != '':
                                 print(f'Error: {_ws_serving_error}')
 
