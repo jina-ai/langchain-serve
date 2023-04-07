@@ -560,7 +560,7 @@ class ServingGateway(FastAPIBaseGateway):
                             if _ws_serving_error != '':
                                 print(f'Error: {_ws_serving_error}')
 
-                except WebSocketDisconnect:
+                except WebSocketDisconnect as e:
                     self.logger.info(
                         f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
                     )
