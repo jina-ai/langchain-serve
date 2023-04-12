@@ -1,9 +1,9 @@
 import asyncio
+from typing import Any
 
 from fastapi import WebSocket
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.tools.human.tool import HumanInputRun
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel
 
 
 class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
@@ -45,6 +45,40 @@ class InputWrapper:
         return await self.websocket.receive_text()
 
     def __call__(self, __prompt: str = ''):
-        from .helper import get_or_create_eventloop
+        return asyncio.run(self.__acall__(__prompt))
 
-        return get_or_create_eventloop().run_until_complete(self.__acall__(__prompt))
+
+class PrintWrapper:
+    def __init__(self, websocket: 'WebSocket', output_model: 'BaseModel'):
+        self.websocket = websocket
+        self.output_model = output_model
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        asyncio.run(self.__acall__(*args, **kwds))
+
+    async def __acall__(self, *args: Any, **kwds: Any) -> Any:
+        await self.websocket.send_json(
+            self.output_model(result='', error='', stdout=' '.join(args)).dict()
+        )
+
+
+class BuiltinsWrapper:
+    """Context manager to wrap builtins with websocket."""
+
+    def __init__(self, websocket: 'WebSocket', output_model: 'BaseModel'):
+        self.websocket = websocket
+        self.output_model = output_model
+
+    def __enter__(self):
+        import builtins
+
+        self._print = builtins.print
+        self._input = builtins.input
+        builtins.print = PrintWrapper(self.websocket, self.output_model)
+        builtins.input = InputWrapper(self.websocket, asyncio.Lock())
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        import builtins
+
+        builtins.print = self._print
+        builtins.input = self._input
