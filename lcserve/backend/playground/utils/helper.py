@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Union
 import nest_asyncio
 from pydantic import BaseModel
 
-
 CLS = 'cls'
 RESULT = 'result'
 LLM_TYPE = '_type'

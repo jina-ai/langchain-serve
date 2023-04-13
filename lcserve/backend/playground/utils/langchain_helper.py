@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi import WebSocket
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 
 class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
@@ -16,7 +16,12 @@ class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
         return True
 
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
-        await self.websocket.send_json(self.output_model(result=token, error='').dict())
+        try:
+            data = self.output_model(result=token, error='').dict()
+        except ValidationError:
+            data = {'result': token, 'error': ''}
+
+        await self.websocket.send_json(data)
 
 
 class StreamingWebsocketCallbackHandler(AsyncStreamingWebsocketCallbackHandler):

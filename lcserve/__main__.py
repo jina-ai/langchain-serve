@@ -1,3 +1,5 @@
+import os
+import sys
 from typing import List, Union
 
 import click
@@ -18,6 +20,7 @@ from .flow import (
 
 
 def serve_locally(module: Union[str, List[str]], port: int = 8080):
+    sys.path.append(os.getcwd())
     f_yaml = get_flow_yaml(module, jcloud=False, port=port)
     with Flow.load_config(f_yaml) as f:
         # TODO: add local description
