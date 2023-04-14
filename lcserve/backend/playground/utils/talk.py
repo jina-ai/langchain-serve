@@ -1,6 +1,6 @@
 from typing import Dict, Tuple
-import requests
 
+import requests
 
 LANGCHAIN_API_HOST = 'http://localhost:8080/run'
 

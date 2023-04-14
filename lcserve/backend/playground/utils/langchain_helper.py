@@ -1,9 +1,9 @@
 import asyncio
+from typing import Any
 
 from fastapi import WebSocket
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.tools.human.tool import HumanInputRun
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ValidationError
 
 
 class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
@@ -12,14 +12,24 @@ class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
         self.websocket = websocket
         self.output_model = output_model
 
+    @property
+    def always_verbose(self) -> bool:
+        return True
+
+    @property
     def is_async(self) -> bool:
         return True
 
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
-        await self.websocket.send_json(self.output_model(result=token, error='').dict())
+        try:
+            data = self.output_model(result=token, error='').dict()
+        except ValidationError:
+            data = {'result': token, 'error': ''}
+        await self.websocket.send_json(data)
 
 
 class StreamingWebsocketCallbackHandler(AsyncStreamingWebsocketCallbackHandler):
+    @property
     def is_async(self) -> bool:
         return False
 
@@ -45,6 +55,54 @@ class InputWrapper:
         return await self.websocket.receive_text()
 
     def __call__(self, __prompt: str = ''):
-        from .helper import get_or_create_eventloop
+        return asyncio.run(self.__acall__(__prompt))
 
-        return get_or_create_eventloop().run_until_complete(self.__acall__(__prompt))
+
+class PrintWrapper:
+    def __init__(self, websocket: 'WebSocket', output_model: 'BaseModel'):
+        self.websocket = websocket
+        self.output_model = output_model
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        asyncio.run(self.__acall__(*args, **kwds))
+
+    async def __acall__(self, *args: Any, **kwds: Any) -> Any:
+        await self.websocket.send_json(
+            self.output_model(result='', error='', stdout=' '.join(args)).dict()
+        )
+
+
+class BuiltinsWrapper:
+    """Context manager to wrap builtins with websocket."""
+
+    def __init__(
+        self,
+        websocket: 'WebSocket',
+        output_model: 'BaseModel',
+        wrap_print: bool = True,
+        wrap_input: bool = True,
+    ):
+        self.websocket = websocket
+        self.output_model = output_model
+        self._wrap_print = wrap_print
+        self._wrap_input = wrap_input
+
+    def __enter__(self):
+        import builtins
+
+        if self._wrap_print:
+            self._print = builtins.print
+            builtins.print = PrintWrapper(self.websocket, self.output_model)
+
+        if self._wrap_input:
+            self._input = builtins.input
+            builtins.input = InputWrapper(self.websocket, asyncio.Lock())
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        import builtins
+
+        if self._wrap_print:
+            builtins.print = self._print
+
+        if self._wrap_input:
+            builtins.input = self._input

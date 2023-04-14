@@ -5,7 +5,24 @@
 **langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development.
 
 
-#### 🎉 To production in 4 simple steps
+## 🧠 Babyagi-as-a-service
+
+- Deploy `babyagi` on Jina AI Cloud with one command
+
+  ```bash
+  lc-serve deploy babyagi
+  ```
+
+- Integrate babyagi with external services using our Websocket API. Get a flavor of the integration on your CLI with 
+    
+  ```bash
+  lc-serve playground babyagi
+  ```
+
+![Babyagi-as-a-service Playground](.github/images/babyagi-playground.gif)
+
+
+#### 🎉 Custom Apps to production in 4 simple steps
 
   1. Refactor your code to function(s) that should be served with `@serving` decorator.
   1. Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.

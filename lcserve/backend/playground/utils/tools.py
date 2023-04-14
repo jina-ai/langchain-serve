@@ -77,6 +77,8 @@ def get_all_langchain_tools() -> List[LangchainTool]:
 
 
 ALL_TOOLS = {t.name: {'api': t.api, 'args': t.args} for t in get_all_langchain_tools()}
+ALL_TOOL_NAMES = [t.name for t in get_all_langchain_tools()]
+
 # https://python.langchain.com/en/latest/modules/agents/agents.html
 ALL_AGENT_TYPES = {
     'MRKL': 'zero-shot-react-description',

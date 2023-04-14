@@ -1,13 +1,14 @@
-import streamlit as st
 import os
 import sys
+
+import streamlit as st
 
 # get file dir and add it to sys.path
 cwd = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(cwd)
 
 from utils.talk import talk_to_agent  # doesn't work
-from utils.tools import ALL_TOOLS, ALL_AGENT_TYPES
+from utils.tools import ALL_AGENT_TYPES, ALL_TOOLS
 
 st.set_page_config(
     page_title='Langchain on Jina',

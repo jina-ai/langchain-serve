@@ -10,7 +10,7 @@ from http import HTTPStatus
 from importlib import import_module
 from shutil import copytree
 from tempfile import mkdtemp
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Sequence
 
 import requests
 import yaml
@@ -18,6 +18,7 @@ from docarray import Document, DocumentArray
 from jina import Flow
 
 APP_NAME = 'langchain'
+BABYAGI_APP_NAME = 'babyagi'
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
 
@@ -155,9 +156,17 @@ def _any_websocket_router(app) -> bool:
     return False
 
 
+def _add_to_path():
+    sys.path.append(os.getcwd())
+    # get all directories in the apps folder and add them to the path
+    for app in os.listdir(os.path.join(os.path.dirname(__file__), 'apps')):
+        sys.path.append(os.path.join(os.path.dirname(__file__), 'apps', app))
+
+
 def push_app_to_hubble(
     mod: str,
     tag: str = 'latest',
+    requirements: Tuple[str] = None,
     verbose: Optional[bool] = False,
 ) -> Tuple[str, bool]:
     from hubble.executor.hubio import HubIO
@@ -166,7 +175,7 @@ def push_app_to_hubble(
     from .backend.playground.utils.helper import get_random_name
 
     try:
-        sys.path.append(os.getcwd())
+        _add_to_path()
         app = import_module(mod)
         file = app.__file__
         if file.endswith('.py'):
@@ -194,6 +203,17 @@ def push_app_to_hubble(
     )
 
     name = get_random_name()
+
+    # Create the requirements.txt if requirements are given
+    if requirements is not None and isinstance(requirements, Sequence):
+        # Get existing requirements and add the new ones
+        if os.path.exists(os.path.join(tmpdir, 'requirements.txt')):
+            with open(os.path.join(tmpdir, 'requirements.txt'), 'r') as f:
+                requirements = set(requirements + tuple(f.read().splitlines()))
+
+        with open(os.path.join(tmpdir, 'requirements.txt'), 'w') as f:
+            f.write('\n'.join(requirements))
+
     # Create the Dockerfile
     with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
         dockerfile = [

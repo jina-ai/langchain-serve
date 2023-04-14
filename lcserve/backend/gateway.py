@@ -8,13 +8,12 @@ from enum import Enum
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Type, Any
 
-import uvicorn
 from docarray import Document, DocumentArray
 from jina import Gateway
-from jina.enums import GatewayProtocolType
-from jina.serve.runtimes.gateway import CompositeGateway
+from jina.enums import ProtocolType as GatewayProtocolType
+from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from pydantic import Field, ValidationError, create_model
 
@@ -33,7 +32,7 @@ from .playground.utils.helper import (
 )
 from .playground.utils.langchain_helper import (
     AsyncStreamingWebsocketCallbackHandler,
-    InputWrapper,
+    BuiltinsWrapper,
     StreamingWebsocketCallbackHandler,
 )
 
@@ -363,42 +362,47 @@ class ServingGateway(FastAPIBaseGateway):
             print(f'Route {_name} already registered. Skipping...')
             return
 
-        _input_params = [
-            (name, parameter.annotation)
-            for name, parameter in inspect.signature(func).parameters.items()
-        ]
+        def _get_input_model_fields() -> Dict[str, Tuple[Type, Any]]:
+            _input_model_fields = {}
+            for _name, _param in inspect.signature(func).parameters.items():
+                if _param.kind == inspect.Parameter.VAR_KEYWORD:
+                    continue
 
-        _input_model_fields = {
-            name: (field_type, ...)
-            for name, field_type in _input_params
-            if name != 'kwargs'
-        }
+                if _param.annotation is inspect.Parameter.empty:
+                    raise ValueError(
+                        f'Annotation missing for parameter {_name} in function {func.__name__}. '
+                        'Please add type annotations to all parameters.'
+                    )
 
-        _ws_recv_lock = asyncio.Lock()
-
-        def _get_result_type():
-            if 'return' in func.__annotations__:
-                _return = func.__annotations__['return']
-                if hasattr(
-                    _return, '__origin__'
-                ):  # if  a Generic, return the first type
-                    return _return.__args__[0]
-                elif hasattr(
-                    _return, '__next__'
-                ):  # if a Generator, return the first type
-                    return _return.__next__.__annotations__['return']
-                elif _return is None:
-                    return str
+                if _param.default is inspect.Parameter.empty:
+                    _input_model_fields[_name] = (_param.annotation, ...)
                 else:
-                    return _return
-            else:
-                return str
+                    _input_model_fields[_name] = (_param.annotation, _param.default)
 
-        _output_model_fields = {
-            'result': (_get_result_type(), ...),
-            'error': (str, ...),
-            'stdout': (str, Field(default='', alias='stdout')),
-        }
+            return _input_model_fields
+
+        def _get_output_model_fields() -> Dict[str, Tuple[Type, Any]]:
+            def _get_result_type():
+                if 'return' in func.__annotations__:
+                    _return = func.__annotations__['return']
+                    if hasattr(
+                        _return, '__next__'
+                    ):  # if a Generator, return the first type
+                        return _return.__next__.__annotations__['return']
+                    elif _return is None:
+                        return str
+                    else:
+                        return _return
+                else:
+                    return str
+
+            _output_model_fields = {
+                'result': (_get_result_type(), ...),
+                'error': (str, ...),
+                'stdout': (str, Field(default='', alias='stdout')),
+            }
+
+            return _output_model_fields
 
         class Config:
             arbitrary_types_allowed = True
@@ -406,14 +410,14 @@ class ServingGateway(FastAPIBaseGateway):
         input_model = create_model(
             f'Input{_name}',
             __config__=Config,
-            **_input_model_fields,
+            **_get_input_model_fields(),
             **{'envs': (Dict[str, str], Field(default={}, alias='envs'))},
         )
 
         output_model = create_model(
             f'Output{_name}',
             __config__=Config,
-            **_output_model_fields,
+            **_get_output_model_fields(),
         )
 
         if route_type == RouteType.HTTP:
@@ -454,114 +458,112 @@ class ServingGateway(FastAPIBaseGateway):
 
             @self.app.websocket(path=f'/{func.__name__}', name=_name)
             async def _create_ws_route(websocket: WebSocket):
-                import builtins
+                with BuiltinsWrapper(
+                    websocket=websocket, output_model=output_model, wrap_print=False
+                ):
+                    await websocket.accept()
+                    _ws_recv_lock = asyncio.Lock()
+                    try:
+                        while True:
+                            # if websocket is closed, break
+                            if websocket.client_state not in [
+                                WebSocketState.CONNECTED,
+                                WebSocketState.CONNECTING,
+                            ]:
+                                self.logger.info(
+                                    f'Client {websocket.client} already disconnected from `{func.__name__}`. Breaking...'
+                                )
+                                break
 
-                # replace input with a websocket input to support human-in-the-loop
-                builtins.input = InputWrapper(
-                    websocket=websocket, recv_lock=_ws_recv_lock
-                )
+                            async with _ws_recv_lock:
+                                _data = await websocket.receive_json()
 
-                await websocket.accept()
-                try:
-                    while True:
-                        # if websocket is closed, break
-                        if websocket.client_state not in [
-                            WebSocketState.CONNECTED,
-                            WebSocketState.CONNECTING,
-                        ]:
-                            self.logger.info(
-                                f'Client {websocket.client} already disconnected from `{func.__name__}`. Breaking...'
-                            )
-                            break
-
-                        async with _ws_recv_lock:
-                            _data = await websocket.receive_json()
-
-                        try:
-                            _input_data = input_model(**_data)
-                        except ValidationError as e:
-                            self.logger.error(
-                                f'Exception while converting data to input model: {e}'
-                            )
-                            _ws_serving_error = str(e)
-                            _data = output_model(
-                                result='',
-                                error=_ws_serving_error,
-                            )
-                            await websocket.send_text(_data.json())
-                            continue
-
-                        _returned_data, _ws_serving_error = '', ''
-                        _envs = {}
-                        if hasattr(_input_data, 'envs'):
-                            _envs = _input_data.envs
-                            del _input_data.envs
-
-                        with EnvironmentVarCtxtManager(_envs):
                             try:
-                                _input_data_dict = dict(_input_data)
-                                # If the function is a streaming response, we pass the callback handler,
-                                # so that stream data can be sent back to the client.
-                                if include_callback_handlers:
-                                    _input_data_dict.update(
-                                        {
-                                            'streaming_handler': StreamingWebsocketCallbackHandler(
-                                                websocket=websocket,
-                                                output_model=output_model,
-                                            ),
-                                            'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
-                                                websocket=websocket,
-                                                output_model=output_model,
-                                            ),
-                                        }
-                                    )
-
-                                _returned_data = func(**_input_data_dict)
-                                if inspect.isgenerator(_returned_data):
-                                    # If the function is a generator, we iterate through the generator and send each item back to the client.
-                                    for _stream in _returned_data:
-                                        _data = output_model(
-                                            result=_stream,
-                                            error=_ws_serving_error,
-                                        )
-                                        await websocket.send_text(_data.json())
-
-                                else:
-                                    # If the function is not a generator, we send the result back to the client.
-                                    _data = output_model(
-                                        result=_returned_data,
-                                        error=_ws_serving_error,
-                                    )
-                                    await websocket.send_text(_data.json())
-
-                                # Once the generator is exhausted/ function call is completed, send a close message
-                                self.logger.info(
-                                    f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
+                                _input_data = input_model(**_data)
+                            except ValidationError as e:
+                                self.logger.error(
+                                    f'Exception while converting data to input model: {e}'
                                 )
-                                await websocket.close()
-                                break
-
-                            except WebSocketDisconnect as e:
-                                self.logger.info(
-                                    f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
-                                )
-                                break
-
-                            except Exception as e:
-                                self.logger.error(f'Got an exception: {e}')
                                 _ws_serving_error = str(e)
-                                # For other errors, we send the error back to the client.
                                 _data = output_model(
                                     result='',
                                     error=_ws_serving_error,
                                 )
                                 await websocket.send_text(_data.json())
+                                continue
 
-                            if _ws_serving_error != '':
-                                print(f'Error: {_ws_serving_error}')
+                            _returned_data, _ws_serving_error = '', ''
+                            _envs = {}
+                            if hasattr(_input_data, 'envs'):
+                                _envs = _input_data.envs
+                                del _input_data.envs
 
-                except WebSocketDisconnect as e:
-                    self.logger.info(
-                        f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
-                    )
-                    return
+                            with EnvironmentVarCtxtManager(_envs):
+                                try:
+                                    _input_data_dict = dict(_input_data)
+                                    # If the function is a streaming response, we pass the callback handler,
+                                    # so that stream data can be sent back to the client.
+                                    if include_callback_handlers:
+                                        _input_data_dict.update(
+                                            {
+                                                'websocket': websocket,
+                                                'streaming_handler': StreamingWebsocketCallbackHandler(
+                                                    websocket=websocket,
+                                                    output_model=output_model,
+                                                ),
+                                                'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
+                                                    websocket=websocket,
+                                                    output_model=output_model,
+                                                ),
+                                            }
+                                        )
+
+                                    _returned_data = func(**_input_data_dict)
+                                    if inspect.isgenerator(_returned_data):
+                                        # If the function is a generator, we iterate through the generator and send each item back to the client.
+                                        for _stream in _returned_data:
+                                            _data = output_model(
+                                                result=_stream,
+                                                error=_ws_serving_error,
+                                            )
+                                            await websocket.send_text(_data.json())
+
+                                    else:
+                                        # If the function is not a generator, we send the result back to the client.
+                                        _data = output_model(
+                                            result=_returned_data,
+                                            error=_ws_serving_error,
+                                        )
+                                        await websocket.send_text(_data.json())
+
+                                    # Once the generator is exhausted/ function call is completed, send a close message
+                                    self.logger.info(
+                                        f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
+                                    )
+                                    await websocket.close()
+                                    break
+
+                                except WebSocketDisconnect as e:
+                                    self.logger.info(
+                                        f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
+                                    )
+                                    break
+
+                                except Exception as e:
+                                    self.logger.error(f'Got an exception: {e}')
+                                    _ws_serving_error = str(e)
+                                    # For other errors, we send the error back to the client.
+                                    _data = output_model(
+                                        result='',
+                                        error=_ws_serving_error,
+                                    )
+                                    await websocket.send_text(_data.json())
+
+                                if _ws_serving_error != '':
+                                    print(f'Error: {_ws_serving_error}')
+
+                    except WebSocketDisconnect as e:
+                        self.logger.info(
+                            f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
+                        )
+                        return
