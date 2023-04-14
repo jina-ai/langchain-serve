@@ -8,6 +8,7 @@ from jina import Flow
 
 from .flow import (
     APP_NAME,
+    BABYAGI_APP_NAME,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
@@ -30,13 +31,19 @@ def serve_locally(module: Union[str, List[str]], port: int = 8080):
 async def serve_on_jcloud(
     module: Union[str, List[str]],
     name: str = APP_NAME,
+    requirements: List[str] = None,
     app_id: str = None,
     verbose: bool = False,
 ):
     from .backend.playground.utils.helper import get_random_tag
 
     tag = get_random_tag()
-    gateway_id_wo_tag, websocket = push_app_to_hubble(module, tag=tag, verbose=verbose)
+    gateway_id_wo_tag, is_websocket = push_app_to_hubble(
+        module,
+        requirements=requirements,
+        tag=tag,
+        verbose=verbose,
+    )
     app_id, endpoint = await deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
             module=module,
@@ -45,12 +52,27 @@ async def serve_on_jcloud(
             name=name,
             app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
-            websocket=websocket,
+            websocket=is_websocket,
         ),
         app_id=app_id,
         verbose=verbose,
     )
     await get_app_status_on_jcloud(app_id=app_id)
+
+
+async def serve_babyagi_on_jcloud(
+    name: str = BABYAGI_APP_NAME,
+    requirements: List[str] = None,
+    app_id: str = None,
+    verbose: bool = False,
+):
+    await serve_on_jcloud(
+        module='lcserve.apps.babyagi.app',
+        name=name,
+        requirements=requirements,
+        app_id=app_id,
+        verbose=verbose,
+    )
 
 
 @click.group()
@@ -112,6 +134,44 @@ def local(module, port):
 @syncify
 async def jcloud(module, name, app_id, verbose):
     await serve_on_jcloud(module, name=name, app_id=app_id, verbose=verbose)
+
+
+@deploy.command(help='Deploy babyagi on JCloud.')
+@click.option(
+    '--name',
+    type=str,
+    default=BABYAGI_APP_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+@click.option(
+    '--requirements',
+    default=None,
+    help='List of requirements to be installed.',
+    multiple=True,
+)
+@click.option(
+    '--app-id',
+    type=str,
+    default=None,
+    help='AppID of the deployed agent to be updated.',
+    show_default=True,
+)
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
+@click.help_option('-h', '--help')
+@syncify
+async def babyagi(name, requirements, app_id, verbose):
+    await serve_babyagi_on_jcloud(
+        name=name,
+        requirements=requirements,
+        app_id=app_id,
+        verbose=verbose,
+    )
 
 
 @serve.command(help='List all deployed apps.')
