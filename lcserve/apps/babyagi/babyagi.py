@@ -6,7 +6,7 @@ import faiss
 from fastapi import WebSocket
 from langchain import LLMChain, OpenAI, PromptTemplate, SerpAPIWrapper
 from langchain.agents import AgentExecutor, Tool, ZeroShotAgent
-from langchain.agents.load_tools import get_all_tool_names
+from langchain.agents.load_tools import get_all_tool_names, load_tools
 from langchain.chains.base import Chain
 from langchain.docstore import InMemoryDocstore
 from langchain.embeddings import OpenAIEmbeddings
@@ -354,3 +354,22 @@ class CustomTool(BaseModel):
 class PredefinedTools(BaseModel):
     names: List[Literal[tuple(get_all_tool_names())]]
     params: Dict[str, str]
+
+
+def get_tools(
+    llm: OpenAI,
+    predefined_tools: PredefinedTools,
+    custom_tools: List[CustomTool],
+) -> List[Tool]:
+    if predefined_tools is None or getattr(predefined_tools, 'names') is None:
+        lc_tools = get_default_tools(llm)
+    else:
+        lc_tools = load_tools(
+            tool_names=predefined_tools.names, llm=llm, **predefined_tools.params
+        )
+
+    if custom_tools is not None:
+        for tool in custom_tools:
+            lc_tools.append(tool.to_tool(llm))
+
+    return lc_tools

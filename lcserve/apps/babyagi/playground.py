@@ -118,7 +118,7 @@ update_custom_tools()
 submit = st.button('Submit')
 
 
-from pydantic import BaseModel, ValidationError, Field
+from pydantic import BaseModel, Field, ValidationError
 
 
 class Response(BaseModel):
