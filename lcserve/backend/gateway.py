@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Type, Any
 
 from docarray import Document, DocumentArray
 from jina import Gateway
-from jina.enums import GatewayProtocolType
-from jina.serve.runtimes.gateway import CompositeGateway
+from jina.enums import ProtocolType as GatewayProtocolType
+from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from pydantic import Field, ValidationError, create_model
 
