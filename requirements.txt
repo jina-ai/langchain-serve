@@ -5,3 +5,4 @@ requests
 langchain
 jina-hubble-sdk
 nest-asyncio
+textual

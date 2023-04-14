@@ -219,5 +219,19 @@ async def remove(app_id):
     await remove_app_on_jcloud(app_id)
 
 
+@serve.group(help='Play with predefined apps on JCloud.')
+@click.help_option('-h', '--help')
+def playground():
+    pass
+
+
+@playground.command(help='Play with babyagi on JCloud.')
+def babyagi():
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'babyagi'))
+    from .playground.babyagi.playground import play
+
+    play()
+
+
 if __name__ == "__main__":
     serve()
