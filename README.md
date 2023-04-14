@@ -5,7 +5,7 @@
 **langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development.
 
 
-#### 🧠 Babyagi-as-a-service
+## 🧠 Babyagi-as-a-service
 
 - Deploy `babyagi` on Jina AI Cloud with one command
 
