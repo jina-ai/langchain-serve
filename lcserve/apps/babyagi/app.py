@@ -4,7 +4,7 @@ from langchain import OpenAI
 from langchain.callbacks.base import CallbackManager
 from lcserve import serving
 
-from babyagi import BabyAGI, CustomTool, PredefinedTools, get_tools, vectorstore
+from babyagi import BabyAGI, CustomTool, PredefinedTools, get_tools, get_vectorstore
 
 
 @serving(websocket=True)
@@ -30,7 +30,7 @@ def baby_agi(
     lc_tools = get_tools(llm, predefined_tools, custom_tools)
     agi = BabyAGI.from_llm(
         llm=llm,
-        vectorstore=vectorstore,
+        vectorstore=get_vectorstore(),
         tools=lc_tools,
         websocket=websocket,
         verbose=False,

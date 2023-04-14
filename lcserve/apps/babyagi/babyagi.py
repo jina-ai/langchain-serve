@@ -15,12 +15,14 @@ from langchain.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, Field
 
-# Define your embedding model
-embeddings_model = OpenAIEmbeddings()
 
-embedding_size = 1536
-index = faiss.IndexFlatL2(embedding_size)
-vectorstore = FAISS(embeddings_model.embed_query, index, InMemoryDocstore({}), {})
+def get_vectorstore():
+    # Define your embedding model
+    embeddings_model = OpenAIEmbeddings()
+
+    embedding_size = 1536
+    index = faiss.IndexFlatL2(embedding_size)
+    return FAISS(embeddings_model.embed_query, index, InMemoryDocstore({}), {})
 
 
 class TaskCreationChain(LLMChain):
