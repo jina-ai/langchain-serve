@@ -24,7 +24,16 @@ LANGCHAIN_API_PORT = os.environ.get('LANGCHAIN_API_PORT', 8080)
 LANGCHAIN_PLAYGROUND_PORT = os.environ.get('LANGCHAIN_PLAYGROUND_PORT', 8501)
 
 
-nest_asyncio.apply()
+try:
+    nest_asyncio.apply()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    try:
+        nest_asyncio.apply()
+    except RuntimeError:
+        pass
 
 
 def get_or_create_eventloop():

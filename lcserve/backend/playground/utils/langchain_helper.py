@@ -12,6 +12,11 @@ class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
         self.websocket = websocket
         self.output_model = output_model
 
+    @property
+    def always_verbose(self) -> bool:
+        return True
+
+    @property
     def is_async(self) -> bool:
         return True
 
@@ -20,11 +25,11 @@ class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
             data = self.output_model(result=token, error='').dict()
         except ValidationError:
             data = {'result': token, 'error': ''}
-
         await self.websocket.send_json(data)
 
 
 class StreamingWebsocketCallbackHandler(AsyncStreamingWebsocketCallbackHandler):
+    @property
     def is_async(self) -> bool:
         return False
 
@@ -70,20 +75,34 @@ class PrintWrapper:
 class BuiltinsWrapper:
     """Context manager to wrap builtins with websocket."""
 
-    def __init__(self, websocket: 'WebSocket', output_model: 'BaseModel'):
+    def __init__(
+        self,
+        websocket: 'WebSocket',
+        output_model: 'BaseModel',
+        wrap_print: bool = True,
+        wrap_input: bool = True,
+    ):
         self.websocket = websocket
         self.output_model = output_model
+        self._wrap_print = wrap_print
+        self._wrap_input = wrap_input
 
     def __enter__(self):
         import builtins
 
-        self._print = builtins.print
-        self._input = builtins.input
-        builtins.print = PrintWrapper(self.websocket, self.output_model)
-        builtins.input = InputWrapper(self.websocket, asyncio.Lock())
+        if self._wrap_print:
+            self._print = builtins.print
+            builtins.print = PrintWrapper(self.websocket, self.output_model)
+
+        if self._wrap_input:
+            self._input = builtins.input
+            builtins.input = InputWrapper(self.websocket, asyncio.Lock())
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         import builtins
 
-        builtins.print = self._print
-        builtins.input = self._input
+        if self._wrap_print:
+            builtins.print = self._print
+
+        if self._wrap_input:
+            builtins.input = self._input

@@ -458,7 +458,9 @@ class ServingGateway(FastAPIBaseGateway):
 
             @self.app.websocket(path=f'/{func.__name__}', name=_name)
             async def _create_ws_route(websocket: WebSocket):
-                with BuiltinsWrapper(websocket=websocket, output_model=output_model):
+                with BuiltinsWrapper(
+                    websocket=websocket, output_model=output_model, wrap_print=False
+                ):
                     await websocket.accept()
                     _ws_recv_lock = asyncio.Lock()
                     try:
@@ -504,6 +506,7 @@ class ServingGateway(FastAPIBaseGateway):
                                     if include_callback_handlers:
                                         _input_data_dict.update(
                                             {
+                                                'websocket': websocket,
                                                 'streaming_handler': StreamingWebsocketCallbackHandler(
                                                     websocket=websocket,
                                                     output_model=output_model,
