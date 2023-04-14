@@ -2,6 +2,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -63,4 +64,31 @@
 
  - [[```9fb4725c```](https://github.com/jina-ai/jcloud/commit/9fb4725ce3748e517a4247022e4b90a1763c9eb5)] __-__ add link to jina ai cloud to readme (*Leon Wolf*)
  - [[```58d4613b```](https://github.com/jina-ai/jcloud/commit/58d4613b5433b5c9375ad679dc7910a5a6713157)] __-__ __version__: the next version will be 0.0.2 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-3></a>
+## Release Note (`0.0.3`)
+
+> Release time: 2023-04-14 18:43:46
+
+
+
+� We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Jina Dev Bot,  �
+
+
+### � New Features
+
+ - [[```a73bad66```](https://github.com/jina-ai/jcloud/commit/a73bad66bd0d423f16d2fc08b148dbd60e2e64c8)] __-__ babyagi playground (*Deepankar Mahapatro*)
+ - [[```8a1ba458```](https://github.com/jina-ai/jcloud/commit/8a1ba45887cf2d19aad5cd2e652597a1517b0736)] __-__ babyagi-as-a-service (*Deepankar Mahapatro*)
+
+### � Bug fixes
+
+ - [[```ecdaebfc```](https://github.com/jina-ai/jcloud/commit/ecdaebfcd36b061fcecdbe0058f730eb2a30e6f0)] __-__ pass websocket to serving (*Deepankar Mahapatro*)
+ - [[```ea2ff141```](https://github.com/jina-ai/jcloud/commit/ea2ff141886346521816c798416a640e8d70f354)] __-__ input fields parsing (*Deepankar Mahapatro*)
+ - [[```2b51464c```](https://github.com/jina-ai/jcloud/commit/2b51464c7b7984a55b51b2007734cae276eb763b)] __-__ wrap print as ws response (*Deepankar Mahapatro*)
+ - [[```1aaad487```](https://github.com/jina-ai/jcloud/commit/1aaad4877dc9da731ea8ceebb475535fe5a56796)] __-__ gateway exception handle bug (*Zac Li*)
+
+### � Other Improvements
+
+ - [[```91c97f61```](https://github.com/jina-ai/jcloud/commit/91c97f6182add27272af0a5038105c3f2c287f08)] __-__ __version__: the next version will be 0.0.3 (*Jina Dev Bot*)
 
