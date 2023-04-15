@@ -7,6 +7,8 @@
 
 ## 🧠 Babyagi-as-a-service
 
+> Give us a :star: and tell us what more you'd like to see! 
+
 - Deploy `babyagi` on Jina AI Cloud with one command
 
   ```bash
