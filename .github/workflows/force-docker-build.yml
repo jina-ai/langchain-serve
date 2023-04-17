@@ -56,6 +56,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
+          push: true
           context: .
           file: lcserve/servinggateway.Dockerfile
           tags: jinawolf/serving-gateway:latest, jinawolf/serving-gateway:v${{ env.LC_SERVE_VERSION }}
