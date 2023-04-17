@@ -12,6 +12,7 @@ on:
 
 jobs:
   create-release:
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
