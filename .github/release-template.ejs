@@ -36,7 +36,7 @@
 
 var all_titles = {};
 var all_commiters = {};
-var commitHref = "https://github.com/jina-ai/jcloud/commit/"
+var commitHref = "https://github.com/jina-ai/langchain-serve/commit/";
 
 commits.forEach(function (commit) {
 
@@ -53,7 +53,7 @@ commits.forEach(function (commit) {
 
     if (!(title in all_titles)) {
         all_titles[title] = 1
-        if( title != null && (title.indexOf('�')>-1 || title.indexOf(':boom:')>-1) ){
+        if( title != null && (title.indexOf('💥')>-1 || title.indexOf(':boom:')>-1) ){
             groupCommits.find(item => item.name === 'breaking').list.push({
                 type: type,
                 scope: scope,
@@ -137,36 +137,36 @@ list.forEach(function (ct) {
 %> - <% if(typeof commitHref === 'undefined' || commitHref === '') { %>[```<%=commit.sha1.slice(0,8)%>```]<% } else { %>[[```<%=commit.sha1.slice(0,8)%>```](<%=commitHref%><%=commit.sha1%>)]<%}%> __-__ <%=title%> (*<%= commit.authorName %>*)
 <% })} %>
 
-� We'd like to thank all contributors for this new release! In particular,
-<%  Object.keys(all_commiters).forEach(function (key) { %> <%= key %>, <% }) %> �
+🙇 We'd like to thank all contributors for this new release! In particular,
+<%  Object.keys(all_commiters).forEach(function (key) { %> <%= key %>, <% }) %> 🙇
 
 <%
         for(var i of groupCommits){
     if(i.list.length == 0) continue;
 
 if (i.name === 'breaking' && i.show) { %>
-### � Breaking changes
+### 💥 Breaking changes
 
 <%	} else if (i.name === 'fix' && i.show) { %>
-### � Bug fixes
+### 🐞 Bug fixes
 
 <%	} else if( i.name === 'feat' && i.show) { %>
-### � New Features
+### 🆕 New Features
 
 <%	} else if(i.name === 'perf' && i.show) { %>
 ### ⚡ Performance Improvements
 
 <%	} else if(i.name === 'refactor' && i.show) { %>
-### � Code Refactoring
+### 🧼 Code Refactoring
 
 <%	} else if(i.name === 'docs' && i.show) { %>
-### � Documentation
+### 📗 Documentation
 
 <%	} else if(i.name === 'test' && i.show) { %>
-### � Unit Test and CICD
+### 🏁 Unit Test and CICD
 
 <%	} else if (i.name === 'other' && i.show) { %>
-### � Other Improvements
+### 🍹 Other Improvements
 
 <%	}
     i.show && listCommits(i.list, i);
