@@ -83,7 +83,6 @@ async def serve_babyagi_on_jcloud(
 @click.group()
 @click.version_option(__version__, '-v', '--version', prog_name='lc-serve')
 @click.help_option('-h', '--help')
-@click.pass_context
 def serve():
     pass
 
