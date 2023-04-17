@@ -39,9 +39,11 @@ jobs:
           python-version: 3.9
 
       - name: Get lc-serve version
-        id: lcserve-version
         run: |
           echo "LC_SERVE_VERSION=$(python -c 'import lcserve; print(lcserve.__version__)')" >> $GITHUB_ENV
+
+      - name: tmate session
+        uses: mxschmitt/action-tmate@v3
       
       - name: Set up Docker Buildx
         id: buildx
@@ -59,4 +61,4 @@ jobs:
           push: true
           context: .
           file: lcserve/servinggateway.Dockerfile
-          tags: jinawolf/serving-gateway:latest, jinawolf/serving-gateway:v${{ env.LC_SERVE_VERSION }}
+          tags: jinawolf/serving-gateway:latest, jinawolf/serving-gateway:${{ env.LC_SERVE_VERSION }}
