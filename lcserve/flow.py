@@ -167,6 +167,7 @@ def push_app_to_hubble(
     mod: str,
     tag: str = 'latest',
     requirements: Tuple[str] = None,
+    version: str = 'latest',
     verbose: Optional[bool] = False,
 ) -> Tuple[str, bool]:
     from hubble.executor.hubio import HubIO
@@ -217,7 +218,7 @@ def push_app_to_hubble(
     # Create the Dockerfile
     with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
         dockerfile = [
-            'FROM jinawolf/serving-gateway:latest',
+            f'FROM jinawolf/serving-gateway:{version}',
             'COPY . /appdir/',
             'RUN if [ -e /appdir/requirements.txt ]; then pip install -r /appdir/requirements.txt; fi',
             'ENTRYPOINT [ "jina", "gateway", "--uses", "config.yml" ]',
