@@ -3,6 +3,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -91,4 +92,27 @@
 ### � Other Improvements
 
  - [[```91c97f61```](https://github.com/jina-ai/jcloud/commit/91c97f6182add27272af0a5038105c3f2c287f08)] __-__ __version__: the next version will be 0.0.3 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-4></a>
+## Release Note (`0.0.4`)
+
+> Release time: 2023-04-17 06:40:01
+
+
+
+� We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  �
+
+
+### � Bug fixes
+
+ - [[```5e7b9b25```](https://github.com/jina-ai/jcloud/commit/5e7b9b250abf90cf7ff9c00a1b236fcd575ddc2d)] __-__ docker push serving gateway (*Deepankar Mahapatro*)
+
+### � Documentation
+
+ - [[```8568510c```](https://github.com/jina-ai/jcloud/commit/8568510c2ae7cca4f2f755bcdadbf00b5c6cc826)] __-__ update readme (*Deepankar Mahapatro*)
+
+### � Other Improvements
+
+ - [[```62285bd8```](https://github.com/jina-ai/jcloud/commit/62285bd8a80129abedf40ecdd335070c0d3f10b1)] __-__ __version__: the next version will be 0.0.4 (*Jina Dev Bot*)
 
