@@ -59,4 +59,4 @@ jobs:
         with:
           context: .
           file: lcserve/servinggateway.Dockerfile
-          tags: jinawolf/serving-gateway:latest, jinawolf/serving-gateway:${{ env.LC_SERVE_VERSION }}
+          tags: jinawolf/serving-gateway:latest, jinawolf/serving-gateway:v${{ env.LC_SERVE_VERSION }}
