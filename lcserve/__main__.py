@@ -6,6 +6,7 @@ import click
 from jcloud.constants import Phase
 from jina import Flow
 
+from . import __version__
 from .flow import (
     APP_NAME,
     BABYAGI_APP_NAME,
@@ -33,6 +34,7 @@ async def serve_on_jcloud(
     name: str = APP_NAME,
     requirements: List[str] = None,
     app_id: str = None,
+    version: str = 'latest',
     verbose: bool = False,
 ):
     from .backend.playground.utils.helper import get_random_tag
@@ -42,6 +44,7 @@ async def serve_on_jcloud(
         module,
         requirements=requirements,
         tag=tag,
+        version=version,
         verbose=verbose,
     )
     app_id, endpoint = await deploy_app_on_jcloud(
@@ -64,6 +67,7 @@ async def serve_babyagi_on_jcloud(
     name: str = BABYAGI_APP_NAME,
     requirements: List[str] = None,
     app_id: str = None,
+    version: str = 'latest',
     verbose: bool = False,
 ):
     await serve_on_jcloud(
@@ -71,12 +75,15 @@ async def serve_babyagi_on_jcloud(
         name=name,
         requirements=requirements,
         app_id=app_id,
+        version=version,
         verbose=verbose,
     )
 
 
 @click.group()
+@click.version_option(__version__, '-v', '--version', prog_name='lc-serve')
 @click.help_option('-h', '--help')
+@click.pass_context
 def serve():
     pass
 
@@ -125,6 +132,13 @@ def local(module, port):
     show_default=True,
 )
 @click.option(
+    '--version',
+    type=str,
+    default='latest',
+    help='Version of serving gateway to be used.',
+    show_default=False,
+)
+@click.option(
     '--verbose',
     is_flag=True,
     help='Verbose mode.',
@@ -132,8 +146,14 @@ def local(module, port):
 )
 @click.help_option('-h', '--help')
 @syncify
-async def jcloud(module, name, app_id, verbose):
-    await serve_on_jcloud(module, name=name, app_id=app_id, verbose=verbose)
+async def jcloud(module, name, app_id, version, verbose):
+    await serve_on_jcloud(
+        module,
+        name=name,
+        app_id=app_id,
+        version=version,
+        verbose=verbose,
+    )
 
 
 @deploy.command(help='Deploy babyagi on JCloud.')
@@ -158,6 +178,13 @@ async def jcloud(module, name, app_id, verbose):
     show_default=True,
 )
 @click.option(
+    '--version',
+    type=str,
+    default='latest',
+    help='Version of serving gateway to be used.',
+    show_default=False,
+)
+@click.option(
     '--verbose',
     is_flag=True,
     help='Verbose mode.',
@@ -165,11 +192,12 @@ async def jcloud(module, name, app_id, verbose):
 )
 @click.help_option('-h', '--help')
 @syncify
-async def babyagi(name, requirements, app_id, verbose):
+async def babyagi(name, requirements, app_id, version, verbose):
     await serve_babyagi_on_jcloud(
         name=name,
         requirements=requirements,
         app_id=app_id,
+        version=version,
         verbose=verbose,
     )
 
