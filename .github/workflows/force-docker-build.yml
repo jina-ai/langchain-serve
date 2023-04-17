@@ -37,12 +37,11 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.9
-      - name: Install lcserve
-        run: pip install -e .
+
       - name: Get lc-serve version
         id: lcserve-version
         run: |
-          echo "LC_SERVE_VERSION=$(lc-serve --version)" >> $GITHUB_ENV
+          echo "LC_SERVE_VERSION=$(python -c 'import lcserve; print(lcserve.__version__)')" >> $GITHUB_ENV
       
       - name: Set up Docker Buildx
         id: buildx
