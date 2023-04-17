@@ -14,4 +14,4 @@ _ignore_warnings()
 
 from .backend import serving
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'

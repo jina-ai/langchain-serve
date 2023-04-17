@@ -5,6 +5,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -135,4 +136,27 @@
 ### � Other Improvements
 
  - [[```ec02e6cd```](https://github.com/jina-ai/jcloud/commit/ec02e6cdaf779aa46803cd627dc9ffe655098d38)] __-__ __version__: the next version will be 0.0.5 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-6></a>
+## Release Note (`0.0.6`)
+
+> Release time: 2023-04-17 07:03:59
+
+
+
+� We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  �
+
+
+### � Bug fixes
+
+ - [[```499edf13```](https://github.com/jina-ai/jcloud/commit/499edf1337982a7d1e97dfe137d2ffcb4e85a20d)] __-__ serve options (*Deepankar Mahapatro*)
+
+### � Unit Test and CICD
+
+ - [[```2899f6ff```](https://github.com/jina-ai/jcloud/commit/2899f6ff116975c8f58b1736891befe2f82a8538)] __-__ release message (*Deepankar Mahapatro*)
+
+### � Other Improvements
+
+ - [[```45c67cfa```](https://github.com/jina-ai/jcloud/commit/45c67cfaf2955e09e8041bbcffb25a597b43a407)] __-__ __version__: the next version will be 0.0.6 (*Jina Dev Bot*)
 
