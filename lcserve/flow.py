@@ -168,6 +168,7 @@ def push_app_to_hubble(
     tag: str = 'latest',
     requirements: Tuple[str] = None,
     version: str = 'latest',
+    platform: str = None,
     verbose: Optional[bool] = False,
 ) -> Tuple[str, bool]:
     from hubble.executor.hubio import HubIO
@@ -262,8 +263,8 @@ def push_app_to_hubble(
 
     args = set_hub_push_parser().parse_args(args_list)
 
-    # This is done to make sure the image is still built for linux/amd64 when the machine that initializes the deployment uses arm64 (m chip)
-    args.platform = "linux/amd64"
+    if platform:
+        args.platform = platform
 
     if hubble_exists(name):
         args.force_update = name
