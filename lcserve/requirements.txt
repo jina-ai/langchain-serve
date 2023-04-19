@@ -1,4 +1,4 @@
 click
-langchain==0.0.123
+langchain
 ansi2html
 streamlit
