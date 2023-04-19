@@ -6,6 +6,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -159,4 +160,24 @@
 ### � Other Improvements
 
  - [[```45c67cfa```](https://github.com/jina-ai/jcloud/commit/45c67cfaf2955e09e8041bbcffb25a597b43a407)] __-__ __version__: the next version will be 0.0.6 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-7></a>
+## Release Note (`0.0.7`)
+
+> Release time: 2023-04-19 02:02:56
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🏁 Unit Test and CICD
+
+ - [[```cafca96d```](https://github.com/jina-ai/langchain-serve/commit/cafca96dd6809062172689593885f316fdb66720)] __-__ release message template (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```655a042b```](https://github.com/jina-ai/langchain-serve/commit/655a042b4733cfb2fadbe49e93c4ddfa20d4b299)] __-__ remove langchain version pinning (*Deepankar Mahapatro*)
+ - [[```c7b6f9cb```](https://github.com/jina-ai/langchain-serve/commit/c7b6f9cb59d8f2c91177699fbe32c32d8a94a11e)] __-__ __version__: the next version will be 0.0.7 (*Jina Dev Bot*)
 
