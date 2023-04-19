@@ -1,4 +1,5 @@
 click
 langchain
+jinja2
 ansi2html
 streamlit
