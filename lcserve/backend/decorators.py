@@ -1,11 +1,21 @@
 from functools import wraps
+import inspect
 
 
 def serving(_func=None, *, websocket: bool = False):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def async_wrapper(*args, **kwargs):
+            return await func(*args, **kwargs)
+
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
             return func(*args, **kwargs)
+
+        if inspect.iscoroutinefunction(func):
+            wrapper = async_wrapper
+        else:
+            wrapper = sync_wrapper
 
         _args = {
             'name': func.__name__,

@@ -29,6 +29,7 @@ from .playground.utils.helper import (
     EnvironmentVarCtxtManager,
     parse_uses_with,
     run_cmd,
+    run_function,
 )
 from .playground.utils.langchain_helper import (
     AsyncStreamingWebsocketCallbackHandler,
@@ -518,7 +519,9 @@ class ServingGateway(FastAPIBaseGateway):
                                             }
                                         )
 
-                                    _returned_data = func(**_input_data_dict)
+                                    _returned_data = await run_function(
+                                        func, **_input_data_dict
+                                    )
                                     if inspect.isgenerator(_returned_data):
                                         # If the function is a generator, we iterate through the generator and send each item back to the client.
                                         for _stream in _returned_data:
