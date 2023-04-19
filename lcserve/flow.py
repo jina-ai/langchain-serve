@@ -21,6 +21,7 @@ APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
+APP_LOGS_URL = 'https://dashboard.wolf.jina.ai/d/flow/flow-monitor?var-flow={flow}&var-datasource=thanos&orgId=2&from=now-24h&to=now&viewPanel=85'
 
 
 def syncify(f):
@@ -506,9 +507,12 @@ async def get_app_status_on_jcloud(app_id: str):
 
         status: Dict = app_status['status']
         endpoint = _get_endpoint(status)
-        _add_row('AppID', app_id, bold_key=True, bold_value=True)
+        flow_namespace = app_id.split("-")[1]
+
+        _add_row('App ID', app_id, bold_key=True, bold_value=True)
         _add_row('Phase', status.get('phase', ''))
         _add_row('Endpoint', endpoint)
+        _add_row('App logs', APP_LOGS_URL.format(flow=flow_namespace))
         _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
         _add_row('OpenAPI JSON', _replace_wss_with_https(f'{endpoint}/openapi.json'))
         console.print(_t)
