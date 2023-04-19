@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+
+jobs:
+  commit-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.5.0
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v4
+
+  lint-flake-8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.5.0
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude .git,__pycache__,docs/source/conf.py,old,build,dist,tests/
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude .git,__pycache__,docs/source/conf.py,old,build,dist,tests/
+
+  check-black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.5.0
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - id: file_changes
+        uses: Ana06/get-changed-files@v1.2
+      - name: check black
+        run: ./scripts/black.sh
+        env:
+          CHANGED_FILES: ${{ steps.file_changes.outputs.added_modified }}
