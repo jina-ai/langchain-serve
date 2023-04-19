@@ -440,7 +440,7 @@ class ServingGateway(FastAPIBaseGateway):
                 with EnvironmentVarCtxtManager(_envs):
                     with Capturing() as stdout:
                         try:
-                            output = func(**dict(input_data))
+                            output = run_function(func, **dict(input_data))
                         except Exception as e:
                             self.logger.error(f'Got an exception: {e}')
                             error = str(e)
