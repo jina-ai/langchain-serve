@@ -1,5 +1,3 @@
-# LangChain Apps on Production with Jina 🚀
-
 <p align="center">
 <b>LangChain Apps on Production with Jina 🚀</b>
 </p>
