@@ -41,6 +41,7 @@ jobs:
       - name: Get lc-serve version
         run: |
           pip install -e .
+          pip install -r lcserve/requirements.txt
           echo "LC_SERVE_VERSION=$(python -c 'import lcserve; print(lcserve.__version__)')" >> $GITHUB_ENV
       
       - name: Set up Docker Buildx
