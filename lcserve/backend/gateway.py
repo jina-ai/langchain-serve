@@ -8,7 +8,7 @@ from enum import Enum
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Type, Any
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Type, Any, Union
 
 from docarray import Document, DocumentArray
 from jina import Gateway
@@ -16,6 +16,7 @@ from jina.enums import ProtocolType as GatewayProtocolType
 from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
 from pydantic import Field, ValidationError, create_model
+from websockets.exceptions import ConnectionClosed
 
 from .playground.utils.helper import (
     AGENT_OUTPUT,
@@ -29,6 +30,7 @@ from .playground.utils.helper import (
     EnvironmentVarCtxtManager,
     parse_uses_with,
     run_cmd,
+    run_function,
 )
 from .playground.utils.langchain_helper import (
     AsyncStreamingWebsocketCallbackHandler,
@@ -439,7 +441,7 @@ class ServingGateway(FastAPIBaseGateway):
                 with EnvironmentVarCtxtManager(_envs):
                     with Capturing() as stdout:
                         try:
-                            output = func(**dict(input_data))
+                            output = run_function(func, **dict(input_data))
                         except Exception as e:
                             self.logger.error(f'Got an exception: {e}')
                             error = str(e)
@@ -461,6 +463,15 @@ class ServingGateway(FastAPIBaseGateway):
                 with BuiltinsWrapper(
                     websocket=websocket, output_model=output_model, wrap_print=False
                 ):
+
+                    def _get_error_msg(
+                        e: Union[WebSocketDisconnect, ConnectionClosed]
+                    ) -> str:
+                        return (
+                            f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code}'
+                            + (f' and reason {e.reason}' if e.reason else '')
+                        )
+
                     await websocket.accept()
                     _ws_recv_lock = asyncio.Lock()
                     try:
@@ -518,7 +529,9 @@ class ServingGateway(FastAPIBaseGateway):
                                             }
                                         )
 
-                                    _returned_data = func(**_input_data_dict)
+                                    _returned_data = await run_function(
+                                        func, **_input_data_dict
+                                    )
                                     if inspect.isgenerator(_returned_data):
                                         # If the function is a generator, we iterate through the generator and send each item back to the client.
                                         for _stream in _returned_data:
@@ -543,10 +556,8 @@ class ServingGateway(FastAPIBaseGateway):
                                     await websocket.close()
                                     break
 
-                                except WebSocketDisconnect as e:
-                                    self.logger.info(
-                                        f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
-                                    )
+                                except (WebSocketDisconnect, ConnectionClosed) as e:
+                                    self.logger.info(_get_error_msg(e))
                                     break
 
                                 except Exception as e:
@@ -562,8 +573,6 @@ class ServingGateway(FastAPIBaseGateway):
                                 if _ws_serving_error != '':
                                     print(f'Error: {_ws_serving_error}')
 
-                    except WebSocketDisconnect as e:
-                        self.logger.info(
-                            f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code} and reason {e.reason}'
-                        )
+                    except (WebSocketDisconnect, ConnectionClosed) as e:
+                        self.logger.info(_get_error_msg(e))
                         return

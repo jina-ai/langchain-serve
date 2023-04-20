@@ -6,7 +6,9 @@ import threading
 import uuid
 from collections import defaultdict
 from io import StringIO
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Callable
+import inspect
+import functools
 
 import nest_asyncio
 from pydantic import BaseModel
@@ -156,3 +158,13 @@ def get_random_tag():
 
 def get_random_name():
     return 'n-' + uuid.uuid4().hex[:5]
+
+
+async def run_function(func: Callable, **kwargs):
+    if inspect.iscoroutinefunction(func):
+        return await func(**kwargs)
+    else:
+        return await get_or_create_eventloop().run_in_executor(
+            None,
+            functools.partial(func, **kwargs),
+        )
