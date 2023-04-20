@@ -381,6 +381,12 @@ def get_gateway_jcloud_args(
     autoscale: AutoscaleConfig = AutoscaleConfig(),
     websocket: bool = False,
 ) -> Dict:
+    _autoscale_args = autoscale.to_dict() if autoscale else {}
+    if (
+        websocket
+    ):  # # TODO: remove this when websocket + autoscale is supported in JCloud
+        _autoscale_args = {}
+
     return {
         'jcloud': {
             'expose': True,
@@ -389,7 +395,7 @@ def get_gateway_jcloud_args(
                 'capacity': 'spot',
             },
             'healthcheck': False if websocket else True,
-            **(autoscale.to_dict() if autoscale else {}),
+            **_autoscale_args,
         }
     }
 
