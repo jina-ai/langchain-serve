@@ -9,6 +9,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -239,4 +240,23 @@
  - [[```02cb0188```](https://github.com/jina-ai/langchain-serve/commit/02cb0188f83305d8bcb445abd4d05ad3c3ab4e3c)] __-__ ci and black (*Zac Li*)
  - [[```f07b9c67```](https://github.com/jina-ai/langchain-serve/commit/f07b9c67f952eb606c2af3691ea1dc84e96473d2)] __-__ __version__: the next version will be 0.0.9 (*Jina Dev Bot*)
  - [[```c7b6f9cb```](https://github.com/jina-ai/langchain-serve/commit/c7b6f9cb59d8f2c91177699fbe32c32d8a94a11e)] __-__ __version__: the next version will be 0.0.7 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-10></a>
+## Release Note (`0.0.10`)
+
+> Release time: 2023-04-20 15:29:46
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```735b181a```](https://github.com/jina-ai/langchain-serve/commit/735b181ab03d484221deee1563665fc283f156df)] __-__ await run_function (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```4c07ad51```](https://github.com/jina-ai/langchain-serve/commit/4c07ad51d26b5fcf16759373beb5fbbcec591c1f)] __-__ __version__: the next version will be 0.0.10 (*Jina Dev Bot*)
 
