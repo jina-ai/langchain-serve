@@ -524,3 +524,15 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 | [Sequential Chains](examples/sequential_executors.md) | N/A | Build & scale `Chains` in separate `Executor`s |
 | [Branching Chains](examples/branching.md) | N/A | Branching `Chains` in separate `Executor`s to allow parallel execution |
 
+## Frequently Asked Questions
+
+- [My client that connects to the App gets timed-out, what should I do?](#my-client-that-connects-to-the-app-gets-timed-out-what-should-I-do)
+- [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
+
+### My client that connects to the App gets timed-out, what should I do?
+
+If you make long HTTP requests, you may experience timeouts due to limitations in the OSS we used in `langchain-serve`. While we are working to permanently address this issue, we recommend using HTTP/1.1 in your client as a temporary workaround.
+
+### JCloud deployment failed at pushing image to Jina Hubble, what should I do?
+
+Please use `--verbose` and retry to get more information. If you are operating on computer with `arm64` arch, please retry with `--platform linux/amd64` so the image can be built correctly.
