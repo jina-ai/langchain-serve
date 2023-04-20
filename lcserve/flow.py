@@ -169,6 +169,7 @@ def push_app_to_hubble(
     tag: str = 'latest',
     requirements: Tuple[str] = None,
     version: str = 'latest',
+    platform: str = None,
     verbose: Optional[bool] = False,
 ) -> Tuple[str, bool]:
     from hubble.executor.hubio import HubIO
@@ -216,6 +217,16 @@ def push_app_to_hubble(
         with open(os.path.join(tmpdir, 'requirements.txt'), 'w') as f:
             f.write('\n'.join(requirements))
 
+    # Remove langchain-serve itself from the requirements list as it may be entered by mistake and break things
+    if os.path.exists(os.path.join(tmpdir, 'requirements.txt')):
+        with open(os.path.join(tmpdir, 'requirements.txt'), 'r') as f:
+            requirements = f.read().splitlines()
+
+        requirements = [r for r in requirements if not r.startswith("langchain-serve")]
+
+        with open(os.path.join(tmpdir, 'requirements.txt'), 'w') as f:
+            f.write('\n'.join(requirements))
+
     # Create the Dockerfile
     with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
         dockerfile = [
@@ -252,6 +263,9 @@ def push_app_to_hubble(
         args_list.append('--verbose')
 
     args = set_hub_push_parser().parse_args(args_list)
+
+    if platform:
+        args.platform = platform
 
     if hubble_exists(name):
         args.force_update = name
