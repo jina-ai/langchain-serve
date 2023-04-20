@@ -21,6 +21,7 @@ APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
+# TODO: this needs to be pulled from Jina Wolf API dynamically after the issue has been fixed on the API side
 APP_LOGS_URL = 'https://dashboard.wolf.jina.ai/d/flow/flow-monitor?var-flow={flow}&var-datasource=thanos&orgId=2&from=now-24h&to=now&viewPanel=85'
 
 
@@ -521,7 +522,7 @@ async def get_app_status_on_jcloud(app_id: str):
 
         status: Dict = app_status['status']
         endpoint = _get_endpoint(status)
-        flow_namespace = app_id.split("-")[1]
+        flow_namespace = app_id.split("-")[-1]
 
         _add_row('App ID', app_id, bold_key=True, bold_value=True)
         _add_row('Phase', status.get('phase', ''))
