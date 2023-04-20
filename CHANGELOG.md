@@ -8,6 +8,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -197,4 +198,45 @@
 
  - [[```b6d7b29c```](https://github.com/jina-ai/langchain-serve/commit/b6d7b29c645a298ecb00b11e209345ca4b155bc2)] __-__ add jinja2 (*Deepankar Mahapatro*)
  - [[```70b89f56```](https://github.com/jina-ai/langchain-serve/commit/70b89f569a1d5e65df67bb37c7aeab856d040714)] __-__ __version__: the next version will be 0.0.8 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-9></a>
+## Release Note (`0.0.9`)
+
+> Release time: 2023-04-20 11:39:30
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```87598c95```](https://github.com/jina-ai/langchain-serve/commit/87598c957ead174874ca1431b153f2c428b4a130)] __-__ support async methods (*Deepankar Mahapatro*)
+ - [[```e954c093```](https://github.com/jina-ai/langchain-serve/commit/e954c0938c10ffa7885d7120dc0c3c022dfa5ed3)] __-__ add app logs link (*Zac Li*)
+ - [[```24d4366b```](https://github.com/jina-ai/langchain-serve/commit/24d4366b19b4f5305364f99bb169a08ddf8f68f1)] __-__ platform support (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```8ab14942```](https://github.com/jina-ai/langchain-serve/commit/8ab14942031af2783a83be256341d70abb3a4d12)] __-__ disable autoscaling for ws (*Deepankar Mahapatro*)
+ - [[```b84f5d20```](https://github.com/jina-ai/langchain-serve/commit/b84f5d20b6462c3a1f63297de64fe763d902d44c)] __-__ enable autoscaling for websocket flows (*Deepankar Mahapatro*)
+ - [[```0b6e285e```](https://github.com/jina-ai/langchain-serve/commit/0b6e285e2385c3890081d4885ec2f55fddf9c1a5)] __-__ feedback updates (*Zac Li*)
+ - [[```d27e3056```](https://github.com/jina-ai/langchain-serve/commit/d27e3056f98e34951653d74d3163c44174e38535)] __-__ handle connection closed (*Deepankar Mahapatro*)
+ - [[```424c9f2e```](https://github.com/jina-ai/langchain-serve/commit/424c9f2e9c4f0e6790139c73492370c7444b0d1d)] __-__ disallow langchain-serve in requirements.txt (*Zac Li*)
+ - [[```499edf13```](https://github.com/jina-ai/langchain-serve/commit/499edf1337982a7d1e97dfe137d2ffcb4e85a20d)] __-__ serve options (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```b8a94781```](https://github.com/jina-ai/langchain-serve/commit/b8a9478142dcd82a76f7113dc5c6f0ffcacd632b)] __-__ update readme (*Zac Li*)
+ - [[```8f8a7b58```](https://github.com/jina-ai/langchain-serve/commit/8f8a7b58ff266150afb11215ce582fb386cc2c3d)] __-__ add cards (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```cafca96d```](https://github.com/jina-ai/langchain-serve/commit/cafca96dd6809062172689593885f316fdb66720)] __-__ release message template (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```02cb0188```](https://github.com/jina-ai/langchain-serve/commit/02cb0188f83305d8bcb445abd4d05ad3c3ab4e3c)] __-__ ci and black (*Zac Li*)
+ - [[```f07b9c67```](https://github.com/jina-ai/langchain-serve/commit/f07b9c67f952eb606c2af3691ea1dc84e96473d2)] __-__ __version__: the next version will be 0.0.9 (*Jina Dev Bot*)
+ - [[```c7b6f9cb```](https://github.com/jina-ai/langchain-serve/commit/c7b6f9cb59d8f2c91177699fbe32c32d8a94a11e)] __-__ __version__: the next version will be 0.0.7 (*Jina Dev Bot*)
 
