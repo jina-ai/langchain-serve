@@ -2,7 +2,6 @@ import asyncio
 from collections import deque
 from typing import Any, Dict, List, Literal, Optional, Union
 
-import faiss
 from fastapi import WebSocket
 from langchain import LLMChain, OpenAI, PromptTemplate, SerpAPIWrapper
 from langchain.agents import AgentExecutor, Tool, ZeroShotAgent
@@ -17,6 +16,8 @@ from pydantic import BaseModel, Field
 
 
 def get_vectorstore():
+    import faiss
+
     # Define your embedding model
     embeddings_model = OpenAIEmbeddings()
 
