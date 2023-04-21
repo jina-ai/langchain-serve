@@ -10,6 +10,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -259,4 +260,23 @@
 ### 🍹 Other Improvements
 
  - [[```4c07ad51```](https://github.com/jina-ai/langchain-serve/commit/4c07ad51d26b5fcf16759373beb5fbbcec591c1f)] __-__ __version__: the next version will be 0.0.10 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-11></a>
+## Release Note (`0.0.11`)
+
+> Release time: 2023-04-21 04:22:32
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```2e60c980```](https://github.com/jina-ai/langchain-serve/commit/2e60c9805736a13a41a589692bcbc9f0168ea95b)] __-__ dep import in babyagi (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```5a56967d```](https://github.com/jina-ai/langchain-serve/commit/5a56967d6a62d81992dc06475c8dd61dd445d2e9)] __-__ __version__: the next version will be 0.0.11 (*Jina Dev Bot*)
 
