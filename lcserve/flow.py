@@ -392,6 +392,11 @@ def get_gateway_jcloud_args(
 ) -> Dict:
 
     _autoscale = AutoscaleConfig(stable_window=timeout)
+
+    # TODO: remove this when websocket + autoscale is supported in JCloud
+    _timeout = 600 if websocket else timeout
+    _autoscale_args = {} if websocket else _autoscale.to_dict()
+
     return {
         'jcloud': {
             'expose': True,
@@ -400,8 +405,8 @@ def get_gateway_jcloud_args(
                 'capacity': 'spot',
             },
             'healthcheck': False if websocket else True,
-            'timeout': timeout,
-            **_autoscale.to_dict(),
+            'timeout': _timeout,
+            **_autoscale_args,
         }
     }
 
