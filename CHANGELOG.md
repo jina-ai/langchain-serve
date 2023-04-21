@@ -11,6 +11,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -279,4 +280,28 @@
 ### 🍹 Other Improvements
 
  - [[```5a56967d```](https://github.com/jina-ai/langchain-serve/commit/5a56967d6a62d81992dc06475c8dd61dd445d2e9)] __-__ __version__: the next version will be 0.0.11 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-12></a>
+## Release Note (`0.0.12`)
+
+> Release time: 2023-04-21 12:30:35
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```ca504e16```](https://github.com/jina-ai/langchain-serve/commit/ca504e16e29734adefca41087b1da390cfd20aec)] __-__ add timeout to lc-serve (*Deepankar Mahapatro*)
+
+### 🐞 Bug fixes
+
+ - [[```e142de79```](https://github.com/jina-ai/langchain-serve/commit/e142de7994eea254fc0a20ddfc4d37521d83aa29)] __-__ disable autoscaling for websocket (*Deepankar Mahapatro*)
+ - [[```735b181a```](https://github.com/jina-ai/langchain-serve/commit/735b181ab03d484221deee1563665fc283f156df)] __-__ await run_function (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```fcb141ce```](https://github.com/jina-ai/langchain-serve/commit/fcb141ce228e09f22a01449be32c388565dd576b)] __-__ __version__: the next version will be 0.0.12 (*Jina Dev Bot*)
 
