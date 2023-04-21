@@ -19,6 +19,7 @@ from jina import Flow
 
 APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
+DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
 # TODO: this needs to be pulled from Jina Wolf API dynamically after the issue has been fixed on the API side
@@ -280,6 +281,7 @@ class Defaults:
     autoscale_min: int = 0
     autoscale_max: int = 10
     autoscale_rps: int = 10
+    autoscale_stable_window: int = DEFAULT_TIMEOUT
 
     def __post_init__(self):
         # read from config yaml
@@ -294,6 +296,9 @@ class Defaults:
             )
             self.autoscale_rps = config.get('autoscale', {}).get(
                 'rps', self.autoscale_rps
+            )
+            self.autoscale_stable_window = config.get('autoscale', {}).get(
+                'stable_window', self.autoscale_stable_window
             )
 
 
@@ -348,6 +353,7 @@ class AutoscaleConfig:
     min: int = Defaults.autoscale_min
     max: int = Defaults.autoscale_max
     rps: int = Defaults.autoscale_rps
+    stable_window: int = Defaults.autoscale_stable_window
 
     def to_dict(self) -> Dict:
         return {
@@ -356,6 +362,7 @@ class AutoscaleConfig:
                 'max': self.max,
                 'metric': 'rps',
                 'target': self.rps,
+                'stable_window': self.stable_window,
             }
         }
 
@@ -380,14 +387,15 @@ def get_with_args_for_jcloud() -> Dict:
 
 def get_gateway_jcloud_args(
     instance: str = Defaults.instance,
-    autoscale: AutoscaleConfig = AutoscaleConfig(),
     websocket: bool = False,
+    timeout: int = DEFAULT_TIMEOUT,
 ) -> Dict:
-    _autoscale_args = autoscale.to_dict() if autoscale else {}
-    if (
-        websocket
-    ):  # # TODO: remove this when websocket + autoscale is supported in JCloud
-        _autoscale_args = {}
+
+    _autoscale = AutoscaleConfig(stable_window=timeout)
+
+    # TODO: remove this when websocket + autoscale is supported in JCloud
+    _timeout = 600 if websocket else timeout
+    _autoscale_args = {} if websocket else _autoscale.to_dict()
 
     return {
         'jcloud': {
@@ -397,6 +405,7 @@ def get_gateway_jcloud_args(
                 'capacity': 'spot',
             },
             'healthcheck': False if websocket else True,
+            'timeout': _timeout,
             **_autoscale_args,
         }
     }
@@ -407,6 +416,7 @@ def get_flow_dict(
     jcloud: bool = False,
     port: int = 8080,
     name: str = APP_NAME,
+    timeout: int = DEFAULT_TIMEOUT,
     app_id: str = None,
     gateway_id: str = None,
     websocket: bool = False,
@@ -426,7 +436,11 @@ def get_flow_dict(
             'port': [port],
             'protocol': ['websocket'] if websocket else ['http'],
             **get_uvicorn_args(),
-            **(get_gateway_jcloud_args(websocket=websocket) if jcloud else {}),
+            **(
+                get_gateway_jcloud_args(timeout=timeout, websocket=websocket)
+                if jcloud
+                else {}
+            ),
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
