@@ -10,6 +10,7 @@ from . import __version__
 from .flow import (
     APP_NAME,
     BABYAGI_APP_NAME,
+    DEFAULT_TIMEOUT,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
@@ -35,6 +36,7 @@ async def serve_on_jcloud(
     requirements: List[str] = None,
     app_id: str = None,
     version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     verbose: bool = False,
 ):
@@ -55,6 +57,7 @@ async def serve_on_jcloud(
             jcloud=True,
             port=8080,
             name=name,
+            timeout=timeout,
             app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
             websocket=is_websocket,
@@ -70,6 +73,7 @@ async def serve_babyagi_on_jcloud(
     requirements: List[str] = None,
     app_id: str = None,
     version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     verbose: bool = False,
 ):
@@ -79,6 +83,7 @@ async def serve_babyagi_on_jcloud(
         requirements=requirements,
         app_id=app_id,
         version=version,
+        timeout=timeout,
         platform=platform,
         verbose=verbose,
     )
@@ -142,6 +147,13 @@ def local(module, port):
     show_default=False,
 )
 @click.option(
+    '--timeout',
+    type=int,
+    default=DEFAULT_TIMEOUT,
+    help='Total request timeout in seconds.',
+    show_default=True,
+)
+@click.option(
     '--platform',
     type=str,
     default=None,
@@ -156,12 +168,13 @@ def local(module, port):
 )
 @click.help_option('-h', '--help')
 @syncify
-async def jcloud(module, name, app_id, version, platform, verbose):
+async def jcloud(module, name, app_id, version, timeout, platform, verbose):
     await serve_on_jcloud(
         module,
         name=name,
         app_id=app_id,
         version=version,
+        timeout=timeout,
         platform=platform,
         verbose=verbose,
     )
@@ -196,6 +209,13 @@ async def jcloud(module, name, app_id, version, platform, verbose):
     show_default=False,
 )
 @click.option(
+    '--timeout',
+    type=int,
+    default=DEFAULT_TIMEOUT,
+    help='Total request timeout in seconds.',
+    show_default=True,
+)
+@click.option(
     '--platform',
     type=str,
     default=None,
@@ -210,12 +230,13 @@ async def jcloud(module, name, app_id, version, platform, verbose):
 )
 @click.help_option('-h', '--help')
 @syncify
-async def babyagi(name, requirements, app_id, version, platform, verbose):
+async def babyagi(name, requirements, app_id, version, timeout, platform, verbose):
     await serve_babyagi_on_jcloud(
         name=name,
         requirements=requirements,
         app_id=app_id,
         version=version,
+        timeout=timeout,
         platform=platform,
         verbose=verbose,
     )
