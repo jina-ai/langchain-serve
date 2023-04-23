@@ -1,12 +1,12 @@
-import time
-import os
-import sys
-import signal
-import pytest
-import subprocess
 import logging
+import os
+import signal
+import subprocess
+import sys
+import time
 
 import psutil
+import pytest
 
 
 @pytest.fixture(scope="session", autouse=True)
