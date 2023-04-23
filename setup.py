@@ -67,6 +67,13 @@ setup(
             'lcserve=lcserve.__main__:serve',
         ],
     },
+    extras_require={
+        'test': [
+            'pytest',
+            'pytest-asyncio',
+            'psutil',
+        ],
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

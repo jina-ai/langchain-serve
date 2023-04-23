@@ -4,7 +4,7 @@ import pytest
 import requests
 import websockets
 
-from .test_helper import run_test_server
+from .helper import run_test_server
 
 
 @pytest.mark.parametrize(
