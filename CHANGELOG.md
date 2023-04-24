@@ -13,6 +13,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -336,4 +337,23 @@
  - [[```600abbda```](https://github.com/jina-ai/langchain-serve/commit/600abbda6e40d207808d8de996125eaaa9f0468e)] __-__ add test path file (*Zac Li*)
  - [[```71e550b8```](https://github.com/jina-ai/langchain-serve/commit/71e550b832bec1139b065dc5b9215f0c412d192e)] __-__ tests in ci (*Zac Li*)
  - [[```a40ef07b```](https://github.com/jina-ai/langchain-serve/commit/a40ef07ba202078d6d020e3f1a6e30e90118738e)] __-__ __version__: the next version will be 0.0.13 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-14></a>
+## Release Note (`0.0.14`)
+
+> Release time: 2023-04-24 14:51:33
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```45182975```](https://github.com/jina-ai/langchain-serve/commit/45182975eab19a6094295a148846bbd5e852f7ff)] __-__ __app__: babyagi-as-a-service playground (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```98db3872```](https://github.com/jina-ai/langchain-serve/commit/98db3872371eb26e13e13dc0c26a971f2c6af65e)] __-__ __version__: the next version will be 0.0.14 (*Jina Dev Bot*)
 
