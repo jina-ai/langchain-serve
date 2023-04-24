@@ -44,7 +44,7 @@
   lc-serve deploy pdf_qna
   ```
 
-- Integrate pdf_qna with external services using simple REST API. Get a flavor of the integration with Streamlit playground on your CLI with 
+- Get a flavor of the integration with Streamlit playground on your CLI with 
     
   ```bash
   lc-serve playground pdf_qna
@@ -53,6 +53,10 @@
   <summary>Show playground</summary>
   <img src=".github/images/pdf_qna_demo.gif" title="pdf_qna Playground">
   </details>
+
+- Expand the Q&A bot to multiple languages, different document types & integrate with external services using simple REST APIs
+
+  https://github.com/jina-ai/langchain-serve/blob/8f7a9272e99490a5357655becfc5da3569655f38/lcserve/apps/pdf_qna/app.py#L8-L12
 
 ## :muscle: Features
 
