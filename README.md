@@ -30,7 +30,10 @@
   lc-serve playground babyagi
   ```
 
-![Babyagi-as-a-service Playground](.github/images/babyagi-playground.gif)
+  <details>
+  <summary>Show playground</summary>
+  ![Babyagi-as-a-service Playground](.github/images/babyagi-playground.gif)
+  </details>
 
 
 ## 💬 Simple Question Answer Bot on PDFs
@@ -46,8 +49,10 @@
   ```bash
   lc-serve playground pdf_qna
   ```
-
+  <details>
+  <summary>Show playground</summary>
   ![pdf_qna Playground](.github/images/pdf_qna_demo.gif)
+  </details>
 
 ## :muscle: Features
 
