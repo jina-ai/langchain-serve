@@ -14,6 +14,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -356,4 +357,23 @@
 ### 🍹 Other Improvements
 
  - [[```98db3872```](https://github.com/jina-ai/langchain-serve/commit/98db3872371eb26e13e13dc0c26a971f2c6af65e)] __-__ __version__: the next version will be 0.0.14 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-15></a>
+## Release Note (`0.0.15`)
+
+> Release time: 2023-04-24 15:44:10
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```e3e3c054```](https://github.com/jina-ai/langchain-serve/commit/e3e3c0548c8780da92aacd0af232fc0437b15d2e)] __-__ __app__: pdf qna playground (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```9be28567```](https://github.com/jina-ai/langchain-serve/commit/9be285670ad0188a4b21ee679db3bda7c12ece5b)] __-__ __version__: the next version will be 0.0.15 (*Jina Dev Bot*)
 
