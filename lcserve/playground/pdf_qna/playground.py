@@ -75,12 +75,11 @@ def main():
         }
         with st.spinner(text="Asking chain..."):
             response = requests.post(host + '/ask', headers=headers, json=data)
-            st.write(response.json())
             try:
-                print(response.json())
                 response = Response.parse_raw(response.text)
-                # bold and write the result
-                st.markdown(f'**Result:** {response.result}')
+                st.markdown(f'Answer: **{response.result.strip()}**')
+                with st.expander('Show stdout'):
+                    st.write(response.json())
             except Exception as e:
                 st.error(e)
                 return
