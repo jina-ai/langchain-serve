@@ -31,7 +31,7 @@ openai_token = st.sidebar.text_input(
 
 host = st.text_input(
     'Enter the lc-serve host to connect to',
-    placeholder='https://babyagi-1bab3f3291.wolf.jina.ai',
+    placeholder='https://pdfqna-1bab3f3291.wolf.jina.ai',
 )
 
 urls = st.text_area(
