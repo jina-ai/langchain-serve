@@ -375,5 +375,14 @@ def babyagi(verbose):
     play(verbose=verbose)
 
 
+@playground.command(help='Play with pdf qna on JCloud.')
+def pdf_qna():
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'pdf_qna'))
+    from streamlit.web import cli as strcli
+
+    sys.argv = ['streamlit', 'run', 'lcserve/playground/pdf_qna/playground.py']
+    sys.exit(strcli.main())
+
+
 if __name__ == "__main__":
     serve()
