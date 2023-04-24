@@ -10,6 +10,7 @@ from . import __version__
 from .flow import (
     APP_NAME,
     BABYAGI_APP_NAME,
+    PDF_QNA_APP_NAME,
     DEFAULT_TIMEOUT,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
@@ -81,6 +82,25 @@ async def serve_babyagi_on_jcloud(
         module='lcserve.apps.babyagi.app',
         name=name,
         requirements=requirements,
+        app_id=app_id,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        verbose=verbose,
+    )
+
+
+async def serve_pdf_qna_on_jcloud(
+    name: str = PDF_QNA_APP_NAME,
+    app_id: str = None,
+    version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
+    platform: str = None,
+    verbose: bool = False,
+):
+    await serve_on_jcloud(
+        module='lcserve.apps.pdf_qna.app',
+        name=name,
         app_id=app_id,
         version=version,
         timeout=timeout,
@@ -239,6 +259,54 @@ async def babyagi(name, requirements, app_id, version, timeout, platform, verbos
         timeout=timeout,
         platform=platform,
         verbose=verbose,
+    )
+
+
+@deploy.command(help='Deploy pdf qna on JCloud.')
+@click.option(
+    '--name',
+    type=str,
+    default=PDF_QNA_APP_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+@click.option(
+    '--app-id',
+    type=str,
+    default=None,
+    help='AppID of the deployed agent to be updated.',
+    show_default=True,
+)
+@click.option(
+    '--version',
+    type=str,
+    default='latest',
+    help='Version of serving gateway to be used.',
+    show_default=False,
+)
+@click.option(
+    '--timeout',
+    type=int,
+    default=DEFAULT_TIMEOUT,
+    help='Total request timeout in seconds.',
+    show_default=True,
+)
+@click.option(
+    '--platform',
+    type=str,
+    default=None,
+    help='Platform of Docker image needed for the deployment is built on.',
+    show_default=False,
+)
+@click.help_option('-h', '--help')
+@syncify
+async def pdf_qna(name, app_id, version, timeout, platform):
+    await serve_pdf_qna_on_jcloud(
+        name=name,
+        app_id=app_id,
+        version=version,
+        timeout=timeout,
+        platform=platform,
     )
 
 

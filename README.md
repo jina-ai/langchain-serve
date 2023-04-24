@@ -1,5 +1,5 @@
 <p align="center">
-<b>LangChain Apps on Production with Jina 🚀</b>
+<h2 align="center">LangChain Apps on Production with Jina 🚀</h2>
 </p>
 
 <p align=center>
@@ -14,10 +14,9 @@
 
 **langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development.
 
+> Give us a :star: and tell us what more you'd like to see! 
 
 ## 🧠 Babyagi-as-a-service
-
-> Give us a :star: and tell us what more you'd like to see! 
 
 - Deploy `babyagi` on Jina AI Cloud with one command
 
@@ -33,6 +32,24 @@
 
 ![Babyagi-as-a-service Playground](.github/images/babyagi-playground.gif)
 
+
+## 💬 Simple Question Answer Bot on PDFs
+
+- Deploy `pdf_qna` on Jina AI Cloud with one command
+
+  ```bash
+  lc-serve deploy pdf_qna
+  ```
+
+- Integrate pdf_qna with external services using our Websocket API. Get a flavor of the integration with Streamlit playground on your CLI with 
+    
+  ```bash
+  lc-serve playground pdf_qna
+  ```
+
+  ![pdf_qna Playground](.github/images/pdf_qna_demo.gif)
+
+## :muscle: Features
 
 #### 🎉 Custom Apps to production in 4 simple steps
 
