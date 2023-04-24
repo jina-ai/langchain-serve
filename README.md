@@ -47,7 +47,7 @@
   lc-serve playground pdf_qna
   ```
 
-  ![pdf_qna Playground](.github/images/pdf_qna_demo.mp4)
+  ![pdf_qna Playground](.github/images/pdf_qna_demo.gif)
 
 ## :muscle: Features
 
