@@ -32,7 +32,7 @@
 
   <details>
   <summary>Show playground</summary>
-  ![Babyagi-as-a-service Playground](.github/images/babyagi-playground.gif)
+  <img src=".github/images/babyagi-playground.gif" title="Babyagi-as-a-service Playground">
   </details>
 
 
@@ -51,7 +51,7 @@
   ```
   <details>
   <summary>Show playground</summary>
-  ![pdf_qna Playground](.github/images/pdf_qna_demo.gif)
+  <img src=".github/images/pdf_qna_playground.gif" title="pdf_qna Playground">
   </details>
 
 ## :muscle: Features
