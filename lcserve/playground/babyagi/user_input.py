@@ -22,8 +22,9 @@ class UserInput(BaseModel):
     first_task: str
     predefined_tools: PredefinedTools
     custom_tools: List[CustomTool]
-    endpoint: str = '/baby_agi'
+    endpoint: str = 'baby_agi'
     interactive: bool = True
+    envs: Dict[str, str] = {}
 
 
 def prompt_user() -> UserInput:

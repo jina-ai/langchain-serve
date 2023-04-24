@@ -388,15 +388,15 @@ def get_with_args_for_jcloud() -> Dict:
 
 def get_gateway_jcloud_args(
     instance: str = Defaults.instance,
-    websocket: bool = False,
+    is_websocket: bool = False,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> Dict:
 
     _autoscale = AutoscaleConfig(stable_window=timeout)
 
     # TODO: remove this when websocket + autoscale is supported in JCloud
-    _timeout = 600 if websocket else timeout
-    _autoscale_args = {} if websocket else _autoscale.to_dict()
+    _timeout = 600 if is_websocket else timeout
+    _autoscale_args = {} if is_websocket else _autoscale.to_dict()
 
     return {
         'jcloud': {
@@ -405,7 +405,7 @@ def get_gateway_jcloud_args(
                 'instance': instance,
                 'capacity': 'spot',
             },
-            'healthcheck': False if websocket else True,
+            'healthcheck': False if is_websocket else True,
             'timeout': _timeout,
             **_autoscale_args,
         }
@@ -420,7 +420,7 @@ def get_flow_dict(
     timeout: int = DEFAULT_TIMEOUT,
     app_id: str = None,
     gateway_id: str = None,
-    websocket: bool = False,
+    is_websocket: bool = False,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
@@ -435,10 +435,10 @@ def get_flow_dict(
                 'modules': module,
             },
             'port': [port],
-            'protocol': ['websocket'] if websocket else ['http'],
+            'protocol': ['websocket'] if is_websocket else ['http'],
             **get_uvicorn_args(),
             **(
-                get_gateway_jcloud_args(timeout=timeout, websocket=websocket)
+                get_gateway_jcloud_args(timeout=timeout, is_websocket=is_websocket)
                 if jcloud
                 else {}
             ),
@@ -452,11 +452,15 @@ def get_flow_yaml(
     jcloud: bool = False,
     port: int = 8080,
     name: str = APP_NAME,
-    websocket: bool = False,
+    is_websocket: bool = False,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
-            module=module, jcloud=jcloud, port=port, name=name, websocket=websocket
+            module=module,
+            jcloud=jcloud,
+            port=port,
+            name=name,
+            is_websocket=is_websocket,
         ),
         sort_keys=False,
     )

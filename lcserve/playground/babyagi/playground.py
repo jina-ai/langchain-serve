@@ -68,6 +68,7 @@ async def talk_to_agent(user_input: UserInput):
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect(f'{user_input.host}/{user_input.endpoint}') as ws:
             print(f'Connected to {user_input.host}/{user_input.endpoint}')
+            print(f'⬆️ {user_input.json(exclude={"host", "endpoint"})}')
             await ws.send_json(user_input.dict(exclude={'host', 'endpoint'}))
             async for msg in ws:
                 if msg.type == aiohttp.WSMsgType.TEXT:
@@ -75,9 +76,9 @@ async def talk_to_agent(user_input: UserInput):
                         await ws.close()
                         break
                     else:
-                        print(f'Got message: {msg.data}')
                         try:
                             response = CoTResponse.parse_raw(msg.data)
+                            print(f'⬇️ {response.json()}')
                             text = None
                             if response.result:
                                 text = response.result
@@ -93,16 +94,19 @@ async def talk_to_agent(user_input: UserInput):
                         except ValidationError:
                             try:
                                 task_details = TaskDetailsResponse.parse_raw(msg.data)
+                                print(f'⬇️ {task_details.json()}')
                                 await task_details_queue.put(task_details)
                                 continue
                             except ValidationError:
                                 try:
                                     task_result = TaskResultResponse.parse_raw(msg.data)
+                                    print(f'⬇️ {task_result.json()}')
                                     await task_result_queue.put(task_result)
                                     continue
                                 except ValidationError as e:
                                     try:
                                         prompt = HumanPrompt.parse_raw(msg.data)
+                                        print(f'⬇️ {prompt.json()}')
                                         await human_prompt_question_queue.put(prompt)
                                         answer = await human_prompt_answer_queue.get()
                                         await ws.send_str(answer)
@@ -193,6 +197,7 @@ class ShouldContinue(Static):
             self._no.variant = 'primary'
 
     async def _send_answer(self, answer: str):
+        print(f'⬆️ {answer}')
         await self._human_prompt_answer_queue.put(answer)
         self._yes.disabled = True
         self._no.disabled = True
@@ -273,6 +278,8 @@ class BabyAGIPlayground(App[None]):
 
 def play():
     user_input = prompt_user()
+
+    print(f'User input: {user_input.json()}')
 
     task = loop.create_task(talk_to_agent(user_input))
     try:
