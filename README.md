@@ -51,7 +51,7 @@
   ```
   <details>
   <summary>Show playground</summary>
-  <img src=".github/images/pdf_qna_playground.gif" title="pdf_qna Playground">
+  <img src=".github/images/pdf_qna_demo.gif" title="pdf_qna Playground">
   </details>
 
 ## :muscle: Features
