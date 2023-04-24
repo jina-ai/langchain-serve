@@ -564,6 +564,7 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 
 - [My client that connects to the App gets timed-out, what should I do?](#my-client-that-connects-to-the-app-gets-timed-out-what-should-I-do)
 - [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
+- [Debug babyagi playground request/response for external integration](#debug-babyagi-playground-requestresponse-for-external-integration)
 
 ### My client that connects to the App gets timed-out, what should I do?
 
@@ -572,3 +573,15 @@ If you make long HTTP requests, you may experience timeouts due to limitations i
 ### JCloud deployment failed at pushing image to Jina Hubble, what should I do?
 
 Please use `--verbose` and retry to get more information. If you are operating on computer with `arm64` arch, please retry with `--platform linux/amd64` so the image can be built correctly.
+
+### Debug babyagi playground request/response for external integration
+
+1. Start textual console in a terminal (exclude following groups to reduce the noise in logging)
+  ```bash
+  textual console -x EVENT -x SYSTEM -x DEBUG
+  ```
+
+2. Start the playground with `--verbose` flag. Start interacting and see the logs in the console.
+  ```bash
+  lc-serve playground babyagi --verbose
+  ```

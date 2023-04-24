@@ -362,11 +362,17 @@ def playground():
 
 
 @playground.command(help='Play with babyagi on JCloud.')
-def babyagi():
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
+def babyagi(verbose):
     sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'babyagi'))
     from .playground.babyagi.playground import play
 
-    play()
+    play(verbose=verbose)
 
 
 if __name__ == "__main__":

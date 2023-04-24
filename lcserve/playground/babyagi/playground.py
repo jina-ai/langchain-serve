@@ -1,8 +1,10 @@
+import os
 import asyncio
 
 import aiohttp
 import nest_asyncio
 from pydantic import BaseModel, ValidationError
+from textual import log
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import DataTable, Header, TextLog, Button, Static
@@ -67,8 +69,8 @@ class HumanPrompt(BaseModel):
 async def talk_to_agent(user_input: UserInput):
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect(f'{user_input.host}/{user_input.endpoint}') as ws:
-            print(f'Connected to {user_input.host}/{user_input.endpoint}')
-            print(f'⬆️ {user_input.json(exclude={"host", "endpoint"})}')
+            log.info(f'Connected to {user_input.host}/{user_input.endpoint}')
+            log.info(f'📤 {user_input.json(exclude={"host", "endpoint"})}')
             await ws.send_json(user_input.dict(exclude={'host', 'endpoint'}))
             async for msg in ws:
                 if msg.type == aiohttp.WSMsgType.TEXT:
@@ -78,7 +80,7 @@ async def talk_to_agent(user_input: UserInput):
                     else:
                         try:
                             response = CoTResponse.parse_raw(msg.data)
-                            print(f'⬇️ {response.json()}')
+                            log.info(f'📥 {response.json()}')
                             text = None
                             if response.result:
                                 text = response.result
@@ -94,30 +96,30 @@ async def talk_to_agent(user_input: UserInput):
                         except ValidationError:
                             try:
                                 task_details = TaskDetailsResponse.parse_raw(msg.data)
-                                print(f'⬇️ {task_details.json()}')
+                                log.info(f'📥 {task_details.json()}')
                                 await task_details_queue.put(task_details)
                                 continue
                             except ValidationError:
                                 try:
                                     task_result = TaskResultResponse.parse_raw(msg.data)
-                                    print(f'⬇️ {task_result.json()}')
+                                    log.info(f'📥 {task_result.json()}')
                                     await task_result_queue.put(task_result)
                                     continue
                                 except ValidationError as e:
                                     try:
                                         prompt = HumanPrompt.parse_raw(msg.data)
-                                        print(f'⬇️ {prompt.json()}')
+                                        log.info(f'📥 {prompt.json()}')
                                         await human_prompt_question_queue.put(prompt)
                                         answer = await human_prompt_answer_queue.get()
                                         await ws.send_str(answer)
                                         continue
                                     except ValidationError:
-                                        print(f'Unknown message: {msg.data}')
+                                        log.info(f'Unknown message: {msg.data}')
 
                 elif msg.type == aiohttp.WSMsgType.ERROR:
-                    print('ws connection closed with exception %s' % ws.exception())
+                    log.info('ws connection closed with exception %s' % ws.exception())
                 else:
-                    print(msg)
+                    log.info(msg)
 
 
 class ChainOfThoughts(Horizontal):
@@ -197,7 +199,7 @@ class ShouldContinue(Static):
             self._no.variant = 'primary'
 
     async def _send_answer(self, answer: str):
-        print(f'⬆️ {answer}')
+        log.info(f'📤 {answer}')
         await self._human_prompt_answer_queue.put(answer)
         self._yes.disabled = True
         self._no.disabled = True
@@ -276,11 +278,10 @@ class BabyAGIPlayground(App[None]):
             self.exit()
 
 
-def play():
+def play(verbose: bool = False):
     user_input = prompt_user()
-
-    print(f'User input: {user_input.json()}')
-
+    if verbose:
+        os.environ['TEXTUAL'] = 'devtools'
     task = loop.create_task(talk_to_agent(user_input))
     try:
         BabyAGIPlayground().run()
@@ -289,4 +290,4 @@ def play():
 
 
 if __name__ == "__main__":
-    play()
+    play(verbose=False)
