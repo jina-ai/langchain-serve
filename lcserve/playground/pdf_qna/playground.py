@@ -48,7 +48,7 @@ question = st.text_input(
 submit = st.button('Submit')
 
 
-def main():
+def play():
     if submit:
         if not openai_token:
             st.error('Please enter your OpenAI token')
@@ -85,4 +85,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    play()
