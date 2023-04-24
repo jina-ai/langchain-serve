@@ -74,8 +74,10 @@ def main():
             'envs': {'OPENAI_API_KEY': openai_token},
         }
         with st.spinner(text="Asking chain..."):
-            response = requests.post(host, headers=headers, data=json.dumps(data))
+            response = requests.post(host + '/ask', headers=headers, json=data)
+            st.write(response.json())
             try:
+                print(response.json())
                 response = Response.parse_raw(response.text)
                 # bold and write the result
                 st.markdown(f'**Result:** {response.result}')
