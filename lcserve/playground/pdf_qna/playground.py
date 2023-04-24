@@ -1,7 +1,6 @@
 import os
 import sys
 import requests
-import json
 
 import streamlit as st
 from pydantic import BaseModel
