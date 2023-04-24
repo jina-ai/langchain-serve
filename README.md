@@ -36,7 +36,7 @@
   </details>
 
 
-## 💬 Simple Question Answer Bot on PDFs
+## 💬 Question Answer Bot on PDFs
 
 - Deploy `pdf_qna` on Jina AI Cloud with one command
 
