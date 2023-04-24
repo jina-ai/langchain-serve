@@ -54,11 +54,11 @@
   <img src=".github/images/pdf_qna_demo.gif" title="pdf_qna Playground">
   </details>
 
-- Expand the Q&A bot to multiple languages, different document types & integrate with external services using simple REST APIs
+- Expand the Q&A bot to multiple languages, different document types & integrate with external services using simple REST APIs.
 
   https://github.com/jina-ai/langchain-serve/blob/8f7a9272e99490a5357655becfc5da3569655f38/lcserve/apps/pdf_qna/app.py#L8-L12
 
-## :muscle: Features
+# :muscle: Features
 
 #### 🎉 Custom Apps to production in 4 simple steps
 
