@@ -1,5 +1,5 @@
 <p align="center">
-<b>LangChain Apps on Production with Jina 🚀</b>
+<h2 align="center">LangChain Apps on Production with Jina 🚀</h2>
 </p>
 
 <p align=center>
