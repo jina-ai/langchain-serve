@@ -30,10 +30,13 @@
   lc-serve playground babyagi
   ```
 
-![Babyagi-as-a-service Playground](.github/images/babyagi-playground.gif)
+  <details>
+  <summary>Show playground</summary>
+  <img src=".github/images/babyagi-playground.gif" title="Babyagi-as-a-service Playground">
+  </details>
 
 
-## 💬 Simple Question Answer Bot on PDFs
+## 💬 Question Answer Bot on PDFs
 
 - Deploy `pdf_qna` on Jina AI Cloud with one command
 
@@ -46,8 +49,10 @@
   ```bash
   lc-serve playground pdf_qna
   ```
-
-  ![pdf_qna Playground](.github/images/pdf_qna_demo.gif)
+  <details>
+  <summary>Show playground</summary>
+  <img src=".github/images/pdf_qna_demo.gif" title="pdf_qna Playground">
+  </details>
 
 ## :muscle: Features
 
