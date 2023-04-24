@@ -44,7 +44,7 @@
   lc-serve deploy pdf_qna
   ```
 
-- Integrate pdf_qna with external services using our Websocket API. Get a flavor of the integration with Streamlit playground on your CLI with 
+- Integrate pdf_qna with external services using simple REST API. Get a flavor of the integration with Streamlit playground on your CLI with 
     
   ```bash
   lc-serve playground pdf_qna
