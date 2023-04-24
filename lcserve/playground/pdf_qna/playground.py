@@ -29,6 +29,16 @@ openai_token = st.sidebar.text_input(
     'Enter your OpenAI token:', placeholder='sk-...', type='password'
 )
 
+host = st.text_input(
+    'Enter the lc-serve host to connect to',
+    placeholder='https://babyagi-1bab3f3291.wolf.jina.ai',
+)
+
+urls = st.text_area(
+    'Type your urls (separated by comma)',
+    value='https://uiic.co.in/sites/default/files/uploads/downloadcenter/Arogya%20Sanjeevani%20Policy%20CIS_2.pdf',
+    placeholder='https://uiic.co.in/sites/default/files/uploads/downloadcenter/Arogya%20Sanjeevani%20Policy%20CIS_2.pdf',
+)
 
 question = st.text_input(
     'Type your question',
@@ -36,25 +46,25 @@ question = st.text_input(
     placeholder='Kya iss scheme mai koi waiting period hai?',
 )
 
-
-# allow to add multiple urls
-urls = st.text_area(
-    'Type your urls (separated by comma)',
-    value='https://uiic.co.in/sites/default/files/uploads/downloadcenter/Arogya%20Sanjeevani%20Policy%20CIS_2.pdf',
-    placeholder='https://uiic.co.in/sites/default/files/uploads/downloadcenter/Arogya%20Sanjeevani%20Policy%20CIS_2.pdf',
-)
-
 submit = st.button('Submit')
 
 
-def main(host: str):
+def main():
     if submit:
         if not openai_token:
             st.error('Please enter your OpenAI token')
             return
 
+        if not host:
+            st.error('Please enter the lc-serve host')
+            return
+
         if not question:
             st.error('Please enter your question')
+            return
+
+        if not urls:
+            st.error('Please enter your urls')
             return
 
         headers = {'Content-Type': 'application/json'}
@@ -67,13 +77,12 @@ def main(host: str):
             response = requests.post(host, headers=headers, data=json.dumps(data))
             try:
                 response = Response.parse_raw(response.text)
-                st.write(response.result)
+                # bold and write the result
+                st.markdown(f'**Result:** {response.result}')
             except Exception as e:
                 st.error(e)
                 return
 
 
 if __name__ == '__main__':
-    # Get host from 1st arg
-    host = sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:8080/ask'
-    main(host)
+    main()

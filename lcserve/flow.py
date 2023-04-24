@@ -19,6 +19,7 @@ from jina import Flow
 
 APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
+PDF_QNA_APP_NAME = 'pdfqna'
 DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
