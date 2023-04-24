@@ -577,11 +577,13 @@ Please use `--verbose` and retry to get more information. If you are operating o
 ### Debug babyagi playground request/response for external integration
 
 1. Start textual console in a terminal (exclude following groups to reduce the noise in logging)
-  ```bash
-  textual console -x EVENT -x SYSTEM -x DEBUG
-  ```
+    
+    ```bash
+    textual console -x EVENT -x SYSTEM -x DEBUG
+    ```
 
 2. Start the playground with `--verbose` flag. Start interacting and see the logs in the console.
-  ```bash
-  lc-serve playground babyagi --verbose
-  ```
+    
+    ```bash
+    lc-serve playground babyagi --verbose
+    ```
