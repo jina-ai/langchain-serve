@@ -12,6 +12,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -304,4 +305,35 @@
 ### 🍹 Other Improvements
 
  - [[```fcb141ce```](https://github.com/jina-ai/langchain-serve/commit/fcb141ce228e09f22a01449be32c388565dd576b)] __-__ __version__: the next version will be 0.0.12 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-13></a>
+## Release Note (`0.0.13`)
+
+> Release time: 2023-04-24 09:28:45
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```4de4865c```](https://github.com/jina-ai/langchain-serve/commit/4de4865c68b2a2ac196a265d334f4ccecb5fa68e)] __-__ pdf qna app on jcloud (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```efecf9dd```](https://github.com/jina-ai/langchain-serve/commit/efecf9dd2ad9e852f535b70259d85b9b2a1abb60)] __-__ optimize readme (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```d2e1eb00```](https://github.com/jina-ai/langchain-serve/commit/d2e1eb002c5fd44096f567e1193bb3cdc31fee97)] __-__ reconstruct tests (*Zac Li*)
+ - [[```42ed5741```](https://github.com/jina-ai/langchain-serve/commit/42ed574191ac47b303a2c407aa20e9aef6d730af)] __-__ integration tests (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```a732e326```](https://github.com/jina-ai/langchain-serve/commit/a732e32627ec78f8645db0c1b3ee6fc5fa3ababd)] __-__ ci fix (*Zac Li*)
+ - [[```600abbda```](https://github.com/jina-ai/langchain-serve/commit/600abbda6e40d207808d8de996125eaaa9f0468e)] __-__ add test path file (*Zac Li*)
+ - [[```71e550b8```](https://github.com/jina-ai/langchain-serve/commit/71e550b832bec1139b065dc5b9215f0c412d192e)] __-__ tests in ci (*Zac Li*)
+ - [[```a40ef07b```](https://github.com/jina-ai/langchain-serve/commit/a40ef07ba202078d6d020e3f1a6e30e90118738e)] __-__ __version__: the next version will be 0.0.13 (*Jina Dev Bot*)
 
