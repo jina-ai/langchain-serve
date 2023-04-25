@@ -41,13 +41,13 @@
 - Deploy `pdf_qna` on Jina AI Cloud with one command
 
   ```bash
-  lc-serve deploy pdf_qna
+  lc-serve deploy pdf-qna
   ```
 
 - Get a flavor of the integration with Streamlit playground on your CLI with 
     
   ```bash
-  lc-serve playground pdf_qna
+  lc-serve playground pdf-qna
   ```
   <details>
   <summary>Show playground</summary>
