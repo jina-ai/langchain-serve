@@ -376,8 +376,7 @@ def babyagi(verbose):
 
 
 @playground.command(help='Play with pdf qna on JCloud.')
-@syncify
-async def pdf_qna():
+def pdf_qna():
     try:
         from streamlit.web import cli as strcli
     except ImportError:
