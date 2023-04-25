@@ -24,7 +24,7 @@ DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
 # TODO: this needs to be pulled from Jina Wolf API dynamically after the issue has been fixed on the API side
-APP_LOGS_URL = "[App Logs Link](https://dashboard.wolf.jina.ai/d/flow/flow-monitor?var-flow={flow}&var-datasource=thanos&orgId=2&from=now-24h&to=now&viewPanel=85)"
+APP_LOGS_URL = "[dashboards.wolf.jina.ai](https://dashboard.wolf.jina.ai/d/flow/flow-monitor?var-flow={flow}&var-datasource=thanos&orgId=2&from=now-24h&to=now&viewPanel=85)"
 
 
 def syncify(f):
