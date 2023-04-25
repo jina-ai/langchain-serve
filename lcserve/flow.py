@@ -167,6 +167,14 @@ def _add_to_path():
         sys.path.append(os.path.join(os.path.dirname(__file__), 'apps', app))
 
 
+def _get_parent_dir(modname: str, filename: str) -> str:
+    parts = modname.split('.')
+    parent_dir = os.path.dirname(filename)
+    for _ in range(len(parts) - 1):
+        parent_dir = os.path.dirname(parent_dir)
+    return parent_dir
+
+
 def push_app_to_hubble(
     mod: str,
     tag: str = 'latest',
@@ -185,7 +193,7 @@ def push_app_to_hubble(
         app = import_module(mod)
         file = app.__file__
         if file.endswith('.py'):
-            appdir = os.path.dirname(file)
+            appdir = _get_parent_dir(mod, file)
         else:
             print(f'Unknown file type for module {mod}')
             sys.exit(1)
