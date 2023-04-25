@@ -15,6 +15,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -376,4 +377,27 @@
 ### 🍹 Other Improvements
 
  - [[```9be28567```](https://github.com/jina-ai/langchain-serve/commit/9be285670ad0188a4b21ee679db3bda7c12ece5b)] __-__ __version__: the next version will be 0.0.15 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-16></a>
+## Release Note (`0.0.16`)
+
+> Release time: 2023-04-25 08:36:01
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```f322a8c5```](https://github.com/jina-ai/langchain-serve/commit/f322a8c5388d49ab810793d5bae1bd53c0382849)] __-__ streamlit app path (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```03a1a047```](https://github.com/jina-ai/langchain-serve/commit/03a1a047b3006aa253b5b63932abc5e2320e945d)] __-__ update readme.md (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```72d25332```](https://github.com/jina-ai/langchain-serve/commit/72d25332b6d1af12b0368f080cbf75bae55e762d)] __-__ __version__: the next version will be 0.0.16 (*Jina Dev Bot*)
 
