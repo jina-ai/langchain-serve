@@ -10,7 +10,7 @@ from http import HTTPStatus
 from importlib import import_module
 from shutil import copytree
 from tempfile import mkdtemp
-from typing import Dict, List, Optional, Tuple, Union, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import requests
 import yaml
@@ -24,7 +24,7 @@ DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
 # TODO: this needs to be pulled from Jina Wolf API dynamically after the issue has been fixed on the API side
-APP_LOGS_URL = 'https://dashboard.wolf.jina.ai/d/flow/flow-monitor?var-flow={flow}&var-datasource=thanos&orgId=2&from=now-24h&to=now&viewPanel=85'
+APP_LOGS_URL = "[App Logs Link](https://dashboard.wolf.jina.ai/d/flow/flow-monitor?var-flow={flow}&var-datasource=thanos&orgId=2&from=now-24h&to=now&viewPanel=85)"
 
 
 def syncify(f):
@@ -391,7 +391,6 @@ def get_gateway_jcloud_args(
     is_websocket: bool = False,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> Dict:
-
     _autoscale = AutoscaleConfig(stable_window=timeout)
 
     # TODO: remove this when websocket + autoscale is supported in JCloud
@@ -498,6 +497,7 @@ async def get_app_status_on_jcloud(app_id: str):
     from rich import box
     from rich.align import Align
     from rich.console import Console
+    from rich.markdown import Markdown
     from rich.table import Table
 
     _t = Table(
@@ -546,7 +546,10 @@ async def get_app_status_on_jcloud(app_id: str):
         _add_row('App ID', app_id, bold_key=True, bold_value=True)
         _add_row('Phase', status.get('phase', ''))
         _add_row('Endpoint', endpoint)
-        _add_row('App logs', APP_LOGS_URL.format(flow=flow_namespace))
+        _add_row(
+            'App logs',
+            Markdown(APP_LOGS_URL.format(flow=flow_namespace), justify='center'),
+        )
         _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
         _add_row('OpenAPI JSON', _replace_wss_with_https(f'{endpoint}/openapi.json'))
         console.print(_t)
