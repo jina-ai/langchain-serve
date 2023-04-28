@@ -38,7 +38,7 @@ def test_basic_app_http(run_test_server, route):
     indirect=["run_test_server"],
 )
 async def test_basic_app_ws(run_test_server, route):
-    async with websockets.connect(WS_HOST + route) as websocket:
+    async with websockets.connect(os.path.join(WS_HOST, route)) as websocket:
         await websocket.send(json.dumps({"interval": 1}))
 
         received_messages = []
