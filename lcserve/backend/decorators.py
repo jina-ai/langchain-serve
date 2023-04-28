@@ -1,8 +1,9 @@
 from functools import wraps
 import inspect
+from typing import Callable
 
 
-def serving(_func=None, *, websocket: bool = False):
+def serving(_func=None, *, websocket: bool = False, auth: Callable = None):
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -23,6 +24,7 @@ def serving(_func=None, *, websocket: bool = False):
             'params': {
                 'include_callback_handlers': websocket,
                 # If websocket is True, pass the callback handlers to the client.
+                'auth': auth,
             },
         }
         if websocket:
