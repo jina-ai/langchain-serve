@@ -12,10 +12,11 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Type, Any, Union
 
 from docarray import Document, DocumentArray
 from jina import Gateway
+from jina.logging.logger import JinaLogger
 from jina.enums import ProtocolType as GatewayProtocolType
 from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-from pydantic import Field, ValidationError, create_model
+from pydantic import Field, ValidationError, create_model, BaseModel
 from websockets.exceptions import ConnectionClosed
 
 from .playground.utils.helper import (
@@ -313,8 +314,11 @@ class ServingGateway(FastAPIBaseGateway):
             app_module = import_module(mod)
             for _, func in inspect.getmembers(app_module, inspect.isfunction):
                 self._register_func(func)
-        except ModuleNotFoundError:
-            print(f'Unable to import module: {mod}')
+        except ModuleNotFoundError as e:
+            import traceback
+
+            traceback.print_exc()
+            print(f'Unable to import module: {mod} as {e}')
 
     def _register_file(self, file: Path):
         try:
@@ -327,84 +331,64 @@ class ServingGateway(FastAPIBaseGateway):
             print(f'Unable to import {file}: {e}')
 
     def _register_func(self, func: Callable):
+        def _get_decorator_params(func):
+            if hasattr(func, '__serving__'):
+                return getattr(func, '__serving__').get('params', {})
+            elif hasattr(func, '__ws_serving__'):
+                return getattr(func, '__ws_serving__').get('params', {})
+            return {}
+
+        _decorator_params = _get_decorator_params(func)
         if hasattr(func, '__serving__'):
-            self._register_http_route(func)
+            self._register_http_route(func, auth=_decorator_params.get('auth', None))
         elif hasattr(func, '__ws_serving__'):
-            _decorator_params = getattr(func, '__ws_serving__').get('params', {})
-            if 'include_callback_handlers' in _decorator_params:
-                self._register_ws_route(
-                    func,
-                    include_callback_handlers=_decorator_params[
-                        'include_callback_handlers'
-                    ],
-                )
-            else:
-                self._register_ws_route(func)
+            self._register_ws_route(
+                func,
+                auth=_decorator_params.get('auth', None),
+                include_callback_handlers=_decorator_params.get(
+                    'include_callback_handlers', False
+                ),
+            )
 
-    def _register_http_route(self, func: Callable, **kwargs):
-        return self._register_route(func, route_type=RouteType.HTTP, **kwargs)
+    def _register_http_route(self, func: Callable, auth: Callable = None, **kwargs):
+        return self._register_route(
+            func,
+            auth=auth,
+            route_type=RouteType.HTTP,
+            **kwargs,
+        )
 
-    def _register_ws_route(self, func: Callable, **kwargs):
-        return self._register_route(func, route_type=RouteType.WEBSOCKET, **kwargs)
+    def _register_ws_route(
+        self,
+        func: Callable,
+        auth: Callable = None,
+        include_callback_handlers: bool = False,
+        **kwargs,
+    ):
+        return self._register_route(
+            func,
+            auth=auth,
+            route_type=RouteType.WEBSOCKET,
+            include_callback_handlers=include_callback_handlers,
+            **kwargs,
+        )
 
     def _register_route(
         self,
         func: Callable,
+        auth: Callable = None,
         route_type: RouteType = RouteType.HTTP,
         include_callback_handlers: bool = False,
         **kwargs,
     ):
-        from fastapi import WebSocket, WebSocketDisconnect
-        from fastapi.websockets import WebSocketState
+        from fastapi import Depends
 
         _name = func.__name__.title().replace('_', '')
 
         # check if _name is already registered
         if _name in [route.name for route in self.app.routes]:
-            print(f'Route {_name} already registered. Skipping...')
+            self.logger.debug(f'Route {_name} already registered. Skipping...')
             return
-
-        def _get_input_model_fields() -> Dict[str, Tuple[Type, Any]]:
-            _input_model_fields = {}
-            for _name, _param in inspect.signature(func).parameters.items():
-                if _param.kind == inspect.Parameter.VAR_KEYWORD:
-                    continue
-
-                if _param.annotation is inspect.Parameter.empty:
-                    raise ValueError(
-                        f'Annotation missing for parameter {_name} in function {func.__name__}. '
-                        'Please add type annotations to all parameters.'
-                    )
-
-                if _param.default is inspect.Parameter.empty:
-                    _input_model_fields[_name] = (_param.annotation, ...)
-                else:
-                    _input_model_fields[_name] = (_param.annotation, _param.default)
-
-            return _input_model_fields
-
-        def _get_output_model_fields() -> Dict[str, Tuple[Type, Any]]:
-            def _get_result_type():
-                if 'return' in func.__annotations__:
-                    _return = func.__annotations__['return']
-                    if hasattr(
-                        _return, '__next__'
-                    ):  # if a Generator, return the first type
-                        return _return.__next__.__annotations__['return']
-                    elif _return is None:
-                        return str
-                    else:
-                        return _return
-                else:
-                    return str
-
-            _output_model_fields = {
-                'result': (_get_result_type(), ...),
-                'error': (str, ...),
-                'stdout': (str, Field(default='', alias='stdout')),
-            }
-
-            return _output_model_fields
 
         class Config:
             arbitrary_types_allowed = True
@@ -412,167 +396,346 @@ class ServingGateway(FastAPIBaseGateway):
         input_model = create_model(
             f'Input{_name}',
             __config__=Config,
-            **_get_input_model_fields(),
+            **_get_input_model_fields(func),
             **{'envs': (Dict[str, str], Field(default={}, alias='envs'))},
         )
 
         output_model = create_model(
             f'Output{_name}',
             __config__=Config,
-            **_get_output_model_fields(),
+            **_get_output_model_fields(func),
         )
 
         if route_type == RouteType.HTTP:
             self.logger.info(f'Registering HTTP route: {func.__name__}')
 
-            @self.app.post(
-                path=f'/{func.__name__}',
-                name=_name,
-                description=func.__doc__ or '',
-                tags=[SERVING],
+            post_kwargs = {
+                'path': f'/{func.__name__}',
+                'name': _name,
+                'description': func.__doc__ or '',
+                'tags': [SERVING],
+            }
+            create_http_route(
+                app=self.app,
+                func=func,
+                auth_func=auth,
+                input_model=input_model,
+                output_model=output_model,
+                post_kwargs=post_kwargs,
+                logger=self.logger,
             )
-            async def _create_http_route(input_data: input_model) -> output_model:
-                output, error = '', ''
-                _envs = {}
-                if hasattr(input_data, 'envs'):
-                    _envs = input_data.envs
-                    del input_data.envs
-
-                with EnvironmentVarCtxtManager(_envs):
-                    with Capturing() as stdout:
-                        try:
-                            output = await run_function(func, **dict(input_data))
-                        except Exception as e:
-                            self.logger.error(f'Got an exception: {e}')
-                            error = str(e)
-
-                    if error != '':
-                        print(f'Error: {error}')
-                    return output_model(
-                        result=output,
-                        error=error,
-                        stdout='\n'.join(stdout),
-                    )
 
         elif route_type == RouteType.WEBSOCKET:
             self.logger.info(f'Registering Websocket route: {func.__name__}')
             self._update_dry_run_with_ws()
 
-            @self.app.websocket(path=f'/{func.__name__}', name=_name)
-            async def _create_ws_route(websocket: WebSocket):
-                with BuiltinsWrapper(
-                    websocket=websocket, output_model=output_model, wrap_print=False
-                ):
+            ws_kwargs = {
+                'path': f'/{func.__name__}',
+                'name': _name,
+            }
+            create_websocket_route(
+                app=self.app,
+                func=func,
+                auth=auth,
+                input_model=input_model,
+                output_model=output_model,
+                ws_kwargs=ws_kwargs,
+                include_callback_handlers=include_callback_handlers,
+                logger=self.logger,
+            )
 
-                    def _get_error_msg(
-                        e: Union[WebSocketDisconnect, ConnectionClosed]
-                    ) -> str:
-                        return (
-                            f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code}'
-                            + (f' and reason {e.reason}' if e.reason else '')
+
+def create_http_route(
+    app: 'FastAPI',
+    func: Callable,
+    auth_func: Callable,
+    input_model: BaseModel,
+    output_model: BaseModel,
+    post_kwargs: Dict,
+    logger: JinaLogger,
+):
+
+    from fastapi import Depends, Security, HTTPException, status
+    from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+    bearer_scheme = HTTPBearer()
+
+    async def _the_authorizer(
+        credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
+    ):
+        if not credentials:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Bearer token required"
+            )
+
+        try:
+            authorized = await run_function(auth_func, token=credentials.credentials)
+            if not authorized:
+                raise ValueError('Not authorized')
+        except Exception as e:
+            print(f'Could not verify token: {e}')
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid bearer token"
+            )
+
+        return credentials.credentials
+
+    async def _the_route(input_data: input_model) -> output_model:
+        _output, _error = '', ''
+        _envs = {}
+        if hasattr(input_data, 'envs'):
+            _envs = input_data.envs
+            del input_data.envs
+
+        with EnvironmentVarCtxtManager(_envs):
+            with Capturing() as stdout:
+                try:
+                    _output = await run_function(func, **dict(input_data))
+                except Exception as e:
+                    logger.error(f'Got an exception: {e}')
+                    _error = str(e)
+
+            if _error != '':
+                print(f'Error: {_error}')
+            return output_model(
+                result=_output,
+                error=_error,
+                stdout='\n'.join(stdout),
+            )
+
+    if auth_func is not None:
+
+        @app.post(**post_kwargs)
+        async def _create_http_route(
+            input_data: input_model, token: str = Depends(_the_authorizer)
+        ) -> output_model:
+            return await _the_route(input_data)
+
+    else:
+
+        @app.post(**post_kwargs)
+        async def _create_http_route(input_data: input_model) -> output_model:
+            return await _the_route(input_data)
+
+
+def create_websocket_route(
+    app: 'FastAPI',
+    func: Callable,
+    auth: Callable,
+    input_model: BaseModel,
+    output_model: BaseModel,
+    include_callback_handlers: bool,
+    ws_kwargs: Dict,
+    logger: JinaLogger,
+):
+    from fastapi import (
+        Depends,
+        WebSocket,
+        WebSocketDisconnect,
+        Header,
+        WebSocketException,
+        status,
+    )
+    from fastapi.websockets import WebSocketState
+    from fastapi.security.utils import get_authorization_scheme_param
+
+    async def _the_authorizer(
+        authorization: Union[str, None] = Header(None, alias="Authorization"),
+    ):
+        scheme, token = get_authorization_scheme_param(authorization)
+        if not (scheme and token):
+            raise WebSocketException(
+                code=status.WS_1008_POLICY_VIOLATION, reason="Not authenticated"
+            )
+
+        if scheme.lower() != "bearer":
+            raise WebSocketException(
+                code=status.WS_1008_POLICY_VIOLATION, reason="Unauthorized"
+            )
+
+        try:
+            authorized = await run_function(auth, token=token)
+            if not authorized:
+                raise WebSocketException(
+                    code=status.WS_1008_POLICY_VIOLATION, reason="Invalid bearer token"
+                )
+        except Exception as e:
+            print(f'Could not verify token: {e}')
+            raise WebSocketException(
+                code=status.WS_1008_POLICY_VIOLATION, reason="Invalid bearer token"
+            )
+
+        return token
+
+    async def _the_route(websocket: WebSocket):
+        with BuiltinsWrapper(
+            websocket=websocket, output_model=output_model, wrap_print=False
+        ):
+
+            def _get_error_msg(e: Union[WebSocketDisconnect, ConnectionClosed]) -> str:
+                return (
+                    f'Client {websocket.client} disconnected from `{func.__name__}` with code {e.code}'
+                    + (f' and reason {e.reason}' if e.reason else '')
+                )
+
+            await websocket.accept()
+            _ws_recv_lock = asyncio.Lock()
+            try:
+                while True:
+                    # if websocket is closed, break
+                    if websocket.client_state not in [
+                        WebSocketState.CONNECTED,
+                        WebSocketState.CONNECTING,
+                    ]:
+                        logger.info(
+                            f'Client {websocket.client} already disconnected from `{func.__name__}`. Breaking...'
                         )
+                        break
 
-                    await websocket.accept()
-                    _ws_recv_lock = asyncio.Lock()
+                    async with _ws_recv_lock:
+                        _data = await websocket.receive_json()
+
                     try:
-                        while True:
-                            # if websocket is closed, break
-                            if websocket.client_state not in [
-                                WebSocketState.CONNECTED,
-                                WebSocketState.CONNECTING,
-                            ]:
-                                self.logger.info(
-                                    f'Client {websocket.client} already disconnected from `{func.__name__}`. Breaking...'
+                        _input_data = input_model(**_data)
+                    except ValidationError as e:
+                        logger.error(
+                            f'Exception while converting data to input model: {e}'
+                        )
+                        _ws_serving_error = str(e)
+                        _data = output_model(
+                            result='',
+                            error=_ws_serving_error,
+                        )
+                        await websocket.send_text(_data.json())
+                        continue
+
+                    _returned_data, _ws_serving_error = '', ''
+                    _envs = {}
+                    if hasattr(_input_data, 'envs'):
+                        _envs = _input_data.envs
+                        del _input_data.envs
+
+                    with EnvironmentVarCtxtManager(_envs):
+                        try:
+                            _input_data_dict = dict(_input_data)
+                            # If the function is a streaming response, we pass the callback handler,
+                            # so that stream data can be sent back to the client.
+                            if include_callback_handlers:
+                                _input_data_dict.update(
+                                    {
+                                        'websocket': websocket,
+                                        'streaming_handler': StreamingWebsocketCallbackHandler(
+                                            websocket=websocket,
+                                            output_model=output_model,
+                                        ),
+                                        'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
+                                            websocket=websocket,
+                                            output_model=output_model,
+                                        ),
+                                    }
                                 )
-                                break
 
-                            async with _ws_recv_lock:
-                                _data = await websocket.receive_json()
-
-                            try:
-                                _input_data = input_model(**_data)
-                            except ValidationError as e:
-                                self.logger.error(
-                                    f'Exception while converting data to input model: {e}'
-                                )
-                                _ws_serving_error = str(e)
-                                _data = output_model(
-                                    result='',
-                                    error=_ws_serving_error,
-                                )
-                                await websocket.send_text(_data.json())
-                                continue
-
-                            _returned_data, _ws_serving_error = '', ''
-                            _envs = {}
-                            if hasattr(_input_data, 'envs'):
-                                _envs = _input_data.envs
-                                del _input_data.envs
-
-                            with EnvironmentVarCtxtManager(_envs):
-                                try:
-                                    _input_data_dict = dict(_input_data)
-                                    # If the function is a streaming response, we pass the callback handler,
-                                    # so that stream data can be sent back to the client.
-                                    if include_callback_handlers:
-                                        _input_data_dict.update(
-                                            {
-                                                'websocket': websocket,
-                                                'streaming_handler': StreamingWebsocketCallbackHandler(
-                                                    websocket=websocket,
-                                                    output_model=output_model,
-                                                ),
-                                                'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
-                                                    websocket=websocket,
-                                                    output_model=output_model,
-                                                ),
-                                            }
-                                        )
-
-                                    _returned_data = await run_function(
-                                        func, **_input_data_dict
-                                    )
-                                    if inspect.isgenerator(_returned_data):
-                                        # If the function is a generator, we iterate through the generator and send each item back to the client.
-                                        for _stream in _returned_data:
-                                            _data = output_model(
-                                                result=_stream,
-                                                error=_ws_serving_error,
-                                            )
-                                            await websocket.send_text(_data.json())
-
-                                    else:
-                                        # If the function is not a generator, we send the result back to the client.
-                                        _data = output_model(
-                                            result=_returned_data,
-                                            error=_ws_serving_error,
-                                        )
-                                        await websocket.send_text(_data.json())
-
-                                    # Once the generator is exhausted/ function call is completed, send a close message
-                                    self.logger.info(
-                                        f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
-                                    )
-                                    await websocket.close()
-                                    break
-
-                                except (WebSocketDisconnect, ConnectionClosed) as e:
-                                    self.logger.info(_get_error_msg(e))
-                                    break
-
-                                except Exception as e:
-                                    self.logger.error(f'Got an exception: {e}')
-                                    _ws_serving_error = str(e)
-                                    # For other errors, we send the error back to the client.
+                            _returned_data = await run_function(
+                                func, **_input_data_dict
+                            )
+                            if inspect.isgenerator(_returned_data):
+                                # If the function is a generator, we iterate through the generator and send each item back to the client.
+                                for _stream in _returned_data:
                                     _data = output_model(
-                                        result='',
+                                        result=_stream,
                                         error=_ws_serving_error,
                                     )
                                     await websocket.send_text(_data.json())
 
-                                if _ws_serving_error != '':
-                                    print(f'Error: {_ws_serving_error}')
+                            else:
+                                # If the function is not a generator, we send the result back to the client.
+                                _data = output_model(
+                                    result=_returned_data,
+                                    error=_ws_serving_error,
+                                )
+                                await websocket.send_text(_data.json())
 
-                    except (WebSocketDisconnect, ConnectionClosed) as e:
-                        self.logger.info(_get_error_msg(e))
-                        return
+                            # Once the generator is exhausted/ function call is completed, send a close message
+                            logger.info(
+                                f'Closing ws connection `{func.__name__}` for client: {websocket.client}'
+                            )
+                            await websocket.close()
+                            break
+
+                        except (WebSocketDisconnect, ConnectionClosed) as e:
+                            logger.info(_get_error_msg(e))
+                            break
+
+                        except Exception as e:
+                            logger.error(f'Got an exception: {e}')
+                            _ws_serving_error = str(e)
+                            # For other errors, we send the error back to the client.
+                            _data = output_model(
+                                result='',
+                                error=_ws_serving_error,
+                            )
+                            await websocket.send_text(_data.json())
+
+                        if _ws_serving_error != '':
+                            print(f'Error: {_ws_serving_error}')
+
+            except (WebSocketDisconnect, ConnectionClosed) as e:
+                logger.info(_get_error_msg(e))
+                return
+
+    if auth is not None:
+        logger.info(f'Auth enabled for `{func.__name__}`')
+
+        @app.websocket(**ws_kwargs)
+        async def _create_ws_route(
+            websocket: WebSocket, token: str = Depends(_the_authorizer)
+        ) -> output_model:
+            return await _the_route(websocket)
+
+    else:
+
+        @app.websocket(**ws_kwargs)
+        async def _create_ws_route(websocket: WebSocket) -> output_model:
+            return await _the_route(websocket)
+
+
+def _get_input_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
+    _input_model_fields = {}
+    for _name, _param in inspect.signature(func).parameters.items():
+        if _param.kind == inspect.Parameter.VAR_KEYWORD:
+            continue
+
+        if _param.annotation is inspect.Parameter.empty:
+            raise ValueError(
+                f'Annotation missing for parameter {_name} in function {func.__name__}. '
+                'Please add type annotations to all parameters.'
+            )
+
+        if _param.default is inspect.Parameter.empty:
+            _input_model_fields[_name] = (_param.annotation, ...)
+        else:
+            _input_model_fields[_name] = (_param.annotation, _param.default)
+
+    return _input_model_fields
+
+
+def _get_output_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
+    def _get_result_type():
+        if 'return' in func.__annotations__:
+            _return = func.__annotations__['return']
+            if hasattr(_return, '__next__'):  # if a Generator, return the first type
+                return _return.__next__.__annotations__['return']
+            elif _return is None:
+                return str
+            else:
+                return _return
+        else:
+            return str
+
+    _output_model_fields = {
+        'result': (_get_result_type(), ...),
+        'error': (str, ...),
+        'stdout': (str, Field(default='', alias='stdout')),
+    }
+
+    return _output_model_fields
