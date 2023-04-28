@@ -17,6 +17,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -420,4 +421,30 @@
 ### 🍹 Other Improvements
 
  - [[```1a96ae21```](https://github.com/jina-ai/langchain-serve/commit/1a96ae21df3e26df441866953e648023e5cbdf5b)] __-__ __version__: the next version will be 0.0.17 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-18></a>
+## Release Note (`0.0.18`)
+
+> Release time: 2023-04-28 12:51:53
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```6360bb6a```](https://github.com/jina-ai/langchain-serve/commit/6360bb6a53f75d567f499e6fe0469427da5fe5e6)] __-__ bearer token authorization (*Deepankar Mahapatro*)
+
+### 🐞 Bug fixes
+
+ - [[```c635746a```](https://github.com/jina-ai/langchain-serve/commit/c635746aef5e735c2f3ca22574c490ea02ef591d)] __-__ update hyperlink title (*Zac Li*)
+ - [[```a3cdf7f7```](https://github.com/jina-ai/langchain-serve/commit/a3cdf7f78c6abe928f3814dcff17abc3e1a110a1)] __-__ use hyperlink in app table (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```44642756```](https://github.com/jina-ai/langchain-serve/commit/44642756f7e84f4478ae98fdb7dc9d5a25c14b3f)] __-__ __version__: the next version will be 0.0.18 (*Jina Dev Bot*)
+ - [[```1a96ae21```](https://github.com/jina-ai/langchain-serve/commit/1a96ae21df3e26df441866953e648023e5cbdf5b)] __-__ __version__: the next version will be 0.0.17 (*Jina Dev Bot*)
+ - [[```0d8ed473```](https://github.com/jina-ai/langchain-serve/commit/0d8ed473c99c8df72b704534a4488fe59478b570)] __-__ Merge pull request #41 from jina-ai/fix-40 (*Deepankar Mahapatro*)
 
