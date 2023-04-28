@@ -419,7 +419,7 @@ curl -X 'POST' \
 
 ---
 
-### 🔐 Integrate API Authorization
+### 🔐 Authorize your APIs
 
 To add an extra layer of security, we can integrate any custom API authorization by adding a `auth` argument to the `serving` decorator. 
 
@@ -438,7 +438,7 @@ async def talk(question: str, **kwargs) -> str:
     return ...
 ```
 
-##### 🤔 Gotchas about `auth` function
+##### 🤔 Gotchas about the `auth` function
 
 - Should accept only one argument `token`.
 - Should return `True` if the request is authorized, otherwise it should return `False`.
