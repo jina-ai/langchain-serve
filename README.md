@@ -73,7 +73,7 @@
   - 🌎 RESTful/Websocket APIs with TLS certs in just 2 lines of code change.
   - 🌊 Stream LLM interactions in real-time with Websockets.
   - 👥 Enable human in the loop for your agents.
-  - 🔑 [Authorize API endpoints](#-integrate-api-authorization) using Bearer tokens.
+  - 🔑 [Authorize API endpoints](#-authorize-your-apis) using Bearer tokens.
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless apps that scales automatically with your traffic.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
