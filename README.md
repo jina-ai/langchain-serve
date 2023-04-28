@@ -73,7 +73,7 @@
   - 🌎 RESTful/Websocket APIs with TLS certs in just 2 lines of code change.
   - 🌊 Stream LLM interactions in real-time with Websockets.
   - 👥 Enable human in the loop for your agents.
-  - 🔑 Authorize API endpoints using API keys.
+  - 🔑 [Authorize API endpoints])(#-integrate-api-authorization) using Bearer tokens.
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless apps that scales automatically with your traffic.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
@@ -442,7 +442,7 @@ async def talk(question: str, **kwargs) -> str:
 
 - Should accept only one argument `token`.
 - Should return `True` if the request is authorized, otherwise it should return `False`.
-- Expects Bearar token in the `Authorization` header of the request.
+- Expects Bearer token in the `Authorization` header of the request.
 - Sample HTTP request with `curl`:
   ```bash
   curl -X 'POST' 'http://localhost:8080/ask' -H 'Authorization: Bearer mysecrettoken' -d '{ "question": "...", "envs": {} }'
