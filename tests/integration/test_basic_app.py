@@ -1,3 +1,4 @@
+import os
 import json
 
 import pytest
@@ -17,7 +18,7 @@ WS_HOST = f'ws://{HOST}'
     indirect=["run_test_server"],
 )
 def test_basic_app_http(run_test_server, route):
-    url = HTTP_HOST + route
+    url = os.path.join(HTTP_HOST, route)
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
@@ -54,7 +55,7 @@ async def test_basic_app_ws(run_test_server, route):
     indirect=["run_test_server"],
 )
 def test_basic_app_http_authorized(run_test_server, route):
-    url = HTTP_HOST + route
+    url = os.path.join(HTTP_HOST, route)
     data = {"interval": 1, "envs": {}}
 
     # no auth headers
@@ -90,7 +91,7 @@ def test_basic_app_http_authorized(run_test_server, route):
     indirect=["run_test_server"],
 )
 async def test_basic_app_ws_authorized(run_test_server, route):
-    url = WS_HOST + route
+    url = os.path.join(WS_HOST, route)
 
     # no auth headers
     with pytest.raises(websockets.InvalidStatusCode) as e:
