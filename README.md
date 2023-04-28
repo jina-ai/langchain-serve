@@ -1,5 +1,5 @@
 <p align="center">
-<h2 align="center">LangChain Apps on Production with FastAPI & Jina 🚀</h2>
+<h2 align="center">⚡ LangChain Apps on Production with Jina & FastAPI 🚀</h2>
 </p>
 
 <p align=center>
