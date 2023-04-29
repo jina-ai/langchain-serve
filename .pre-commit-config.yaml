@@ -1,0 +1,14 @@
+repos:
+- repo: https://github.com/timothycrosley/isort
+  rev: 5.12.0
+  hooks:
+   - id: isort
+     args: ["--profile", "black"]
+- repo: https://github.com/psf/black
+  rev: 22.3.0
+  hooks:
+  - id: black
+    types: [python]
+    exclude: docs/
+    args:
+      - -S

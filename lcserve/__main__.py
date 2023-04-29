@@ -10,8 +10,8 @@ from . import __version__
 from .flow import (
     APP_NAME,
     BABYAGI_APP_NAME,
-    PDF_QNA_APP_NAME,
     DEFAULT_TIMEOUT,
+    PDF_QNA_APP_NAME,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,

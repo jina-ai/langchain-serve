@@ -5,18 +5,21 @@ import shutil
 import sys
 import time
 from enum import Enum
+from functools import wraps
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Type, Any, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Type, Union
 
 from docarray import Document, DocumentArray
 from jina import Gateway
-from jina.logging.logger import JinaLogger
 from jina.enums import ProtocolType as GatewayProtocolType
+from jina.logging.logger import JinaLogger
 from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-from pydantic import Field, ValidationError, create_model, BaseModel
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.sdk.metrics import Counter
+from pydantic import BaseModel, Field, ValidationError, create_model
 from websockets.exceptions import ConnectionClosed
 
 from .playground.utils.helper import (
@@ -265,6 +268,8 @@ class ServingGateway(FastAPIBaseGateway):
         self.logger.debug(f'Loading modules/files: {",".join(modules)}')
         self._fix_sys_path()
         self._app = FastAPI()
+        self._setup_metrics()
+
         self._register_healthz()
         for mod in modules:
             # TODO: add support for registering a directory
@@ -283,6 +288,29 @@ class ServingGateway(FastAPIBaseGateway):
         if Path(APPDIR).exists() and APPDIR not in sys.path:
             # This is where the app code is mounted in the container
             sys.path.append(APPDIR)
+
+    def _setup_metrics(self):
+        if not self.meter_provider:
+            self.http_duration_counter = None
+            self.ws_duration_counter = None
+            return
+
+        FastAPIInstrumentor.instrument_app(
+            self._app,
+            meter_provider=self.meter_provider,
+        )
+
+        self.http_duration_counter = self.meter.create_counter(
+            name="http_request_duration_seconds",
+            description="HTTP request duration in seconds",
+            unit="s",
+        )
+
+        self.ws_duration_counter = self.meter.create_counter(
+            name="ws_request_duration_seconds",
+            description="WS request duration in seconds",
+            unit="s",
+        )
 
     def _register_healthz(self):
         @self.app.get("/healthz")
@@ -423,6 +451,7 @@ class ServingGateway(FastAPIBaseGateway):
                 output_model=output_model,
                 post_kwargs=post_kwargs,
                 logger=self.logger,
+                duration_counter=self.http_duration_counter,
             )
 
         elif route_type == RouteType.WEBSOCKET:
@@ -442,6 +471,7 @@ class ServingGateway(FastAPIBaseGateway):
                 ws_kwargs=ws_kwargs,
                 include_callback_handlers=include_callback_handlers,
                 logger=self.logger,
+                duration_counter=self.ws_duration_counter,
             )
 
 
@@ -453,10 +483,10 @@ def create_http_route(
     output_model: BaseModel,
     post_kwargs: Dict,
     logger: JinaLogger,
+    duration_counter: Counter,
 ):
-
-    from fastapi import Depends, Security, HTTPException, status
-    from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+    from fastapi import Depends, HTTPException, Security, status
+    from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
     bearer_scheme = HTTPBearer()
 
@@ -506,6 +536,7 @@ def create_http_route(
     if auth_func is not None:
 
         @app.post(**post_kwargs)
+        @measure_duration(duration_counter)
         async def _create_http_route(
             input_data: input_model, token: str = Depends(_the_authorizer)
         ) -> output_model:
@@ -514,6 +545,7 @@ def create_http_route(
     else:
 
         @app.post(**post_kwargs)
+        @measure_duration(duration_counter)
         async def _create_http_route(input_data: input_model) -> output_model:
             return await _the_route(input_data)
 
@@ -527,17 +559,18 @@ def create_websocket_route(
     include_callback_handlers: bool,
     ws_kwargs: Dict,
     logger: JinaLogger,
+    duration_counter: Counter,
 ):
     from fastapi import (
         Depends,
+        Header,
         WebSocket,
         WebSocketDisconnect,
-        Header,
         WebSocketException,
         status,
     )
-    from fastapi.websockets import WebSocketState
     from fastapi.security.utils import get_authorization_scheme_param
+    from fastapi.websockets import WebSocketState
 
     async def _the_authorizer(
         authorization: Union[str, None] = Header(None, alias="Authorization"),
@@ -687,6 +720,7 @@ def create_websocket_route(
         logger.info(f'Auth enabled for `{func.__name__}`')
 
         @app.websocket(**ws_kwargs)
+        @measure_duration(duration_counter)
         async def _create_ws_route(
             websocket: WebSocket, token: str = Depends(_the_authorizer)
         ) -> output_model:
@@ -695,6 +729,7 @@ def create_websocket_route(
     else:
 
         @app.websocket(**ws_kwargs)
+        @measure_duration(duration_counter)
         async def _create_ws_route(websocket: WebSocket) -> output_model:
             return await _the_route(websocket)
 
@@ -739,3 +774,23 @@ def _get_output_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
     }
 
     return _output_model_fields
+
+
+def measure_duration(duration_counter):
+    def decorator(func):
+        @wraps(func)
+        async def wrapped(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = await func(*args, **kwargs)
+
+            if not duration_counter:
+                return
+
+            elapsed_time = time.perf_counter() - start_time
+
+            duration_counter.add(elapsed_time, {"route": func.__name__})
+            return result
+
+        return wrapped
+
+    return decorator
