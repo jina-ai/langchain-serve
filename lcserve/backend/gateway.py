@@ -8,7 +8,17 @@ from enum import Enum
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Type, Any, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    List,
+    Tuple,
+    Type,
+    Any,
+    Union,
+    Sequence,
+)
 
 from docarray import Document, DocumentArray
 from jina import Gateway
@@ -381,8 +391,6 @@ class ServingGateway(FastAPIBaseGateway):
         include_callback_handlers: bool = False,
         **kwargs,
     ):
-        from fastapi import Depends
-
         _name = func.__name__.title().replace('_', '')
 
         # check if _name is already registered
@@ -393,10 +401,13 @@ class ServingGateway(FastAPIBaseGateway):
         class Config:
             arbitrary_types_allowed = True
 
+        _input_fields, _file_fields = _get_input_model_fields(func)
+
+        file_params = _get_file_field_params(_file_fields)
         input_model = create_model(
             f'Input{_name}',
             __config__=Config,
-            **_get_input_model_fields(func),
+            **_input_fields,
             **{'envs': (Dict[str, str], Field(default={}, alias='envs'))},
         )
 
@@ -409,19 +420,19 @@ class ServingGateway(FastAPIBaseGateway):
         if route_type == RouteType.HTTP:
             self.logger.info(f'Registering HTTP route: {func.__name__}')
 
-            post_kwargs = {
-                'path': f'/{func.__name__}',
-                'name': _name,
-                'description': func.__doc__ or '',
-                'tags': [SERVING],
-            }
             create_http_route(
                 app=self.app,
                 func=func,
                 auth_func=auth,
+                file_params=file_params,
                 input_model=input_model,
                 output_model=output_model,
-                post_kwargs=post_kwargs,
+                post_kwargs={
+                    'path': f'/{func.__name__}',
+                    'name': _name,
+                    'description': func.__doc__ or '',
+                    'tags': [SERVING],
+                },
                 logger=self.logger,
             )
 
@@ -429,34 +440,92 @@ class ServingGateway(FastAPIBaseGateway):
             self.logger.info(f'Registering Websocket route: {func.__name__}')
             self._update_dry_run_with_ws()
 
-            ws_kwargs = {
-                'path': f'/{func.__name__}',
-                'name': _name,
-            }
             create_websocket_route(
                 app=self.app,
                 func=func,
                 auth=auth,
                 input_model=input_model,
                 output_model=output_model,
-                ws_kwargs=ws_kwargs,
+                ws_kwargs={
+                    'path': f'/{func.__name__}',
+                    'name': _name,
+                },
                 include_callback_handlers=include_callback_handlers,
                 logger=self.logger,
             )
+
+
+def _get_files_data(kwargs: Dict) -> Dict:
+    from fastapi import UploadFile
+    from starlette.datastructures import UploadFile as StarletteUploadFile
+
+    _files_data = {}
+    for k, v in kwargs.items():
+        if isinstance(v, (UploadFile, StarletteUploadFile)):
+            _files_data[k] = v
+
+    return _files_data
+
+
+def _get_func_data(
+    input_data: Union[str, Dict, BaseModel], files_data: Dict
+) -> Tuple[Dict[str, Any], Dict[str, str]]:
+    import json
+
+    if isinstance(input_data, BaseModel):
+        _func_data = dict(input_data)
+    elif isinstance(input_data, str):
+        _func_data = json.loads(input_data)
+    else:
+        _func_data = input_data
+
+    _envs = _func_data.pop('envs', {})
+
+    if files_data:
+        _func_data.update(files_data)
+
+    return _func_data, _envs
+
+
+def _get_updated_signature(
+    file_params: List[inspect.Parameter],
+    output_model: BaseModel,
+    include_token: bool = False,
+) -> inspect.Signature:
+    _params = [
+        *file_params,
+        inspect.Parameter(
+            name='input_data',
+            kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=str,
+        ),
+    ]
+
+    if include_token:
+        _params.append(
+            inspect.Parameter(
+                name='token',
+                kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                annotation=str,
+            )
+        )
+    return inspect.Signature(parameters=_params, return_annotation=output_model)
 
 
 def create_http_route(
     app: 'FastAPI',
     func: Callable,
     auth_func: Callable,
+    file_params: List,
     input_model: BaseModel,
     output_model: BaseModel,
     post_kwargs: Dict,
     logger: JinaLogger,
 ):
 
-    from fastapi import Depends, Security, HTTPException, status
+    from fastapi import Depends, Security, HTTPException, status, UploadFile, Form
     from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+    from fastapi.encoders import jsonable_encoder
 
     bearer_scheme = HTTPBearer()
 
@@ -480,17 +549,15 @@ def create_http_route(
 
         return credentials.credentials
 
-    async def _the_route(input_data: input_model) -> output_model:
+    async def _the_route(
+        input_data: input_model, files_data: Dict[str, UploadFile] = {}
+    ) -> output_model:
         _output, _error = '', ''
-        _envs = {}
-        if hasattr(input_data, 'envs'):
-            _envs = input_data.envs
-            del input_data.envs
-
+        _func_data, _envs = _get_func_data(input_data, files_data)
         with EnvironmentVarCtxtManager(_envs):
             with Capturing() as stdout:
                 try:
-                    _output = await run_function(func, **dict(input_data))
+                    _output = await run_function(func, **_func_data)
                 except Exception as e:
                     logger.error(f'Got an exception: {e}')
                     _error = str(e)
@@ -503,21 +570,70 @@ def create_http_route(
                 stdout='\n'.join(stdout),
             )
 
-    if auth_func is not None:
+    def _the_parser(data: str = Form(...)) -> input_model:
+        try:
+            model = input_model.parse_raw(data)
+        except ValidationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=jsonable_encoder(e.errors()),
+            )
 
-        @app.post(**post_kwargs)
-        async def _create_http_route(
-            input_data: input_model, token: str = Depends(_the_authorizer)
-        ) -> output_model:
-            return await _the_route(input_data)
+        return model
+
+    if auth_func is not None:
+        # If an auth function is present, we need to include the authorizer in the route.
+
+        if len(file_params) > 0:
+            # If file params are present, we need to use a custom parser to make sure that
+            # the input data included in the Form and parsed correctly.
+
+            async def _the_http_route(
+                input_data: input_model = Depends(_the_parser),
+                token: str = Depends(_the_authorizer),
+                **kwargs,
+            ) -> output_model:
+                return await _the_route(input_data, _get_files_data(kwargs))
+
+            _the_http_route.__signature__ = _get_updated_signature(
+                file_params, output_model, include_token=True
+            )
+
+        else:
+            # If no file params are present, we include the input args in the Body.
+
+            async def _the_http_route(
+                input_data: input_model, token: str = Depends(_the_authorizer)
+            ) -> output_model:
+                return await _the_route(input_data, {})
 
     else:
+        # If no auth function is present, no need to include the authorizer in the route.
 
-        @app.post(**post_kwargs)
-        async def _create_http_route(input_data: input_model) -> output_model:
-            return await _the_route(input_data)
+        if len(file_params) > 0:
+            # If file params are present, we need to use a custom parser to make sure that
+            # the input data included in the Form and parsed correctly.
+
+            async def _the_http_route(
+                input_data: input_model = Depends(_the_parser), **kwargs
+            ) -> output_model:
+                return await _the_route(input_data, _get_files_data(kwargs))
+
+            _the_http_route.__signature__ = _get_updated_signature(
+                file_params, output_model, include_token=False
+            )
+
+        else:
+            # If no file params are present, we include the input args in the Body.
+
+            async def _the_http_route(input_data: input_model) -> output_model:
+                return await _the_route(input_data)
+
+    # Add the route to the app with POST method
+    app.post(**post_kwargs)(_the_http_route)
 
 
+# TODO: add file upload support for websocket routes
 def create_websocket_route(
     app: 'FastAPI',
     func: Callable,
@@ -699,8 +815,14 @@ def create_websocket_route(
             return await _the_route(websocket)
 
 
-def _get_input_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
+def _get_input_model_fields(
+    func: Callable,
+) -> Tuple[Dict[str, Tuple[Type, Any]], Dict[str, Tuple[Type, Any]]]:
+    from fastapi import UploadFile
+
     _input_model_fields = {}
+    _file_fields = {}
+
     for _name, _param in inspect.signature(func).parameters.items():
         if _param.kind == inspect.Parameter.VAR_KEYWORD:
             continue
@@ -711,12 +833,34 @@ def _get_input_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
                 'Please add type annotations to all parameters.'
             )
 
-        if _param.default is inspect.Parameter.empty:
-            _input_model_fields[_name] = (_param.annotation, ...)
+        if _param.annotation == UploadFile:
+            if _param.default is inspect.Parameter.empty:
+                _file_fields[_name] = (_param.annotation, ...)
+            else:
+                _file_fields[_name] = (_param.annotation, _param.default)
         else:
-            _input_model_fields[_name] = (_param.annotation, _param.default)
+            if _param.default is inspect.Parameter.empty:
+                _input_model_fields[_name] = (_param.annotation, ...)
+            else:
+                _input_model_fields[_name] = (_param.annotation, _param.default)
 
-    return _input_model_fields
+    return _input_model_fields, _file_fields
+
+
+def _get_file_field_params(
+    fields: Dict[str, Tuple[Type, Any]]
+) -> List[inspect.Parameter]:
+    _file_field_params = []
+    for _name, _field in fields.items():
+        _file_field_params.append(
+            inspect.Parameter(
+                _name,
+                inspect.Parameter.POSITIONAL_ONLY,
+                annotation=_field[0],
+                default=_field[1],
+            )
+        )
+    return _file_field_params
 
 
 def _get_output_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
