@@ -777,19 +777,43 @@ def _get_output_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
 
 
 def measure_duration(duration_counter):
+    class SharedData:
+        def __init__(self, last_reported_time):
+            self.last_reported_time = last_reported_time
+
+    async def send_metrics_periodically(
+        duration_counter, interval, route_name, shared_data
+    ):
+        while True:
+            await asyncio.sleep(interval)
+            current_time = time.perf_counter()
+            if duration_counter:
+                duration_counter.add(
+                    current_time - shared_data.last_reported_time, {"route": route_name}
+                )
+            shared_data.last_reported_time = current_time
+
     def decorator(func):
         @wraps(func)
         async def wrapped(*args, **kwargs):
-            start_time = time.perf_counter()
-            result = await func(*args, **kwargs)
-
-            if not duration_counter:
-                return
-
-            elapsed_time = time.perf_counter() - start_time
-
-            duration_counter.add(elapsed_time, {"route": func.__name__})
-            return result
+            shared_data = SharedData(last_reported_time=time.perf_counter())
+            # Start the async task which reports the metrics every 5s
+            send_metrics_task = asyncio.create_task(
+                send_metrics_periodically(
+                    duration_counter, 5, func.__name__, shared_data
+                )
+            )
+            try:
+                result = await func(*args, **kwargs)
+                return result
+            finally:
+                send_metrics_task.cancel()
+                # Final metrics update to wrap up the untracked duration in the end
+                if duration_counter:
+                    duration_counter.add(
+                        time.perf_counter() - shared_data.last_reported_time,
+                        {"route": func.__name__},
+                    )
 
         return wrapped
 
