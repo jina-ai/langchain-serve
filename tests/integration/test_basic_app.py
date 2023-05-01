@@ -137,12 +137,16 @@ async def test_basic_app_ws_authorized(run_test_server, route):
     [("basic_app")],
     indirect=["run_test_server"],
 )
-def _test_single_file_upload_http(run_test_server):
+def test_single_file_upload_http(run_test_server):
     url = os.path.join(HTTP_HOST, "single_file_upload")
     with open(__file__, "rb") as f:
-        response = requests.post(url, files={"file": f})
-        response_data = response.json()
+        response = requests.post(
+            url,
+            files={"file": f},
+            params={"input_data": "{}"},
+        )
 
+        response_data = response.json()
         assert response.status_code == 200
         assert response_data["result"] == "test_basic_app.py"
 
@@ -178,10 +182,29 @@ def test_single_file_upload_with_extra_arg_http(run_test_server):
     [("basic_app")],
     indirect=["run_test_server"],
 )
+def test_multiple_file_uploads_http(run_test_server):
+    url = os.path.join(HTTP_HOST, "multiple_file_uploads")
+
+    _init_file = os.path.join(os.path.dirname(__file__), "__init__.py")
+    with open(__file__, "rb") as f1, open(_init_file, "rb") as f2:
+        response = requests.post(
+            url,
+            files={"f1": f1, "f2": f2},
+            params={"input_data": "{}"},
+        )
+        response_data = response.json()
+        assert response.status_code == 200
+        assert response_data["result"] == ["test_basic_app.py", "__init__.py"]
+
+
+@pytest.mark.parametrize(
+    "run_test_server",
+    [("basic_app")],
+    indirect=["run_test_server"],
+)
 def test_multiple_file_uploads_with_extra_arg_http(run_test_server):
     url = os.path.join(HTTP_HOST, "multiple_file_uploads_with_extra_arg")
 
-    # open __init__.py and current file
     _init_file = os.path.join(os.path.dirname(__file__), "__init__.py")
     with open(__file__, "rb") as f1, open(_init_file, "rb") as f2:
         response = requests.post(

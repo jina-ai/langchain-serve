@@ -637,6 +637,7 @@ def create_http_route(
     app.post(**post_kwargs)(_the_http_route)
 
 
+# TODO: add file upload support for websocket routes
 def create_websocket_route(
     app: 'FastAPI',
     func: Callable,
