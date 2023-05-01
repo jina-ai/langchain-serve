@@ -469,7 +469,7 @@ def _get_files_data(kwargs: Dict) -> Dict:
 
 def _get_func_data(
     input_data: Union[str, Dict, BaseModel], files_data: Dict
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], Dict[str, str]]:
     import json
 
     if isinstance(input_data, BaseModel):
@@ -479,10 +479,12 @@ def _get_func_data(
     else:
         _func_data = input_data
 
+    _envs = _func_data.pop('envs', {})
+
     if files_data:
         _func_data.update(files_data)
 
-    return _func_data
+    return _func_data, _envs
 
 
 def _get_updated_signature(
@@ -551,27 +553,21 @@ def create_http_route(
         input_data: input_model, files_data: Dict[str, UploadFile] = {}
     ) -> output_model:
         _output, _error = '', ''
-        _envs = {}
-        if hasattr(input_data, 'envs'):
-            _envs = input_data.envs
-            del input_data.envs
-
+        _func_data, _envs = _get_func_data(input_data, files_data)
         with EnvironmentVarCtxtManager(_envs):
-            with Capturing() as stdout:
-                try:
-                    _output = await run_function(
-                        func, **_get_func_data(input_data, files_data)
-                    )
-                except Exception as e:
-                    logger.error(f'Got an exception: {e}')
-                    _error = str(e)
+            # with Capturing() as stdout:
+            try:
+                _output = await run_function(func, **_func_data)
+            except Exception as e:
+                logger.error(f'Got an exception: {e}')
+                _error = str(e)
 
             if _error != '':
                 print(f'Error: {_error}')
             return output_model(
                 result=_output,
                 error=_error,
-                stdout='\n'.join(stdout),
+                stdout='\n'.join('stdout'),
             )
 
     def _the_parser(data: str = Form(...)) -> input_model:

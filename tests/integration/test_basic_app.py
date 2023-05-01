@@ -164,7 +164,11 @@ def test_single_file_upload_with_extra_arg_http(run_test_server):
             files={"file": f},
             params={
                 "input_data": json.dumps(
-                    {"question": "what is the file name?", "someint": 1}
+                    {
+                        "question": "what is the file name?",
+                        "someint": 1,
+                        "envs": {"A": "B"},
+                    }
                 ),
             },
         )
@@ -212,7 +216,11 @@ def test_multiple_file_uploads_with_extra_arg_http(run_test_server):
             files={"f1": f1, "f2": f2},
             params={
                 "input_data": json.dumps(
-                    {"question": "what is the file name?", "someint": 1}
+                    {
+                        "question": "what is the file name?",
+                        "someint": 1,
+                        "envs": {"A": "B"},
+                    }
                 ),
             },
         )
