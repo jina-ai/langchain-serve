@@ -555,19 +555,19 @@ def create_http_route(
         _output, _error = '', ''
         _func_data, _envs = _get_func_data(input_data, files_data)
         with EnvironmentVarCtxtManager(_envs):
-            # with Capturing() as stdout:
-            try:
-                _output = await run_function(func, **_func_data)
-            except Exception as e:
-                logger.error(f'Got an exception: {e}')
-                _error = str(e)
+            with Capturing() as stdout:
+                try:
+                    _output = await run_function(func, **_func_data)
+                except Exception as e:
+                    logger.error(f'Got an exception: {e}')
+                    _error = str(e)
 
             if _error != '':
                 print(f'Error: {_error}')
             return output_model(
                 result=_output,
                 error=_error,
-                stdout='\n'.join('stdout'),
+                stdout='\n'.join(stdout),
             )
 
     def _the_parser(data: str = Form(...)) -> input_model:
