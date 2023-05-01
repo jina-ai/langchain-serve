@@ -7,9 +7,9 @@ import websockets
 
 from .helper import run_test_server
 
-HOST = 'localhost:8080'
-HTTP_HOST = f'http://{HOST}'
-WS_HOST = f'ws://{HOST}'
+HOST = "localhost:8080"
+HTTP_HOST = f"http://{HOST}"
+WS_HOST = f"ws://{HOST}"
 
 
 @pytest.mark.parametrize(
@@ -64,20 +64,20 @@ def test_basic_app_http_authorized(run_test_server, route):
     assert response.json()["detail"] == "Not authenticated"
 
     # not a bearer token
-    response = requests.post(url, headers={'Authorization': 'invalidtoken'}, json=data)
+    response = requests.post(url, headers={"Authorization": "invalidtoken"}, json=data)
     assert response.status_code == 403
     assert response.json()["detail"] == "Not authenticated"
 
     # invalid bearer token
     response = requests.post(
-        url, headers={'Authorization': 'Bearer invalidtoken'}, json=data
+        url, headers={"Authorization": "Bearer invalidtoken"}, json=data
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid bearer token"
 
     # valid bearer token
     response = requests.post(
-        url, headers={'Authorization': 'Bearer mysecrettoken'}, json=data
+        url, headers={"Authorization": "Bearer mysecrettoken"}, json=data
     )
 
     assert response.status_code == 200
@@ -103,7 +103,7 @@ async def test_basic_app_ws_authorized(run_test_server, route):
     # not a bearer token
     with pytest.raises(websockets.InvalidStatusCode) as e:
         async with websockets.connect(
-            url, extra_headers={'Authorization': 'invalidtoken'}
+            url, extra_headers={"Authorization": "invalidtoken"}
         ) as websocket:
             pass
 
@@ -112,7 +112,7 @@ async def test_basic_app_ws_authorized(run_test_server, route):
     # invalid bearer token
     with pytest.raises(websockets.InvalidStatusCode) as e:
         async with websockets.connect(
-            url, extra_headers={'Authorization': 'Bearer invalidtoken'}
+            url, extra_headers={"Authorization": "Bearer invalidtoken"}
         ) as websocket:
             pass
 
@@ -120,7 +120,7 @@ async def test_basic_app_ws_authorized(run_test_server, route):
 
     # valid bearer token
     async with websockets.connect(
-        url, extra_headers={'Authorization': 'Bearer mysecrettoken'}
+        url, extra_headers={"Authorization": "Bearer mysecrettoken"}
     ) as websocket:
         await websocket.send(json.dumps({"interval": 1}))
 
@@ -130,3 +130,74 @@ async def test_basic_app_ws_authorized(run_test_server, route):
             received_messages.append(message)
 
         assert received_messages == ["0", "1", "2", "3", "4"]
+
+
+@pytest.mark.parametrize(
+    "run_test_server",
+    [("basic_app")],
+    indirect=["run_test_server"],
+)
+def _test_single_file_upload_http(run_test_server):
+    url = os.path.join(HTTP_HOST, "single_file_upload")
+    with open(__file__, "rb") as f:
+        response = requests.post(url, files={"file": f})
+        response_data = response.json()
+
+        assert response.status_code == 200
+        assert response_data["result"] == "test_basic_app.py"
+
+
+@pytest.mark.parametrize(
+    "run_test_server",
+    [("basic_app")],
+    indirect=["run_test_server"],
+)
+def test_single_file_upload_with_extra_arg_http(run_test_server):
+    url = os.path.join(HTTP_HOST, "single_file_upload_with_extra_arg")
+    with open(__file__, "rb") as f:
+        response = requests.post(
+            url,
+            files={"file": f},
+            params={
+                "input_data": json.dumps(
+                    {"question": "what is the file name?", "someint": 1}
+                ),
+            },
+        )
+        response_data = response.json()
+        assert response.status_code == 200
+        assert response_data["result"] == {
+            "file": "test_basic_app.py",
+            "question": "what is the file name?",
+            "someint": "1",
+        }
+
+
+@pytest.mark.parametrize(
+    "run_test_server",
+    [("basic_app")],
+    indirect=["run_test_server"],
+)
+def test_multiple_file_uploads_with_extra_arg_http(run_test_server):
+    url = os.path.join(HTTP_HOST, "multiple_file_uploads_with_extra_arg")
+
+    # open __init__.py and current file
+    _init_file = os.path.join(os.path.dirname(__file__), "__init__.py")
+    with open(__file__, "rb") as f1, open(_init_file, "rb") as f2:
+        response = requests.post(
+            url,
+            files={"f1": f1, "f2": f2},
+            params={
+                "input_data": json.dumps(
+                    {"question": "what is the file name?", "someint": 1}
+                ),
+            },
+        )
+        response_data = response.json()
+        assert response.status_code == 200
+        assert response_data["result"] == {
+            "f1": "test_basic_app.py",
+            "f2": "__init__.py",
+            "question": "what is the file name?",
+            "someint": "1",
+        }
