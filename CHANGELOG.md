@@ -18,6 +18,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -447,4 +448,27 @@
  - [[```44642756```](https://github.com/jina-ai/langchain-serve/commit/44642756f7e84f4478ae98fdb7dc9d5a25c14b3f)] __-__ __version__: the next version will be 0.0.18 (*Jina Dev Bot*)
  - [[```1a96ae21```](https://github.com/jina-ai/langchain-serve/commit/1a96ae21df3e26df441866953e648023e5cbdf5b)] __-__ __version__: the next version will be 0.0.17 (*Jina Dev Bot*)
  - [[```0d8ed473```](https://github.com/jina-ai/langchain-serve/commit/0d8ed473c99c8df72b704534a4488fe59478b570)] __-__ Merge pull request #41 from jina-ai/fix-40 (*Deepankar Mahapatro*)
+
+<a name=release-note-0-0-19></a>
+## Release Note (`0.0.19`)
+
+> Release time: 2023-05-01 15:53:36
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```9400c9aa```](https://github.com/jina-ai/langchain-serve/commit/9400c9aad9117116fbbf1ec8d941d34be8614381)] __-__ support file upload (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```833c9dd9```](https://github.com/jina-ai/langchain-serve/commit/833c9dd98ecf4fc438f48f8536a9fcdcd4c5b5ae)] __-__ update readme (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```9cc9a0eb```](https://github.com/jina-ai/langchain-serve/commit/9cc9a0ebadf81c967fb4e25ce7c85e92ecbc3dff)] __-__ __version__: the next version will be 0.0.19 (*Jina Dev Bot*)
 
