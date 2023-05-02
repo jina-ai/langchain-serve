@@ -53,7 +53,7 @@ async def hitl_client(url: str, name: str, question: str, envs: Dict = {}):
 
 asyncio.run(
     hitl_client(
-        url='wss://langchain-1da55ad36a-websocket.wolf.jina.ai',
+        url='wss://langchain-72aff35874.wolf.jina.ai',
         name='hitl',
         question='What is Eric Zhu\'s birthday?',
         envs={
