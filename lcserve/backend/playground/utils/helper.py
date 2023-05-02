@@ -164,7 +164,7 @@ async def run_function(func: Callable, **kwargs):
     if inspect.iscoroutinefunction(func):
         return await func(**kwargs)
     else:
-        return await get_or_create_eventloop().run_in_executor(
+        return await asyncio.get_running_loop().run_in_executor(
             None,
             functools.partial(func, **kwargs),
         )
