@@ -685,7 +685,10 @@ def create_websocket_route(
 
     async def _the_route(websocket: WebSocket):
         with BuiltinsWrapper(
-            websocket=websocket, output_model=output_model, wrap_print=False
+            loop=asyncio.get_event_loop(),
+            websocket=websocket,
+            output_model=output_model,
+            wrap_print=False,
         ):
 
             def _get_error_msg(e: Union[WebSocketDisconnect, ConnectionClosed]) -> str:
@@ -783,7 +786,7 @@ def create_websocket_route(
                             break
 
                         except Exception as e:
-                            logger.error(f'Got an exception: {e}')
+                            logger.error(f'Got an exception: {e}', exc_info=True)
                             _ws_serving_error = str(e)
                             # For other errors, we send the error back to the client.
                             _data = output_model(
