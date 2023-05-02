@@ -19,6 +19,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -471,4 +472,28 @@
 ### 🍹 Other Improvements
 
  - [[```9cc9a0eb```](https://github.com/jina-ai/langchain-serve/commit/9cc9a0ebadf81c967fb4e25ce7c85e92ecbc3dff)] __-__ __version__: the next version will be 0.0.19 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-20></a>
+## Release Note (`0.0.20`)
+
+> Release time: 2023-05-02 10:02:04
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```7516f429```](https://github.com/jina-ai/langchain-serve/commit/7516f42954b56c1a4b4dcc8893b68f6abe12b0b4)] __-__ __hitl__: pin requirements (*Deepankar Mahapatro*)
+ - [[```a2825643```](https://github.com/jina-ai/langchain-serve/commit/a2825643f5ebf9781e1a6dfc47ad41b60cd74ad2)] __-__ __hitl__: event-loop for non-async functions (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```9d6e9c43```](https://github.com/jina-ai/langchain-serve/commit/9d6e9c4399a04ec7078af51e5a17b839bdf4d858)] __-__ update slack count (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```58589bd7```](https://github.com/jina-ai/langchain-serve/commit/58589bd785632b9f8808dc0bbbba23ab697602a3)] __-__ __version__: the next version will be 0.0.20 (*Jina Dev Bot*)
 
