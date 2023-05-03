@@ -468,7 +468,11 @@ def _get_files_data(kwargs: Dict) -> Dict:
 
 
 def _get_func_data(
-    input_data: Union[str, Dict, BaseModel], files_data: Dict
+    func: Callable,
+    input_data: Union[str, Dict, BaseModel],
+    files_data: Dict,
+    auth_response: Any = None,
+    include_if_kwargs_exist: Dict = {},
 ) -> Tuple[Dict[str, Any], Dict[str, str]]:
     import json
 
@@ -483,6 +487,16 @@ def _get_func_data(
 
     if files_data:
         _func_data.update(files_data)
+
+    # Read functions signature and check if `auth_response` is required or kwargs is present
+    _func_params_names = list(inspect.signature(func).parameters.keys())
+    if 'auth_response' in _func_params_names:
+        _func_data['auth_response'] = auth_response
+    elif 'kwargs' in _func_params_names:
+        _func_data['kwargs'] = {
+            'auth_response': auth_response,
+            **include_if_kwargs_exist,
+        }
 
     return _func_data, _envs
 
@@ -531,29 +545,29 @@ def create_http_route(
 
     async def _the_authorizer(
         credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
-    ):
+    ) -> Any:
         if not credentials:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Bearer token required"
             )
 
         try:
-            authorized = await run_function(auth_func, token=credentials.credentials)
-            if not authorized:
-                raise ValueError('Not authorized')
+            auth_response = await run_function(auth_func, token=credentials.credentials)
         except Exception as e:
-            print(f'Could not verify token: {e}')
+            logger.error(f'Could not verify token: {e}')
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid bearer token"
             )
 
-        return credentials.credentials
+        return auth_response
 
     async def _the_route(
-        input_data: input_model, files_data: Dict[str, UploadFile] = {}
+        input_data: input_model,
+        files_data: Dict[str, UploadFile] = {},
+        auth_response: Any = None,
     ) -> output_model:
         _output, _error = '', ''
-        _func_data, _envs = _get_func_data(input_data, files_data)
+        _func_data, _envs = _get_func_data(func, input_data, files_data, auth_response)
         with EnvironmentVarCtxtManager(_envs):
             with Capturing() as stdout:
                 try:
@@ -603,7 +617,7 @@ def create_http_route(
             # If no file params are present, we include the input args in the Body.
 
             async def _the_http_route(
-                input_data: input_model, token: str = Depends(_the_authorizer)
+                input_data: input_model, auth_response: str = Depends(_the_authorizer)
             ) -> output_model:
                 return await _the_route(input_data, {})
 
@@ -657,7 +671,7 @@ def create_websocket_route(
 
     async def _the_authorizer(
         authorization: Union[str, None] = Header(None, alias="Authorization"),
-    ):
+    ) -> Any:
         scheme, token = get_authorization_scheme_param(authorization)
         if not (scheme and token):
             raise WebSocketException(
@@ -670,20 +684,16 @@ def create_websocket_route(
             )
 
         try:
-            authorized = await run_function(auth, token=token)
-            if not authorized:
-                raise WebSocketException(
-                    code=status.WS_1008_POLICY_VIOLATION, reason="Invalid bearer token"
-                )
+            auth_response = await run_function(auth, token=token)
         except Exception as e:
-            print(f'Could not verify token: {e}')
+            logger.error(f'Could not verify token: {e}')
             raise WebSocketException(
                 code=status.WS_1008_POLICY_VIOLATION, reason="Invalid bearer token"
             )
 
-        return token
+        return auth_response
 
-    async def _the_route(websocket: WebSocket):
+    async def _the_route(websocket: WebSocket, auth_response: Any = None):
         with BuiltinsWrapper(
             loop=asyncio.get_event_loop(),
             websocket=websocket,
@@ -729,34 +739,31 @@ def create_websocket_route(
                         continue
 
                     _returned_data, _ws_serving_error = '', ''
-                    _envs = {}
-                    if hasattr(_input_data, 'envs'):
-                        _envs = _input_data.envs
-                        del _input_data.envs
-
+                    # TODO: add support for file upload
+                    _func_data, _envs = _get_func_data(
+                        func=func,
+                        input_data=_input_data,
+                        files_data={},
+                        auth_response=auth_response,
+                        include_if_kwargs_exist={
+                            'websocket': websocket,
+                            'streaming_handler': StreamingWebsocketCallbackHandler(
+                                websocket=websocket,
+                                output_model=output_model,
+                            ),
+                            'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
+                                websocket=websocket,
+                                output_model=output_model,
+                            ),
+                        }
+                        if include_callback_handlers
+                        else {},
+                        # If the function is a streaming response, we pass the callback handler,
+                        # so that stream data can be sent back to the client.
+                    )
                     with EnvironmentVarCtxtManager(_envs):
                         try:
-                            _input_data_dict = dict(_input_data)
-                            # If the function is a streaming response, we pass the callback handler,
-                            # so that stream data can be sent back to the client.
-                            if include_callback_handlers:
-                                _input_data_dict.update(
-                                    {
-                                        'websocket': websocket,
-                                        'streaming_handler': StreamingWebsocketCallbackHandler(
-                                            websocket=websocket,
-                                            output_model=output_model,
-                                        ),
-                                        'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
-                                            websocket=websocket,
-                                            output_model=output_model,
-                                        ),
-                                    }
-                                )
-
-                            _returned_data = await run_function(
-                                func, **_input_data_dict
-                            )
+                            _returned_data = await run_function(func, **_func_data)
                             if inspect.isgenerator(_returned_data):
                                 # If the function is a generator, we iterate through the generator and send each item back to the client.
                                 for _stream in _returned_data:
@@ -807,15 +814,15 @@ def create_websocket_route(
 
         @app.websocket(**ws_kwargs)
         async def _create_ws_route(
-            websocket: WebSocket, token: str = Depends(_the_authorizer)
+            websocket: WebSocket, auth_response: Any = Depends(_the_authorizer)
         ) -> output_model:
-            return await _the_route(websocket)
+            return await _the_route(websocket=websocket, auth_response=auth_response)
 
     else:
 
         @app.websocket(**ws_kwargs)
         async def _create_ws_route(websocket: WebSocket) -> output_model:
-            return await _the_route(websocket)
+            return await _the_route(websocket=websocket, auth_response=None)
 
 
 def _get_input_model_fields(
