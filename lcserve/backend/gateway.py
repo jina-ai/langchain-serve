@@ -493,10 +493,10 @@ def _get_func_data(
     if 'auth_response' in _func_params_names:
         _func_data['auth_response'] = auth_response
     elif 'kwargs' in _func_params_names:
-        _func_data['kwargs'] = {
-            'auth_response': auth_response,
-            **include_if_kwargs_exist,
-        }
+        _func_data.update({'auth_response': auth_response})
+
+    if include_if_kwargs_exist:
+        _func_data.update(include_if_kwargs_exist)
 
     return _func_data, _envs
 

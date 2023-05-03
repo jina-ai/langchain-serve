@@ -38,9 +38,12 @@ async def async_ws(interval: int, **kwargs) -> str:
     return "hello world"
 
 
-def authorizer(token: str) -> bool:
+def authorizer(token: str) -> str:
     print(f"Got token: {token}")
-    return token == "mysecrettoken"
+    if not token == "mysecrettoken":
+        raise Exception("Invalid token")
+
+    return "username"
 
 
 @serving(auth=authorizer)
@@ -51,6 +54,7 @@ def sync_auth_http(interval: int) -> str:
 
 @serving(websocket=True, auth=authorizer)
 async def sync_auth_ws(interval: int, **kwargs) -> str:
+    print(f'kwargs: {kwargs}')
     ws: "WebSocket" = kwargs["websocket"]
     for i in range(1000):
         await ws.send_text(str(i))
