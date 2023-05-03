@@ -427,19 +427,19 @@ To add an extra layer of security, we can integrate any custom API authorization
 from lcserve import serving
 
 def authorizer(token: str) -> Any:
-    if not token == 'mysecrettoken': # Change this to add your own authorization logic
-        raise Exception('Unauthorized') # Raise an exception if the request is not authorized
+    if not token == 'mysecrettoken':            # Change this to add your own authorization logic
+        raise Exception('Unauthorized')         # Raise an exception if the request is not authorized
 
-    return 'userid' # Return any user id or object
+    return 'userid'                             # Return any user id or object
 
 @serving(auth=authorizer)
 def ask(question: str, **kwargs) -> str:
-    auth_response = kwargs['auth_response'] # This will be 'userid'
+    auth_response = kwargs['auth_response']     # This will be 'userid'
     return ...
 
 @serving(websocket=True, auth=authorizer)
 async def talk(question: str, **kwargs) -> str:
-    auth_response = kwargs['auth_response'] # This will be 'userid'
+    auth_response = kwargs['auth_response']     # This will be 'userid'
     return ...
 ```
 
