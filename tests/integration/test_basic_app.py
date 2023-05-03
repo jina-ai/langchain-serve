@@ -51,7 +51,10 @@ async def test_basic_app_ws(run_test_server, route):
 
 @pytest.mark.parametrize(
     "run_test_server, route",
-    [("basic_app", "sync_auth_http")],
+    [
+        ("basic_app", "sync_auth_http"),
+        ("basic_app", "sync_auth_http_auth_response"),
+    ],
     indirect=["run_test_server"],
 )
 def test_basic_app_http_authorized(run_test_server, route):
@@ -87,7 +90,10 @@ def test_basic_app_http_authorized(run_test_server, route):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "run_test_server, route",
-    [("basic_app", "sync_auth_ws")],
+    [
+        ("basic_app", "sync_auth_ws"),
+        ("basic_app", "sync_auth_ws_auth_response"),
+    ],
     indirect=["run_test_server"],
 )
 async def test_basic_app_ws_authorized(run_test_server, route):

@@ -1,6 +1,6 @@
 import asyncio
 import time
-from typing import List, Dict
+from typing import List, Dict, Any
 from lcserve import serving
 
 from fastapi import WebSocket, UploadFile
@@ -54,7 +54,26 @@ def sync_auth_http(interval: int) -> str:
 
 @serving(websocket=True, auth=authorizer)
 async def sync_auth_ws(interval: int, **kwargs) -> str:
-    print(f'kwargs: {kwargs}')
+    ws: "WebSocket" = kwargs["websocket"]
+    for i in range(1000):
+        await ws.send_text(str(i))
+        await asyncio.sleep(interval)
+
+    return "hello world"
+
+
+@serving(auth=authorizer)
+def sync_auth_http_auth_response(interval: int, **kwargs) -> str:
+    assert 'auth_response' in kwargs
+    assert kwargs['auth_response'] == "username"
+    time.sleep(interval)
+    return "Hello, world!"
+
+
+@serving(websocket=True, auth=authorizer)
+async def sync_auth_ws_auth_response(interval: int, **kwargs) -> str:
+    assert 'auth_response' in kwargs
+    assert kwargs['auth_response'] == "username"
     ws: "WebSocket" = kwargs["websocket"]
     for i in range(1000):
         await ws.send_text(str(i))

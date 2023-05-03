@@ -604,10 +604,14 @@ def create_http_route(
 
             async def _the_http_route(
                 input_data: input_model = Depends(_the_parser),
-                token: str = Depends(_the_authorizer),
+                auth_response: Any = Depends(_the_authorizer),
                 **kwargs,
             ) -> output_model:
-                return await _the_route(input_data, _get_files_data(kwargs))
+                return await _the_route(
+                    input_data=input_data,
+                    files_data=_get_files_data(kwargs),
+                    auth_response=auth_response,
+                )
 
             _the_http_route.__signature__ = _get_updated_signature(
                 file_params, output_model, include_token=True
@@ -617,9 +621,13 @@ def create_http_route(
             # If no file params are present, we include the input args in the Body.
 
             async def _the_http_route(
-                input_data: input_model, auth_response: str = Depends(_the_authorizer)
+                input_data: input_model, auth_response: Any = Depends(_the_authorizer)
             ) -> output_model:
-                return await _the_route(input_data, {})
+                return await _the_route(
+                    input_data=input_data,
+                    files_data={},
+                    auth_response=auth_response,
+                )
 
     else:
         # If no auth function is present, no need to include the authorizer in the route.
@@ -631,7 +639,11 @@ def create_http_route(
             async def _the_http_route(
                 input_data: input_model = Depends(_the_parser), **kwargs
             ) -> output_model:
-                return await _the_route(input_data, _get_files_data(kwargs))
+                return await _the_route(
+                    input_data=input_data,
+                    files_data=_get_files_data(kwargs),
+                    auth_response=None,
+                )
 
             _the_http_route.__signature__ = _get_updated_signature(
                 file_params, output_model, include_token=False
@@ -641,7 +653,11 @@ def create_http_route(
             # If no file params are present, we include the input args in the Body.
 
             async def _the_http_route(input_data: input_model) -> output_model:
-                return await _the_route(input_data)
+                return await _the_route(
+                    input_data=input_data,
+                    files_data={},
+                    auth_response=None,
+                )
 
     # Add the route to the app with POST method
     app.post(**post_kwargs)(_the_http_route)
