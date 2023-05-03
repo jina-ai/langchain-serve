@@ -426,22 +426,28 @@ To add an extra layer of security, we can integrate any custom API authorization
 ```python
 from lcserve import serving
 
-def authorizer(token: str) -> bool:
-    return token == 'mysecrettoken' # Change this to add your own authorization logic
+def authorizer(token: str) -> Any:
+    if not token == 'mysecrettoken':            # Change this to add your own authorization logic
+        raise Exception('Unauthorized')         # Raise an exception if the request is not authorized
+
+    return 'userid'                             # Return any user id or object
 
 @serving(auth=authorizer)
-def ask(question: str) -> str:
+def ask(question: str, **kwargs) -> str:
+    auth_response = kwargs['auth_response']     # This will be 'userid'
     return ...
 
 @serving(websocket=True, auth=authorizer)
 async def talk(question: str, **kwargs) -> str:
+    auth_response = kwargs['auth_response']     # This will be 'userid'
     return ...
 ```
 
 ##### 🤔 Gotchas about the `auth` function
 
 - Should accept only one argument `token`.
-- Should return `True` if the request is authorized, otherwise it should return `False`.
+- Should raise an Exception if the request is not authorized.
+- Can return any object, which will be passed to the `auth_response` object under `kwargs` to the functions.
 - Expects Bearer token in the `Authorization` header of the request.
 - Sample HTTP request with `curl`:
   ```bash
