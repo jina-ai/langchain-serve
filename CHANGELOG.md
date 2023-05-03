@@ -20,6 +20,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -496,4 +497,23 @@
 ### 🍹 Other Improvements
 
  - [[```58589bd7```](https://github.com/jina-ai/langchain-serve/commit/58589bd785632b9f8808dc0bbbba23ab697602a3)] __-__ __version__: the next version will be 0.0.20 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-21></a>
+## Release Note (`0.0.21`)
+
+> Release time: 2023-05-03 06:47:57
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```387a9c75```](https://github.com/jina-ai/langchain-serve/commit/387a9c757617aa2282e89e8a7ef5d25ecd3bdf51)] __-__ share auth context with route (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```bfb3d661```](https://github.com/jina-ai/langchain-serve/commit/bfb3d66170f99304d7488616d0852e90d84e3f23)] __-__ __version__: the next version will be 0.0.21 (*Jina Dev Bot*)
 
