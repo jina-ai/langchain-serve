@@ -428,7 +428,7 @@ from lcserve import serving
 
 def authorizer(token: str) -> Any:
     if not token == 'mysecrettoken': # Change this to add your own authorization logic
-        raise Exception('Unauthorized')
+        raise Exception('Unauthorized') # Raise an exception if the request is not authorized
 
     return 'userid' # Return any user id or object
 
@@ -446,7 +446,7 @@ async def talk(question: str, **kwargs) -> str:
 ##### 🤔 Gotchas about the `auth` function
 
 - Should accept only one argument `token`.
-- Should raise any Exception if the request is not authorized.
+- Should raise an Exception if the request is not authorized.
 - Can return any object, which will be passed to the `auth_response` object under `kwargs` to the functions.
 - Expects Bearer token in the `Authorization` header of the request.
 - Sample HTTP request with `curl`:
