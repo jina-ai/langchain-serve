@@ -435,7 +435,7 @@ def get_flow_dict(
         module = [module]
 
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
-    return {
+    flow_dict = {
         'jtype': 'Flow',
         **(get_with_args_for_jcloud() if jcloud else {}),
         'gateway': {
@@ -454,6 +454,13 @@ def get_flow_dict(
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
+    if os.environ.get("LCSERVE_TEST", False):
+        flow_dict['with'] = {
+            'metrics': True,
+            'metrics_exporter_host': 'http://localhost',
+            'metrics_exporter_port': 4317,
+        }
+    return flow_dict
 
 
 def get_flow_yaml(

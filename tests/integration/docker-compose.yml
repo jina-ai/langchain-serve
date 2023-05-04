@@ -1,0 +1,19 @@
+version: "3"
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:0.61.0
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    volumes:
+      - ./tests/integration/otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "8888" # Prometheus metrics exposed by the collector
+      - "8889" # Prometheus exporter metrics
+      - "4317:4317" # OTLP gRPC receiver
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./tests/integration/prometheus-config.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
