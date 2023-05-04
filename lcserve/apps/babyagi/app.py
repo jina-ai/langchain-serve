@@ -1,10 +1,10 @@
 from typing import Any, List
 
-from langchain import OpenAI
-from langchain.callbacks.base import CallbackManager
-from lcserve import serving
-
 from babyagi import BabyAGI, CustomTool, PredefinedTools, get_tools, get_vectorstore
+from langchain import OpenAI
+from langchain.callbacks.manager import CallbackManager
+
+from lcserve import serving
 
 
 @serving(websocket=True)

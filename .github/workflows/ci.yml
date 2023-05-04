@@ -84,11 +84,19 @@ jobs:
           pip install -r requirements.txt
           pip install --no-cache-dir ".[test]"
           sudo apt-get install libsndfile1
+      - name: Setup monitoring stack
+        run: |
+          cd $GITHUB_WORKSPACE
+          docker-compose -f tests/integration/docker-compose.yml  --project-directory . up  --build -d --remove-orphans
       - name: Test
         id: test
         run: |
           pytest -v -s --log-cli-level=DEBUG
         timeout-minutes: 30
+      - name: Cleanup monitoring stack
+        run: |
+          cd $GITHUB_WORKSPACE
+          docker-compose -f tests/integration/docker-compose.yml  --project-directory . down
 
   # just for blocking the merge until all parallel integration-tests are successful
   success-all-test:

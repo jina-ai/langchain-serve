@@ -1,11 +1,12 @@
-import os
 import json
+import os
+import time
 
 import pytest
 import requests
 import websockets
 
-from .helper import run_test_server
+from .helper import examine_prom_with_retry, get_values_from_prom, run_test_server
 
 HOST = "localhost:8080"
 HTTP_HOST = f"http://{HOST}"
@@ -238,3 +239,47 @@ def test_multiple_file_uploads_with_extra_arg_http(run_test_server):
             "question": "what is the file name?",
             "someint": "1",
         }
+
+
+@pytest.mark.parametrize(
+    "run_test_server, route",
+    [("basic_app", "sync_http")],
+    indirect=["run_test_server"],
+)
+def test_metrics_http(run_test_server, route):
+    url = os.path.join(HTTP_HOST, route)
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    data = {"interval": 5, "envs": {}}
+    response = requests.post(url, headers=headers, json=data)
+    assert response.status_code == 200
+
+    start_time = time.time()
+    examine_prom_with_retry(
+        start_time, metrics="http_request_duration_seconds", expected_value=5
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "run_test_server, route",
+    [("basic_app", "sync_ws")],
+    indirect=["run_test_server"],
+)
+async def test_metrics_ws(run_test_server, route):
+    async with websockets.connect(os.path.join(WS_HOST, route)) as websocket:
+        await websocket.send(json.dumps({"interval": 1}))
+
+        received_messages = []
+        for _ in range(5):
+            message = await websocket.recv()
+            received_messages.append(message)
+
+        assert received_messages == ["0", "1", "2", "3", "4"]
+
+    start_time = time.time()
+    examine_prom_with_retry(
+        start_time, metrics="ws_request_duration_seconds", expected_value=5
+    )

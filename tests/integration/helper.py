@@ -7,6 +7,9 @@ import time
 
 import psutil
 import pytest
+import requests
+
+PROMETHEUS_URL = "http://localhost:9090"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -23,6 +26,8 @@ def run_test_server(request):
         + (os.pathsep if env.get("PYTHONPATH") else "")
         + env.get("PYTHONPATH", "")
     )
+    # Mark LCSERVE_TEST as true to make the Flow tested export metrics (to docker composed monitor stack)
+    env["LCSERVE_TEST"] = "true"
 
     # Start the app
     server_process = subprocess.Popen(
@@ -45,3 +50,33 @@ def kill_child_pids(pid):
     children = parent.children(recursive=True)
     for child in children:
         os.kill(child.pid, signal.SIGTERM)
+
+
+def get_values_from_prom(metrics):
+    response = requests.get(
+        f"{PROMETHEUS_URL}/api/v1/query",
+        params={"query": metrics},
+    )
+    assert response.status_code == 200
+
+    try:
+        duration_seconds = response.json()["data"]["result"][0]["value"][1]
+    except:
+        duration_seconds = 0
+    return duration_seconds
+
+
+def examine_prom_with_retry(start_time, metrics, expected_value):
+    timeout = 120
+    interval = 10
+
+    while True:
+        elapsed_time = time.time() - start_time
+        if elapsed_time > timeout:
+            pytest.fail("Timed out waiting for the Prometheus data to be populated")
+
+        duration_seconds = get_values_from_prom(metrics)
+        if round(float(duration_seconds)) == expected_value:
+            break
+
+        time.sleep(interval)

@@ -1,7 +1,7 @@
 import os
 
 from langchain.agents import initialize_agent, load_tools
-from langchain.callbacks.base import CallbackManager
+from langchain.callbacks.manager import CallbackManager
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 

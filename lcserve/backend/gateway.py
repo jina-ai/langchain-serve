@@ -5,28 +5,19 @@ import shutil
 import sys
 import time
 from enum import Enum
+from functools import wraps
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Dict,
-    List,
-    Tuple,
-    Type,
-    Any,
-    Union,
-    Sequence,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple, Type, Union
 
 from docarray import Document, DocumentArray
 from jina import Gateway
-from jina.logging.logger import JinaLogger
 from jina.enums import ProtocolType as GatewayProtocolType
+from jina.logging.logger import JinaLogger
 from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-from pydantic import Field, ValidationError, create_model, BaseModel
+from pydantic import BaseModel, Field, ValidationError, create_model
 from websockets.exceptions import ConnectionClosed
 
 from .playground.utils.helper import (
@@ -51,6 +42,7 @@ from .playground.utils.langchain_helper import (
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
+    from opentelemetry.sdk.metrics import Counter
 
 cur_dir = os.path.dirname(__file__)
 
@@ -275,6 +267,8 @@ class ServingGateway(FastAPIBaseGateway):
         self.logger.debug(f'Loading modules/files: {",".join(modules)}')
         self._fix_sys_path()
         self._app = FastAPI()
+        self._setup_metrics()
+
         self._register_healthz()
         for mod in modules:
             # TODO: add support for registering a directory
@@ -293,6 +287,31 @@ class ServingGateway(FastAPIBaseGateway):
         if Path(APPDIR).exists() and APPDIR not in sys.path:
             # This is where the app code is mounted in the container
             sys.path.append(APPDIR)
+
+    def _setup_metrics(self):
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+        if not self.meter_provider:
+            self.http_duration_counter = None
+            self.ws_duration_counter = None
+            return
+
+        FastAPIInstrumentor.instrument_app(
+            self._app,
+            meter_provider=self.meter_provider,
+        )
+
+        self.http_duration_counter = self.meter.create_counter(
+            name="http_request_duration_seconds",
+            description="HTTP request duration in seconds",
+            unit="s",
+        )
+
+        self.ws_duration_counter = self.meter.create_counter(
+            name="ws_request_duration_seconds",
+            description="WS request duration in seconds",
+            unit="s",
+        )
 
     def _register_healthz(self):
         @self.app.get("/healthz")
@@ -434,6 +453,7 @@ class ServingGateway(FastAPIBaseGateway):
                     'tags': [SERVING],
                 },
                 logger=self.logger,
+                duration_counter=self.http_duration_counter,
             )
 
         elif route_type == RouteType.WEBSOCKET:
@@ -452,6 +472,7 @@ class ServingGateway(FastAPIBaseGateway):
                 },
                 include_callback_handlers=include_callback_handlers,
                 logger=self.logger,
+                duration_counter=self.ws_duration_counter,
             )
 
 
@@ -535,11 +556,12 @@ def create_http_route(
     output_model: BaseModel,
     post_kwargs: Dict,
     logger: JinaLogger,
+    duration_counter: 'Counter',
 ):
 
-    from fastapi import Depends, Security, HTTPException, status, UploadFile, Form
-    from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+    from fastapi import Depends, Form, HTTPException, Security, UploadFile, status
     from fastapi.encoders import jsonable_encoder
+    from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
     bearer_scheme = HTTPBearer()
 
@@ -602,6 +624,7 @@ def create_http_route(
             # If file params are present, we need to use a custom parser to make sure that
             # the input data included in the Form and parsed correctly.
 
+            @measure_duration(duration_counter)
             async def _the_http_route(
                 input_data: input_model = Depends(_the_parser),
                 auth_response: Any = Depends(_the_authorizer),
@@ -620,6 +643,7 @@ def create_http_route(
         else:
             # If no file params are present, we include the input args in the Body.
 
+            @measure_duration(duration_counter)
             async def _the_http_route(
                 input_data: input_model, auth_response: Any = Depends(_the_authorizer)
             ) -> output_model:
@@ -636,6 +660,7 @@ def create_http_route(
             # If file params are present, we need to use a custom parser to make sure that
             # the input data included in the Form and parsed correctly.
 
+            @measure_duration(duration_counter)
             async def _the_http_route(
                 input_data: input_model = Depends(_the_parser), **kwargs
             ) -> output_model:
@@ -652,6 +677,7 @@ def create_http_route(
         else:
             # If no file params are present, we include the input args in the Body.
 
+            @measure_duration(duration_counter)
             async def _the_http_route(input_data: input_model) -> output_model:
                 return await _the_route(
                     input_data=input_data,
@@ -673,17 +699,18 @@ def create_websocket_route(
     include_callback_handlers: bool,
     ws_kwargs: Dict,
     logger: JinaLogger,
+    duration_counter: 'Counter',
 ):
     from fastapi import (
         Depends,
+        Header,
         WebSocket,
         WebSocketDisconnect,
-        Header,
         WebSocketException,
         status,
     )
-    from fastapi.websockets import WebSocketState
     from fastapi.security.utils import get_authorization_scheme_param
+    from fastapi.websockets import WebSocketState
 
     async def _the_authorizer(
         authorization: Union[str, None] = Header(None, alias="Authorization"),
@@ -829,6 +856,7 @@ def create_websocket_route(
         logger.info(f'Auth enabled for `{func.__name__}`')
 
         @app.websocket(**ws_kwargs)
+        @measure_duration(duration_counter)
         async def _create_ws_route(
             websocket: WebSocket, auth_response: Any = Depends(_the_authorizer)
         ) -> output_model:
@@ -837,6 +865,7 @@ def create_websocket_route(
     else:
 
         @app.websocket(**ws_kwargs)
+        @measure_duration(duration_counter)
         async def _create_ws_route(websocket: WebSocket) -> output_model:
             return await _the_route(websocket=websocket, auth_response=None)
 
@@ -909,3 +938,47 @@ def _get_output_model_fields(func: Callable) -> Dict[str, Tuple[Type, Any]]:
     }
 
     return _output_model_fields
+
+
+def measure_duration(duration_counter):
+    class SharedData:
+        def __init__(self, last_reported_time):
+            self.last_reported_time = last_reported_time
+
+    async def send_metrics_periodically(
+        duration_counter, interval, route_name, shared_data
+    ):
+        while True:
+            await asyncio.sleep(interval)
+            current_time = time.perf_counter()
+            if duration_counter:
+                duration_counter.add(
+                    current_time - shared_data.last_reported_time, {"route": route_name}
+                )
+            shared_data.last_reported_time = current_time
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapped(*args, **kwargs):
+            shared_data = SharedData(last_reported_time=time.perf_counter())
+            # Start the async task which reports the metrics every 5s
+            send_metrics_task = asyncio.create_task(
+                send_metrics_periodically(
+                    duration_counter, 5, func.__name__, shared_data
+                )
+            )
+            try:
+                result = await func(*args, **kwargs)
+                return result
+            finally:
+                send_metrics_task.cancel()
+                # Final metrics update to wrap up the untracked duration in the end
+                if duration_counter:
+                    duration_counter.add(
+                        time.perf_counter() - shared_data.last_reported_time,
+                        {"route": func.__name__},
+                    )
+
+        return wrapped
+
+    return decorator
