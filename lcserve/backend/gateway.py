@@ -556,7 +556,7 @@ def create_http_route(
     output_model: BaseModel,
     post_kwargs: Dict,
     logger: JinaLogger,
-    duration_counter: Counter,
+    duration_counter: 'Counter',
 ):
 
     from fastapi import Depends, Form, HTTPException, Security, UploadFile, status
@@ -699,7 +699,7 @@ def create_websocket_route(
     include_callback_handlers: bool,
     ws_kwargs: Dict,
     logger: JinaLogger,
-    duration_counter: Counter,
+    duration_counter: 'Counter',
 ):
     from fastapi import (
         Depends,
