@@ -17,8 +17,6 @@ from jina.enums import ProtocolType as GatewayProtocolType
 from jina.logging.logger import JinaLogger
 from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.sdk.metrics import Counter
 from pydantic import BaseModel, Field, ValidationError, create_model
 from websockets.exceptions import ConnectionClosed
 
@@ -44,6 +42,7 @@ from .playground.utils.langchain_helper import (
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
+    from opentelemetry.sdk.metrics import Counter
 
 cur_dir = os.path.dirname(__file__)
 
@@ -290,6 +289,8 @@ class ServingGateway(FastAPIBaseGateway):
             sys.path.append(APPDIR)
 
     def _setup_metrics(self):
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
         if not self.meter_provider:
             self.http_duration_counter = None
             self.ws_duration_counter = None

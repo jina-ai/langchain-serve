@@ -351,6 +351,8 @@ def get_global_jcloud_args(app_id: str = None, name: str = APP_NAME) -> Dict:
                 },
                 'metrics': {
                     'enable': True,
+                    'host': 'http://opentelemetry-collector.monitor.svc.cluster.local',
+                    'port': 4317,
                 },
             },
         }
