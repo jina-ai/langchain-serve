@@ -30,7 +30,7 @@ def hitl(question: str, **kwargs) -> str:
         ),  # Pass the callback handler
     )
     tools = load_tools(
-        ["human", "llm-math"],
+        ["human"],
         llm=math_llm,
     )
 

@@ -44,7 +44,13 @@ class _HumanInput(BaseModel):
 class InputWrapper:
     """Wrapper for human input."""
 
-    def __init__(self, websocket: 'WebSocket', recv_lock: asyncio.Lock):
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        websocket: 'WebSocket',
+        recv_lock: asyncio.Lock,
+    ):
+        self.loop = loop
         self.websocket = websocket
         self.recv_lock = recv_lock
 
@@ -55,16 +61,24 @@ class InputWrapper:
         return await self.websocket.receive_text()
 
     def __call__(self, __prompt: str = ''):
-        return asyncio.run(self.__acall__(__prompt))
+        return asyncio.run_coroutine_threadsafe(
+            self.__acall__(__prompt), self.loop
+        ).result()
 
 
 class PrintWrapper:
-    def __init__(self, websocket: 'WebSocket', output_model: 'BaseModel'):
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        websocket: 'WebSocket',
+        output_model: 'BaseModel',
+    ):
+        self.loop = loop
         self.websocket = websocket
         self.output_model = output_model
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
-        asyncio.run(self.__acall__(*args, **kwds))
+        asyncio.run_coroutine_threadsafe(self.__acall__(*args, **kwds), self.loop)
 
     async def __acall__(self, *args: Any, **kwds: Any) -> Any:
         await self.websocket.send_json(
@@ -77,11 +91,13 @@ class BuiltinsWrapper:
 
     def __init__(
         self,
+        loop: asyncio.AbstractEventLoop,
         websocket: 'WebSocket',
         output_model: 'BaseModel',
         wrap_print: bool = True,
         wrap_input: bool = True,
     ):
+        self.loop = loop
         self.websocket = websocket
         self.output_model = output_model
         self._wrap_print = wrap_print
@@ -92,11 +108,11 @@ class BuiltinsWrapper:
 
         if self._wrap_print:
             self._print = builtins.print
-            builtins.print = PrintWrapper(self.websocket, self.output_model)
+            builtins.print = PrintWrapper(self.loop, self.websocket, self.output_model)
 
         if self._wrap_input:
             self._input = builtins.input
-            builtins.input = InputWrapper(self.websocket, asyncio.Lock())
+            builtins.input = InputWrapper(self.loop, self.websocket, asyncio.Lock())
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         import builtins
