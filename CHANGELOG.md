@@ -22,6 +22,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -552,4 +553,24 @@
  - [[```09107b0e```](https://github.com/jina-ai/langchain-serve/commit/09107b0ee98a194befe9fcb3c48ae884c34dea4d)] __-__ __version__: the next version will be 0.0.22 (*Jina Dev Bot*)
  - [[```9cc9a0eb```](https://github.com/jina-ai/langchain-serve/commit/9cc9a0ebadf81c967fb4e25ce7c85e92ecbc3dff)] __-__ __version__: the next version will be 0.0.19 (*Jina Dev Bot*)
  - [[```260f31bc```](https://github.com/jina-ai/langchain-serve/commit/260f31bcfb821af13def43d5ca6ee321880cd41a)] __-__ Merge pull request #46 from jina-ai/feat-authz (*Deepankar Mahapatro*)
+
+<a name=release-note-0-0-23></a>
+## Release Note (`0.0.23`)
+
+> Release time: 2023-05-05 11:09:06
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```d5affbd4```](https://github.com/jina-ai/langchain-serve/commit/d5affbd45514d36de5c11dae7a2832028fa129a0)] __-__ pandas-ai as a service (*Deepankar Mahapatro*)
+ - [[```c75a673f```](https://github.com/jina-ai/langchain-serve/commit/c75a673f1d4275abf58cf73039d5c56b133cfe6c)] __-__ upload/download dataframes (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```7208b384```](https://github.com/jina-ai/langchain-serve/commit/7208b384f9cf89515507dd86489fc0a8e94e16ea)] __-__ __version__: the next version will be 0.0.23 (*Jina Dev Bot*)
 
