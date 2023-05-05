@@ -17,7 +17,7 @@ async def converse(host: str, verbose: bool = False):
     def _bot_said(msg: str, answer=False):
         click.echo(f'{_answer_bot} {msg}' if answer else f'{_bot} {msg}', color=True)
 
-    def _you_prompted(msg=''):
+    def _you_prompted():
         return click.prompt(f'{_you}', prompt_suffix=' ')
 
     try:
@@ -42,7 +42,7 @@ async def converse(host: str, verbose: bool = False):
 
                 # start the conversation
                 while True:
-                    user_input = _you_prompted('')
+                    user_input = _you_prompted()
                     _prompt = {'prompt': user_input}
                     _echo_if_verbose(f'Sending {_prompt}')
                     await ws.send_json(_prompt)
