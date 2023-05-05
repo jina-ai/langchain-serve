@@ -404,10 +404,9 @@ def util():
 @click.option(
     '--name',
     type=str,
-    required=True,
     help='Name of the DataFrame.',
 )
-def upload(module, name):
+def upload_df(module, name):
     upload_df_to_jcloud(module, name)
 
 

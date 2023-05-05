@@ -627,6 +627,8 @@ class ImportFromStringError(Exception):
 def load_local_df(module: str):
     from importlib import import_module
 
+    _add_to_path()
+
     module_str, _, attrs_str = module.partition(":")
     if not module_str or not attrs_str:
         message = (
