@@ -507,11 +507,12 @@ def pdf_qna():
     help='Verbose mode.',
     show_default=True,
 )
-def pandas_ai(host, verbose):
+@syncify
+async def pandas_ai(host, verbose):
     sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'pandas_ai'))
     from .playground.pandas_ai.playground import converse
 
-    converse(host=host, verbose=verbose)
+    await converse(host=host, verbose=verbose)
 
 
 if __name__ == "__main__":
