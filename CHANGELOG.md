@@ -21,6 +21,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -516,4 +517,39 @@
 ### 🍹 Other Improvements
 
  - [[```bfb3d661```](https://github.com/jina-ai/langchain-serve/commit/bfb3d66170f99304d7488616d0852e90d84e3f23)] __-__ __version__: the next version will be 0.0.21 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-22></a>
+## Release Note (`0.0.22`)
+
+> Release time: 2023-05-05 02:51:04
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  Deepankar Mahapatro,  🙇
+
+
+### 🆕 New Features
+
+ - [[```aef4cd70```](https://github.com/jina-ai/langchain-serve/commit/aef4cd705c3b2a19f24e4426005d8e5911cdf2bc)] __-__ export metrics (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```7e811a59```](https://github.com/jina-ai/langchain-serve/commit/7e811a5955aa741fd18b8e5bbe2dd599adc643c9)] __-__ import error (*Zac Li*)
+ - [[```6331617b```](https://github.com/jina-ai/langchain-serve/commit/6331617b626d27ce62315b465947e589b315c569)] __-__ feedback (*Zac Li*)
+ - [[```d89b03e6```](https://github.com/jina-ai/langchain-serve/commit/d89b03e63b9607a1dcf78892326530c165725709)] __-__ improve metrics sending (*Zac Li*)
+
+### 📗 Documentation
+
+ - [[```833c9dd9```](https://github.com/jina-ai/langchain-serve/commit/833c9dd98ecf4fc438f48f8536a9fcdcd4c5b5ae)] __-__ update readme (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```23d2384c```](https://github.com/jina-ai/langchain-serve/commit/23d2384c867f0e7298ccb79af6ef6fa6845e0bd0)] __-__ integration test (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```09107b0e```](https://github.com/jina-ai/langchain-serve/commit/09107b0ee98a194befe9fcb3c48ae884c34dea4d)] __-__ __version__: the next version will be 0.0.22 (*Jina Dev Bot*)
+ - [[```9cc9a0eb```](https://github.com/jina-ai/langchain-serve/commit/9cc9a0ebadf81c967fb4e25ce7c85e92ecbc3dff)] __-__ __version__: the next version will be 0.0.19 (*Jina Dev Bot*)
+ - [[```260f31bc```](https://github.com/jina-ai/langchain-serve/commit/260f31bcfb821af13def43d5ca6ee321880cd41a)] __-__ Merge pull request #46 from jina-ai/feat-authz (*Deepankar Mahapatro*)
 
