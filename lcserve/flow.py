@@ -20,6 +20,7 @@ from jina import Flow
 APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
 PDF_QNA_APP_NAME = 'pdfqna'
+PANDAS_AI_APP_NAME = 'pandasai'
 DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
@@ -617,3 +618,38 @@ async def remove_app_on_jcloud(app_id: str) -> None:
 
     await CloudFlow(flow_id=app_id).__aexit__()
     print(f'App [bold][green]{app_id}[/green][/bold] removed successfully!')
+
+
+class ImportFromStringError(Exception):
+    pass
+
+
+def load_local_df(module: str):
+    from importlib import import_module
+
+    module_str, _, attrs_str = module.partition(":")
+    if not module_str or not attrs_str:
+        message = (
+            'Import string "{import_str}" must be in format "<module>:<attribute>".'
+        )
+        raise ImportFromStringError(message.format(import_str=module))
+
+    try:
+        module = import_module(module_str)
+    except ImportError as exc:
+        if exc.name != module_str:
+            raise exc from None
+        message = 'Could not import module "{module_str}".'
+        raise ImportFromStringError(message.format(module_str=module_str))
+
+    instance = module
+    try:
+        for attr_str in attrs_str.split("."):
+            instance = getattr(instance, attr_str)
+    except AttributeError:
+        message = 'Could not import attribute "{attr_str}" from module "{module_str}".'
+        raise ImportFromStringError(
+            message.format(attr_str=attr_str, module_str=module_str)
+        )
+
+    return instance
