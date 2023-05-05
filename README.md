@@ -36,6 +36,64 @@
   </details>
 
 
+## :panda_face: pandas-ai-as-a-service
+
+[pandas-ai](https://github.com/gventuri/pandas-ai) integrates LLM capabilities into Pandas, to make daraframes conversational in Python code. Thanks to langchain-serve, we can now expose pandas-ai APIs on Jina AI Cloud in just a matter of seconds.
+
+- Deploy **pandas-ai** on Jina AI Cloud
+
+  ```bash
+  lc-serve deploy pandas-ai
+  ```
+
+  <details>
+  <summary>Show command output</summary>
+
+  ```text
+  ╭──────────────┬─────────────────────────────────────────────────────────────────────────────────╮
+  │ App ID       │                               pandasai-06879349ca                               │
+  ├──────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Phase        │                                     Serving                                     │
+  ├──────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Endpoint     │                     wss://pandasai-06879349ca.wolf.jina.ai                      │
+  ├──────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ App logs     │                             dashboards.wolf.jina.ai                             │
+  ├──────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Swagger UI   │                  https://pandasai-06879349ca.wolf.jina.ai/docs                  │
+  ├──────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ OpenAPI JSON │              https://pandasai-06879349ca.wolf.jina.ai/openapi.json              │
+  ╰──────────────┴─────────────────────────────────────────────────────────────────────────────────╯
+  ```
+
+  </details>
+
+- Upload your DataFrame to Jina AI Cloud (Optional - you can also use a publicly available CSV)
+
+  - Define your DataFrame in a Python file
+    
+    ```python
+    # dataframe.py
+    import pandas as pd
+    df = pd.DataFrame(some_data)
+    ```
+
+  - Upload your DataFrame to Jina AI Cloud using `<module>:<variable>` syntax
+    
+    ```bash
+    lc-serve util upload-df dataframe:df
+    ```
+
+- Conversationalize your DataFrame using pandas-ai APIs. Get a flavor of the integration with a local playground on your CLI with 
+  
+  ```bash
+  lc-serve playground pandas-ai
+  ```
+  <details>
+  <summary>Show playground</summary>
+  <img src=".github/images/pandas-ai-playground.gif" title="pandas-ai-as-a-service Playground">
+  </details>
+
+
 ## 💬 Question Answer Bot on PDFs
 
 - Deploy `pdf_qna` on Jina AI Cloud with one command
