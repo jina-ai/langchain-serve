@@ -495,5 +495,24 @@ def pdf_qna():
     sys.exit(strcli.main())
 
 
+@playground.command(help='Play with pandas-ai on JCloud.')
+@click.argument(
+    'host',
+    type=str,
+    required=True,
+)
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
+def pandas_ai(host, verbose):
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'pandas_ai'))
+    from .playground.pandas_ai.playground import converse
+
+    converse(host=host, verbose=verbose)
+
+
 if __name__ == "__main__":
     serve()
