@@ -2,7 +2,7 @@ from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import pandas as pd
+    from pandas import DataFrame
 
 import hubble
 
@@ -10,7 +10,7 @@ import hubble
 JINAAI_PREFIX = 'jinaai://'
 
 
-def _import_pandas() -> 'pd':
+def _import_pandas():
     try:
         import pandas as pd
     except ImportError:
@@ -18,7 +18,7 @@ def _import_pandas() -> 'pd':
     return pd
 
 
-def upload_df(df: 'pd.DataFrame', name: str, to_csv_kwargs={}) -> str:
+def upload_df(df: 'DataFrame', name: str, to_csv_kwargs={}) -> str:
     with NamedTemporaryFile(suffix='.csv') as f:
         df.to_csv(f.name, **to_csv_kwargs)
         r = hubble.Client().upload_artifact(f=f.name, is_public=True, name=name)
@@ -29,7 +29,7 @@ def upload_df(df: 'pd.DataFrame', name: str, to_csv_kwargs={}) -> str:
         return JINAAI_PREFIX + id
 
 
-def _download_df_from_jinaai(id: str, read_csv_kwargs={}) -> 'pd.DataFrame':
+def _download_df_from_jinaai(id: str, read_csv_kwargs={}) -> 'DataFrame':
     pd = _import_pandas()
 
     if not id.startswith(JINAAI_PREFIX):
@@ -41,7 +41,7 @@ def _download_df_from_jinaai(id: str, read_csv_kwargs={}) -> 'pd.DataFrame':
         return pd.read_csv(f.name, **read_csv_kwargs)
 
 
-def download_df(id: str, read_csv_kwargs={}) -> 'pd.DataFrame':
+def download_df(id: str, read_csv_kwargs={}) -> 'DataFrame':
     pd = _import_pandas()
 
     if id.startswith(JINAAI_PREFIX):
