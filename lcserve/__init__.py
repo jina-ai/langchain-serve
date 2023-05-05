@@ -12,6 +12,6 @@ def _ignore_warnings():
 
 _ignore_warnings()
 
-from .backend import serving
+from .backend import serving, download_df, upload_df
 
 __version__ = '0.0.23'
