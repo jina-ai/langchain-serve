@@ -13,6 +13,7 @@ from .flow import (
     DEFAULT_TIMEOUT,
     PDF_QNA_APP_NAME,
     PANDAS_AI_APP_NAME,
+    AUTOGPT_APP_NAME,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
@@ -102,6 +103,25 @@ async def serve_pdf_qna_on_jcloud(
 ):
     await serve_on_jcloud(
         module='lcserve.apps.pdf_qna.app',
+        name=name,
+        app_id=app_id,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        verbose=verbose,
+    )
+
+
+async def serve_autogpt_on_jcloud(
+    name: str = AUTOGPT_APP_NAME,
+    app_id: str = None,
+    version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
+    platform: str = None,
+    verbose: bool = False,
+):
+    await serve_on_jcloud(
+        module='lcserve.apps.autogpt.app',
         name=name,
         app_id=app_id,
         version=version,
@@ -333,6 +353,66 @@ async def babyagi(name, requirements, app_id, version, timeout, platform, verbos
 @syncify
 async def pdf_qna(name, app_id, version, timeout, platform):
     await serve_pdf_qna_on_jcloud(
+        name=name,
+        app_id=app_id,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+    )
+
+
+@deploy.command(help='Deploy autogpt on JCloud.')
+@click.option(
+    '--name',
+    type=str,
+    default=AUTOGPT_APP_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+@click.option(
+    '--requirements',
+    default=None,
+    help='List of requirements to be installed.',
+    multiple=True,
+)
+@click.option(
+    '--app-id',
+    type=str,
+    default=None,
+    help='AppID of the deployed agent to be updated.',
+    show_default=True,
+)
+@click.option(
+    '--version',
+    type=str,
+    default='latest',
+    help='Version of serving gateway to be used.',
+    show_default=False,
+)
+@click.option(
+    '--timeout',
+    type=int,
+    default=DEFAULT_TIMEOUT,
+    help='Total request timeout in seconds.',
+    show_default=True,
+)
+@click.option(
+    '--platform',
+    type=str,
+    default=None,
+    help='Platform of Docker image needed for the deployment is built on.',
+    show_default=False,
+)
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
+@click.help_option('-h', '--help')
+@syncify
+async def autogpt(name, app_id, version, timeout, platform):
+    await serve_autogpt_on_jcloud(
         name=name,
         app_id=app_id,
         version=version,

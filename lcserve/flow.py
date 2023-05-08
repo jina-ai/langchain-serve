@@ -21,6 +21,7 @@ APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
 PDF_QNA_APP_NAME = 'pdfqna'
 PANDAS_AI_APP_NAME = 'pandasai'
+AUTOGPT_APP_NAME = 'autogpt'
 DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
