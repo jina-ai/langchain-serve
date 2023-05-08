@@ -23,6 +23,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -573,4 +574,24 @@
 ### 🍹 Other Improvements
 
  - [[```7208b384```](https://github.com/jina-ai/langchain-serve/commit/7208b384f9cf89515507dd86489fc0a8e94e16ea)] __-__ __version__: the next version will be 0.0.23 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-24></a>
+## Release Note (`0.0.24`)
+
+> Release time: 2023-05-08 15:06:33
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  notandor,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```a20fbd17```](https://github.com/jina-ai/langchain-serve/commit/a20fbd175fb97d55094005f0c623664a2853a59d)] __-__ upgrade jina version to 3.15.2, to let dependents be installed on platform Windows by poetry (*notandor*)
+
+### 🍹 Other Improvements
+
+ - [[```b7fe7a7e```](https://github.com/jina-ai/langchain-serve/commit/b7fe7a7e0ec8532566b759138e381469cba219b3)] __-__ bump jcloud to fix windows issues (*Deepankar Mahapatro*)
+ - [[```40e5988d```](https://github.com/jina-ai/langchain-serve/commit/40e5988db894d8f7d3ce0545b47c1562e366cb45)] __-__ __version__: the next version will be 0.0.24 (*Jina Dev Bot*)
 
