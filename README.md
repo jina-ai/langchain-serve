@@ -16,7 +16,7 @@
 
 > Give us a :star: and tell us what more you'd like to see! 
 
-## 🔮 autogpt-as-a-service
+## 🔮 AutoGPT-as-a-service
 
 - Deploy `autogpt` on Jina AI Cloud with one command
 
