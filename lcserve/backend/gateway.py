@@ -558,7 +558,6 @@ def create_http_route(
     logger: JinaLogger,
     duration_counter: 'Counter',
 ):
-
     from fastapi import Depends, Form, HTTPException, Security, UploadFile, status
     from fastapi.encoders import jsonable_encoder
     from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -751,6 +750,7 @@ def create_websocket_route(
                 )
 
             await websocket.accept()
+            logger.info(f'Client {websocket.client} connected to `{func.__name__}`.')
             _ws_recv_lock = asyncio.Lock()
             try:
                 while True:

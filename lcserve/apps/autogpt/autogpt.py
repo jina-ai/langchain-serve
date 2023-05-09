@@ -2,6 +2,16 @@ import asyncio
 import json
 from typing import Dict, List, Literal, Optional, TypeVar
 
+from langchain.chains import llm
+
+
+def _patch_colored_text(text: str, color: str) -> str:
+    return text
+
+
+llm.get_colored_text = _patch_colored_text
+
+
 from fastapi import WebSocket
 from langchain import LLMChain, OpenAI, PromptTemplate
 from langchain.agents import Tool
@@ -11,11 +21,13 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chat_models.base import BaseChatModel
 from langchain.experimental import AutoGPT
 from langchain.experimental.autonomous_agents.autogpt.output_parser import (
-    AutoGPTOutputParser, BaseAutoGPTOutputParser)
-from langchain.experimental.autonomous_agents.autogpt.prompt import \
-    AutoGPTPrompt
-from langchain.experimental.autonomous_agents.autogpt.prompt_generator import \
-    FINISH_NAME
+    AutoGPTOutputParser,
+    BaseAutoGPTOutputParser,
+)
+from langchain.experimental.autonomous_agents.autogpt.prompt import AutoGPTPrompt
+from langchain.experimental.autonomous_agents.autogpt.prompt_generator import (
+    FINISH_NAME,
+)
 from langchain.schema import AIMessage, Document, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
@@ -95,6 +107,7 @@ class LCServeAutoGPT(AutoGPT):
         memory: VectorStoreRetriever,
         tools: List[BaseTool],
         llm: BaseChatModel,
+        human_in_the_loop: bool = False,
         output_parser: Optional[BaseAutoGPTOutputParser] = None,
     ) -> T:
         prompt = AutoGPTPrompt(
@@ -104,7 +117,12 @@ class LCServeAutoGPT(AutoGPT):
             input_variables=["memory", "messages", "goals", "user_input"],
             token_counter=llm.get_num_tokens,
         )
-        chain = LLMChain(llm=llm, prompt=prompt, verbose=True)
+        chain = LLMChain(
+            llm=llm,
+            prompt=prompt,
+            verbose=True,
+            callback_manager=llm.callback_manager,
+        )
         return cls(
             websocket,
             ai_name,
@@ -112,7 +130,9 @@ class LCServeAutoGPT(AutoGPT):
             chain,
             output_parser or AutoGPTOutputParser(),
             tools,
-            feedback_tool=LCServeHumanInputRun(websocket=websocket),
+            feedback_tool=LCServeHumanInputRun(websocket=websocket)
+            if human_in_the_loop
+            else None,
         )
 
     async def arun(self, goals: List[str]) -> str:
@@ -176,7 +196,9 @@ class LCServeAutoGPT(AutoGPT):
                 f"Assistant Reply: {assistant_reply} " f"\nResult: {result} "
             )
             if self.feedback_tool is not None:
-                feedback = await self.feedback_tool.arun('Input: ')
+                feedback = await self.feedback_tool.arun(
+                    'Waiting for feedback, OR pass "exit" to exit.'
+                )
                 if feedback in {"q", "stop", "exit"}:
                     print("EXITING")
                     return "EXITING"
@@ -212,7 +234,7 @@ def get_tools(
     custom_tools: List[CustomTool],
 ) -> List[Tool]:
     if predefined_tools is None or getattr(predefined_tools, 'names') is None:
-        lc_tools = get_default_tools(llm)
+        lc_tools = get_default_tools()
     else:
         lc_tools = load_tools(
             tool_names=predefined_tools.names, llm=llm, **predefined_tools.params
@@ -226,7 +248,12 @@ def get_tools(
 
 
 def get_agent(
-    name: str, role: str, websocket: WebSocket, tools: List[Tool], llm: ChatOpenAI
+    name: str,
+    role: str,
+    websocket: WebSocket,
+    tools: List[Tool],
+    llm: ChatOpenAI,
+    human_in_the_loop: bool = False,
 ) -> LCServeAutoGPT:
     vectorstore = get_vectorstore()
     return LCServeAutoGPT.from_llm_and_tools(
@@ -236,4 +263,5 @@ def get_agent(
         tools=tools,
         llm=llm,
         memory=vectorstore.as_retriever(),
+        human_in_the_loop=human_in_the_loop,
     )
