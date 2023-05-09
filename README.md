@@ -637,13 +637,17 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 
 ## Frequently Asked Questions
 
-- [My client that connects to the App gets timed-out, what should I do?](#my-client-that-connects-to-the-app-gets-timed-out-what-should-I-do)
+- [My client that connects to the JCloud hosted App gets timed-out, what should I do?](#my-client-that-connects-to-the-jcloud-hosted-app-gets-timed-out-what-should-I-do)
 - [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
 - [Debug babyagi playground request/response for external integration](#debug-babyagi-playground-requestresponse-for-external-integration)
 
-### My client that connects to the App gets timed-out, what should I do?
+### My client that connects to the JCloud hosted App gets timed-out, what should I do?
 
-If you make long HTTP requests, you may experience timeouts due to limitations in the OSS we used in `langchain-serve`. While we are working to permanently address this issue, we recommend using HTTP/1.1 in your client as a temporary workaround.
+If you make long HTTP/ WebSocket requests, the default timeout value (2 minutes) might not be suitable for your use case. You can provide a custom timeout value during JCloud deployment by using the `--timeout` argument.
+
+Additionally, for HTTP, you may also experience timeouts due to limitations in the OSS we used in `langchain-serve`. While we are working to permanently address this issue, we recommend using HTTP/1.1 in your client as a temporary workaround.
+
+For WebSocket, please note that the connection will be closed if idle for more than 5 minutes.
 
 ### JCloud deployment failed at pushing image to Jina Hubble, what should I do?
 
