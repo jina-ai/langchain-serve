@@ -16,6 +16,25 @@
 
 > Give us a :star: and tell us what more you'd like to see! 
 
+## 🔮 autogpt-as-a-service
+
+- Deploy `autogpt` on Jina AI Cloud with one command
+
+  ```bash
+  lc-serve deploy autogpt
+  ```
+
+- Integrate autogpt with external services using APIs. Get a flavor of the integration on your CLI with 
+    
+  ```bash
+  lc-serve playground autogpt
+  ```
+
+  <details>
+  <summary>Show playground</summary>
+  <img src=".github/images/autogpt-playground.gif" title="autogpt-as-a-service Playground">
+  </details>
+
 ## 🧠 Babyagi-as-a-service
 
 - Deploy `babyagi` on Jina AI Cloud with one command
