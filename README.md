@@ -105,7 +105,7 @@
 - Conversationalize your DataFrame using pandas-ai APIs. Get a flavor of the integration with a local playground on your CLI with 
   
   ```bash
-  lc-serve playground pandas-ai
+  lc-serve playground pandas-ai <host>
   ```
   <details>
   <summary>Show playground</summary>
