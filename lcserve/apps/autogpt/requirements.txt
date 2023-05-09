@@ -1,0 +1,5 @@
+openai
+wikipedia
+tiktoken
+faiss-cpu
+google-search-results
