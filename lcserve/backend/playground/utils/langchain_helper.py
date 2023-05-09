@@ -27,6 +27,13 @@ class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
             data = {'result': token, 'error': ''}
         await self.websocket.send_json(data)
 
+    async def on_text(self, text: str, **kwargs: Any) -> None:
+        try:
+            data = self.output_model(result=text, error='').dict()
+        except ValidationError:
+            data = {'result': text, 'error': ''}
+        await self.websocket.send_json(data)
+
 
 class StreamingWebsocketCallbackHandler(AsyncStreamingWebsocketCallbackHandler):
     @property
@@ -35,6 +42,9 @@ class StreamingWebsocketCallbackHandler(AsyncStreamingWebsocketCallbackHandler):
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         asyncio.run(super().on_llm_new_token(token, **kwargs))
+
+    def on_text(self, text: str, **kwargs: Any) -> None:
+        asyncio.run(super().on_text(text, **kwargs))
 
 
 class _HumanInput(BaseModel):
