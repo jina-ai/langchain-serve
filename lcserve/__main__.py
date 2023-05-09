@@ -82,11 +82,12 @@ async def serve_babyagi_on_jcloud(
     platform: str = None,
     verbose: bool = False,
 ):
+    requirements = requirements or []
     update_requirements(
         path=os.path.join(
             os.path.dirname(__file__), 'apps', 'babyagi', 'requirements.txt'
         ),
-        requirements=requirements or [],
+        requirements=requirements,
     )
     await serve_on_jcloud(
         module='lcserve.apps.babyagi.app',
@@ -109,11 +110,12 @@ async def serve_autogpt_on_jcloud(
     platform: str = None,
     verbose: bool = False,
 ):
+    requirements = requirements or []
     update_requirements(
         path=os.path.join(
             os.path.dirname(__file__), 'apps', 'autogpt', 'requirements.txt'
         ),
-        requirements=requirements or [],
+        requirements=requirements,
     )
     await serve_on_jcloud(
         module='lcserve.apps.autogpt.app',
