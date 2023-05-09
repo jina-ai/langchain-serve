@@ -292,6 +292,7 @@ class Defaults:
     autoscale_max: int = 10
     autoscale_rps: int = 10
     autoscale_stable_window: int = DEFAULT_TIMEOUT
+    autoscale_revision_timeout: int = DEFAULT_TIMEOUT
 
     def __post_init__(self):
         # read from config yaml
@@ -366,6 +367,7 @@ class AutoscaleConfig:
     max: int = Defaults.autoscale_max
     rps: int = Defaults.autoscale_rps
     stable_window: int = Defaults.autoscale_stable_window
+    revision_timeout: int = Defaults.autoscale_revision_timeout
 
     def to_dict(self) -> Dict:
         return {
@@ -375,6 +377,7 @@ class AutoscaleConfig:
                 'metric': 'rps',
                 'target': self.rps,
                 'stable_window': self.stable_window,
+                'revision_timeout': self.revision_timeout,
             }
         }
 
@@ -402,11 +405,7 @@ def get_gateway_jcloud_args(
     is_websocket: bool = False,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> Dict:
-    _autoscale = AutoscaleConfig(stable_window=timeout)
-
-    # TODO: remove this when websocket + autoscale is supported in JCloud
-    _timeout = 600 if is_websocket else timeout
-    _autoscale_args = {} if is_websocket else _autoscale.to_dict()
+    _autoscale = AutoscaleConfig(stable_window=timeout, revision_timeout=timeout)
 
     return {
         'jcloud': {
@@ -416,8 +415,8 @@ def get_gateway_jcloud_args(
                 'capacity': 'spot',
             },
             'healthcheck': False if is_websocket else True,
-            'timeout': _timeout,
-            **_autoscale_args,
+            'timeout': timeout,
+            **_autoscale.to_dict(),
         }
     }
 
