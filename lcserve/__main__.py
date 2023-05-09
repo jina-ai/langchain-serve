@@ -93,25 +93,6 @@ async def serve_babyagi_on_jcloud(
     )
 
 
-async def serve_pdf_qna_on_jcloud(
-    name: str = PDF_QNA_APP_NAME,
-    app_id: str = None,
-    version: str = 'latest',
-    timeout: int = DEFAULT_TIMEOUT,
-    platform: str = None,
-    verbose: bool = False,
-):
-    await serve_on_jcloud(
-        module='lcserve.apps.pdf_qna.app',
-        name=name,
-        app_id=app_id,
-        version=version,
-        timeout=timeout,
-        platform=platform,
-        verbose=verbose,
-    )
-
-
 async def serve_autogpt_on_jcloud(
     name: str = AUTOGPT_APP_NAME,
     app_id: str = None,
@@ -122,6 +103,25 @@ async def serve_autogpt_on_jcloud(
 ):
     await serve_on_jcloud(
         module='lcserve.apps.autogpt.app',
+        name=name,
+        app_id=app_id,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        verbose=verbose,
+    )
+
+
+async def serve_pdf_qna_on_jcloud(
+    name: str = PDF_QNA_APP_NAME,
+    app_id: str = None,
+    version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
+    platform: str = None,
+    verbose: bool = False,
+):
+    await serve_on_jcloud(
+        module='lcserve.apps.pdf_qna.app',
         name=name,
         app_id=app_id,
         version=version,
@@ -553,6 +553,21 @@ def babyagi(verbose):
     from .playground.babyagi.playground import play
 
     play(verbose=verbose)
+
+
+@playground.command(help='Play with autogpt on JCloud.')
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
+@syncify
+async def autogpt(verbose):
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'autogpt'))
+    from .playground.autogpt.playground import play
+
+    await play(verbose=verbose)
 
 
 @playground.command(help='Play with pdf qna on JCloud.')
