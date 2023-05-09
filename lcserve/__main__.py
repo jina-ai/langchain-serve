@@ -23,6 +23,7 @@ from .flow import (
     remove_app_on_jcloud,
     syncify,
     load_local_df,
+    update_requirements,
 )
 
 
@@ -81,6 +82,12 @@ async def serve_babyagi_on_jcloud(
     platform: str = None,
     verbose: bool = False,
 ):
+    update_requirements(
+        path=os.path.join(
+            os.path.dirname(__file__), 'apps', 'babyagi', 'requirements.txt'
+        ),
+        requirements=requirements or [],
+    )
     await serve_on_jcloud(
         module='lcserve.apps.babyagi.app',
         name=name,
@@ -102,10 +109,16 @@ async def serve_autogpt_on_jcloud(
     platform: str = None,
     verbose: bool = False,
 ):
+    update_requirements(
+        path=os.path.join(
+            os.path.dirname(__file__), 'apps', 'autogpt', 'requirements.txt'
+        ),
+        requirements=requirements or [],
+    )
     await serve_on_jcloud(
         module='lcserve.apps.autogpt.app',
         name=name,
-        requirements=requirements,
+        requirements=tuple(requirements),
         app_id=app_id,
         version=version,
         timeout=timeout,

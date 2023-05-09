@@ -656,3 +656,11 @@ def load_local_df(module: str):
         )
 
     return instance
+
+
+def update_requirements(path: str, requirements: List[str]) -> List[str]:
+    if os.path.exists(path):
+        with open(path) as f:
+            requirements.extend(f.read().splitlines())
+
+    return requirements
