@@ -11,17 +11,17 @@ from .flow import (
     APP_NAME,
     BABYAGI_APP_NAME,
     DEFAULT_TIMEOUT,
-    PDF_QNA_APP_NAME,
     PANDAS_AI_APP_NAME,
+    PDF_QNA_APP_NAME,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
     get_flow_yaml,
     list_apps_on_jcloud,
+    load_local_df,
     push_app_to_hubble,
     remove_app_on_jcloud,
     syncify,
-    load_local_df,
 )
 
 
@@ -69,6 +69,7 @@ async def serve_on_jcloud(
         verbose=verbose,
     )
     await get_app_status_on_jcloud(app_id=app_id)
+    return app_id
 
 
 async def serve_babyagi_on_jcloud(

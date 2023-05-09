@@ -6,7 +6,7 @@ import pytest
 import requests
 import websockets
 
-from .helper import examine_prom_with_retry, get_values_from_prom, run_test_server
+from ..helper import examine_prom_with_retry, run_test_app_locally
 
 HOST = "localhost:8080"
 HTTP_HOST = f"http://{HOST}"
@@ -14,11 +14,11 @@ WS_HOST = f"ws://{HOST}"
 
 
 @pytest.mark.parametrize(
-    "run_test_server, route",
+    "run_test_app_locally, route",
     [("basic_app", "sync_http"), ("basic_app", "async_http")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-def test_basic_app_http(run_test_server, route):
+def test_basic_app_http(run_test_app_locally, route):
     url = os.path.join(HTTP_HOST, route)
     headers = {
         "accept": "application/json",
@@ -34,11 +34,11 @@ def test_basic_app_http(run_test_server, route):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "run_test_server, route",
+    "run_test_app_locally, route",
     [("basic_app", "sync_ws"), ("basic_app", "async_ws")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-async def test_basic_app_ws(run_test_server, route):
+async def test_basic_app_ws(run_test_app_locally, route):
     async with websockets.connect(os.path.join(WS_HOST, route)) as websocket:
         await websocket.send(json.dumps({"interval": 1}))
 
@@ -51,14 +51,14 @@ async def test_basic_app_ws(run_test_server, route):
 
 
 @pytest.mark.parametrize(
-    "run_test_server, route",
+    "run_test_app_locally, route",
     [
         ("basic_app", "sync_auth_http"),
         ("basic_app", "sync_auth_http_auth_response"),
     ],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-def test_basic_app_http_authorized(run_test_server, route):
+def test_basic_app_http_authorized(run_test_app_locally, route):
     url = os.path.join(HTTP_HOST, route)
     data = {"interval": 1, "envs": {}}
 
@@ -90,14 +90,14 @@ def test_basic_app_http_authorized(run_test_server, route):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "run_test_server, route",
+    "run_test_app_locally, route",
     [
         ("basic_app", "sync_auth_ws"),
         ("basic_app", "sync_auth_ws_auth_response"),
     ],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-async def test_basic_app_ws_authorized(run_test_server, route):
+async def test_basic_app_ws_authorized(run_test_app_locally, route):
     url = os.path.join(WS_HOST, route)
 
     # no auth headers
@@ -140,11 +140,11 @@ async def test_basic_app_ws_authorized(run_test_server, route):
 
 
 @pytest.mark.parametrize(
-    "run_test_server",
+    "run_test_app_locally",
     [("basic_app")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-def test_single_file_upload_http(run_test_server):
+def test_single_file_upload_http(run_test_app_locally):
     url = os.path.join(HTTP_HOST, "single_file_upload")
     with open(__file__, "rb") as f:
         response = requests.post(
@@ -159,11 +159,11 @@ def test_single_file_upload_http(run_test_server):
 
 
 @pytest.mark.parametrize(
-    "run_test_server",
+    "run_test_app_locally",
     [("basic_app")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-def test_single_file_upload_with_extra_arg_http(run_test_server):
+def test_single_file_upload_with_extra_arg_http(run_test_app_locally):
     url = os.path.join(HTTP_HOST, "single_file_upload_with_extra_arg")
     with open(__file__, "rb") as f:
         response = requests.post(
@@ -189,11 +189,11 @@ def test_single_file_upload_with_extra_arg_http(run_test_server):
 
 
 @pytest.mark.parametrize(
-    "run_test_server",
+    "run_test_app_locally",
     [("basic_app")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-def test_multiple_file_uploads_http(run_test_server):
+def test_multiple_file_uploads_http(run_test_app_locally):
     url = os.path.join(HTTP_HOST, "multiple_file_uploads")
 
     _init_file = os.path.join(os.path.dirname(__file__), "__init__.py")
@@ -209,11 +209,11 @@ def test_multiple_file_uploads_http(run_test_server):
 
 
 @pytest.mark.parametrize(
-    "run_test_server",
+    "run_test_app_locally",
     [("basic_app")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-def test_multiple_file_uploads_with_extra_arg_http(run_test_server):
+def test_multiple_file_uploads_with_extra_arg_http(run_test_app_locally):
     url = os.path.join(HTTP_HOST, "multiple_file_uploads_with_extra_arg")
 
     _init_file = os.path.join(os.path.dirname(__file__), "__init__.py")
@@ -242,11 +242,11 @@ def test_multiple_file_uploads_with_extra_arg_http(run_test_server):
 
 
 @pytest.mark.parametrize(
-    "run_test_server, route",
+    "run_test_app_locally, route",
     [("basic_app", "sync_http")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-def test_metrics_http(run_test_server, route):
+def test_metrics_http(run_test_app_locally, route):
     url = os.path.join(HTTP_HOST, route)
     headers = {
         "accept": "application/json",
@@ -264,11 +264,11 @@ def test_metrics_http(run_test_server, route):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "run_test_server, route",
+    "run_test_app_locally, route",
     [("basic_app", "sync_ws")],
-    indirect=["run_test_server"],
+    indirect=["run_test_app_locally"],
 )
-async def test_metrics_ws(run_test_server, route):
+async def test_metrics_ws(run_test_app_locally, route):
     async with websockets.connect(os.path.join(WS_HOST, route)) as websocket:
         await websocket.send(json.dumps({"interval": 1}))
 

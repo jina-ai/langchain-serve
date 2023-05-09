@@ -57,7 +57,7 @@ jobs:
       - id: set-matrix
         run: |
           sudo apt-get install jq
-          echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh integration 1)"
+          echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh integration_local 1)"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -91,7 +91,7 @@ jobs:
       - name: Test
         id: test
         run: |
-          pytest -v -s --log-cli-level=DEBUG
+          pytest -v -s --log-cli-level=DEBUG ${{ matrix.test-path }}
         timeout-minutes: 30
       - name: Cleanup monitoring stack
         run: |
