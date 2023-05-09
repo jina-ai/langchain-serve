@@ -95,6 +95,7 @@ async def serve_babyagi_on_jcloud(
 
 async def serve_autogpt_on_jcloud(
     name: str = AUTOGPT_APP_NAME,
+    requirements: List[str] = None,
     app_id: str = None,
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
@@ -104,6 +105,7 @@ async def serve_autogpt_on_jcloud(
     await serve_on_jcloud(
         module='lcserve.apps.autogpt.app',
         name=name,
+        requirements=requirements,
         app_id=app_id,
         version=version,
         timeout=timeout,
@@ -411,13 +413,15 @@ async def pdf_qna(name, app_id, version, timeout, platform):
 )
 @click.help_option('-h', '--help')
 @syncify
-async def autogpt(name, app_id, version, timeout, platform):
+async def autogpt(name, requirements, app_id, version, timeout, platform, verbose):
     await serve_autogpt_on_jcloud(
         name=name,
+        requirements=requirements,
         app_id=app_id,
         version=version,
         timeout=timeout,
         platform=platform,
+        verbose=verbose,
     )
 
 

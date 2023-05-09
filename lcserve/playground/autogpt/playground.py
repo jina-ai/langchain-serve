@@ -107,16 +107,16 @@ async def autogpt(user_input: UserInput, verbose: bool = False):
         click.echo(e, err=True)
 
 
-async def play():
+async def play(verbose: bool = False):
     try:
-        input = prompt_user()
+        user_input = prompt_user()
     except ValidationError as e:
         print(e)
         return
     except KeyboardInterrupt:
         return
 
-    await autogpt(input)
+    await autogpt(user_input=user_input, verbose=verbose)
 
 
 if __name__ == '__main__':
