@@ -437,10 +437,12 @@ def get_jcloud_config(
 
     with open(file_path, 'r') as f:
         config_data = yaml.safe_load(f)
+        if not config_data:
+            return jcloud_config
+
         instance = config_data.get('instance')
         autoscale_min = config_data.get('autoscale_min')
 
-        # TODO: validate the input
         if instance:
             jcloud_config.instance = instance
         if autoscale_min:

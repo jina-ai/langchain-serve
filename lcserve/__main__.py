@@ -19,7 +19,6 @@ from .flow import (
     get_app_status_on_jcloud,
     get_flow_dict,
     get_flow_yaml,
-    get_jcloud_config,
     list_apps_on_jcloud,
     load_local_df,
     push_app_to_hubble,
@@ -70,6 +69,7 @@ async def serve_on_jcloud(
             app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
             is_websocket=is_websocket,
+            jcloud_file_path=config,
         ),
         app_id=app_id,
         verbose=verbose,
@@ -189,6 +189,30 @@ def upload_df_to_jcloud(module: str, name: str):
     )
 
 
+def validate_config(ctx, param, value):
+    if value is not None:
+        with open(value, "r") as f:
+            config_data = yaml.safe_load(f)
+            instance = config_data.get("instance")
+            autoscale_min = config_data.get("autoscale_min")
+
+            if instance and not (instance.startswith("C") and instance[1:].isdigit()):
+                raise click.BadParameter(
+                    f"Invalid instance '{instance}' found in config file', please refer to https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers for instance definition."
+                )
+
+            if autoscale_min:
+                try:
+                    autoscale_min_int = int(autoscale_min)
+                    if autoscale_min_int < 0:
+                        raise ValueError()
+                except ValueError:
+                    raise click.BadParameter(
+                        f"Invalid autoscale_min '{autoscale_min} found in config file', it should be a number >= 0."
+                    )
+    return value
+
+
 jcloud_shared_options = [
     click.option(
         '--app-id',
@@ -222,6 +246,7 @@ jcloud_shared_options = [
         '--config',
         type=click.Path(exists=True),
         help='Path to the config file',
+        callback=validate_config,
         show_default=False,
     ),
     click.option(
