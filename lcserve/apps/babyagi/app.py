@@ -2,7 +2,12 @@ from typing import Any, List
 
 from babyagi import BabyAGI, CustomTool, PredefinedTools, get_tools, get_vectorstore
 from langchain import OpenAI
-from langchain.callbacks.manager import CallbackManager
+
+# In order to be compatible with different langchain versions
+try:
+    from langchain.callbacks.manager import CallbackManager
+except ImportError:
+    from langchain.callbacks import CallbackManager
 
 from lcserve import serving
 
