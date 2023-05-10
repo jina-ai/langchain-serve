@@ -11,7 +11,7 @@ from ..helper import deploy_jcloud_app
 
 
 @pytest.mark.asyncio
-async def test_http_route_timeout():
+async def test_timeout():
     timeout = 60
     async with deploy_jcloud_app(timeout=timeout) as app_id:
         _test_http_route(app_id, timeout)
