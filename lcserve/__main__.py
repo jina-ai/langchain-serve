@@ -9,11 +9,11 @@ from jina import Flow
 from . import __version__
 from .flow import (
     APP_NAME,
+    AUTOGPT_APP_NAME,
     BABYAGI_APP_NAME,
     DEFAULT_TIMEOUT,
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
-    AUTOGPT_APP_NAME,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
@@ -23,7 +23,6 @@ from .flow import (
     push_app_to_hubble,
     remove_app_on_jcloud,
     syncify,
-    load_local_df,
     update_requirements,
 )
 
