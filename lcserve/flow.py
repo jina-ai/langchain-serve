@@ -4,7 +4,7 @@ import os
 import sys
 import tempfile
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import wraps
 from http import HTTPStatus
 from importlib import import_module
@@ -288,7 +288,7 @@ def push_app_to_hubble(
 
 @dataclass
 class Defaults:
-    instance: str = 'C2'
+    instance: str = 'C3'
     autoscale_min: int = 0
     autoscale_max: int = 10
     autoscale_rps: int = 10
@@ -383,6 +383,33 @@ class AutoscaleConfig:
         }
 
 
+@dataclass
+class JCloudConfig:
+    is_websocket: bool
+    instance: str = Defaults.instance
+    timeout: int = DEFAULT_TIMEOUT
+    autoscale: AutoscaleConfig = field(init=False)
+
+    def __post_init__(self):
+        self.autoscale = AutoscaleConfig(
+            stable_window=self.timeout, revision_timeout=self.timeout
+        )
+
+    def to_dict(self) -> Dict:
+        return {
+            'jcloud': {
+                'expose': True,
+                'resources': {
+                    'instance': self.instance,
+                    'capacity': 'spot',
+                },
+                'healthcheck': not self.is_websocket,
+                'timeout': self.timeout,
+                **self.autoscale.to_dict(),
+            }
+        }
+
+
 def get_uvicorn_args() -> Dict:
     return {
         'uvicorn_kwargs': {
@@ -401,25 +428,25 @@ def get_with_args_for_jcloud() -> Dict:
     }
 
 
-def get_gateway_jcloud_args(
-    instance: str = Defaults.instance,
-    is_websocket: bool = False,
-    timeout: int = DEFAULT_TIMEOUT,
-) -> Dict:
-    _autoscale = AutoscaleConfig(stable_window=timeout, revision_timeout=timeout)
+def get_jcloud_config(
+    file_path: str = None, timeout: int = DEFAULT_TIMEOUT, is_websocket: bool = False
+) -> JCloudConfig:
+    jcloud_config = JCloudConfig(is_websocket=is_websocket, timeout=timeout)
+    if not file_path:
+        return jcloud_config
 
-    return {
-        'jcloud': {
-            'expose': True,
-            'resources': {
-                'instance': instance,
-                'capacity': 'spot',
-            },
-            'healthcheck': False if is_websocket else True,
-            'timeout': timeout,
-            **_autoscale.to_dict(),
-        }
-    }
+    with open(file_path, 'r') as f:
+        config_data = yaml.safe_load(f)
+        instance = config_data.get('instance')
+        autoscale_min = config_data.get('autoscale_min')
+
+        # TODO: validate the input
+        if instance:
+            jcloud_config.instance = instance
+        if autoscale_min:
+            jcloud_config.autoscale.min = autoscale_min
+
+    return jcloud_config
 
 
 def get_flow_dict(
@@ -431,13 +458,20 @@ def get_flow_dict(
     app_id: str = None,
     gateway_id: str = None,
     is_websocket: bool = False,
+    jcloud_file_path: str = None,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
 
+    if jcloud:
+        jcloud_config = get_jcloud_config(
+            file_path=jcloud_file_path, timeout=timeout, is_websocket=is_websocket
+        )
+
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
     flow_dict = {
         'jtype': 'Flow',
+        # TODO: refactor this
         **(get_with_args_for_jcloud() if jcloud else {}),
         'gateway': {
             'uses': uses,
@@ -447,12 +481,9 @@ def get_flow_dict(
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
             **get_uvicorn_args(),
-            **(
-                get_gateway_jcloud_args(timeout=timeout, is_websocket=is_websocket)
-                if jcloud
-                else {}
-            ),
+            **(jcloud_config.to_dict() if jcloud else {}),
         },
+        # TODO: refactor this
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
     if os.environ.get("LCSERVE_TEST", False):
@@ -470,14 +501,16 @@ def get_flow_yaml(
     port: int = 8080,
     name: str = APP_NAME,
     is_websocket: bool = False,
+    jcloud_file_path: str = None,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
             module=module,
-            jcloud=jcloud,
             port=port,
             name=name,
             is_websocket=is_websocket,
+            jcloud=jcloud,
+            jcloud_file_path=jcloud_file_path,
         ),
         sort_keys=False,
     )
