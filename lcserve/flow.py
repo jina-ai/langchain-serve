@@ -21,6 +21,7 @@ APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
 PDF_QNA_APP_NAME = 'pdfqna'
 PANDAS_AI_APP_NAME = 'pandasai'
+AUTOGPT_APP_NAME = 'autogpt'
 DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
@@ -654,3 +655,11 @@ def load_local_df(module: str):
         )
 
     return instance
+
+
+def update_requirements(path: str, requirements: List[str]) -> List[str]:
+    if os.path.exists(path):
+        with open(path) as f:
+            requirements.extend(f.read().splitlines())
+
+    return requirements

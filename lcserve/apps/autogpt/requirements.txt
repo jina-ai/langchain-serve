@@ -1,0 +1,6 @@
+langchain==0.0.152
+openai
+wikipedia
+tiktoken
+faiss-cpu
+google-search-results

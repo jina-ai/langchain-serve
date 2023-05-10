@@ -288,6 +288,11 @@ class ServingGateway(FastAPIBaseGateway):
             # This is where the app code is mounted in the container
             sys.path.append(APPDIR)
 
+        # register all predefined apps to sys.path if they exist
+        if os.path.exists(os.path.join(APPDIR, 'lcserve', 'apps')):
+            for app in os.listdir(os.path.join(APPDIR, 'lcserve', 'apps')):
+                sys.path.append(os.path.join(APPDIR, 'lcserve', 'apps', app))
+
     def _setup_metrics(self):
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
@@ -558,7 +563,6 @@ def create_http_route(
     logger: JinaLogger,
     duration_counter: 'Counter',
 ):
-
     from fastapi import Depends, Form, HTTPException, Security, UploadFile, status
     from fastapi.encoders import jsonable_encoder
     from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -751,6 +755,7 @@ def create_websocket_route(
                 )
 
             await websocket.accept()
+            logger.info(f'Client {websocket.client} connected to `{func.__name__}`.')
             _ws_recv_lock = asyncio.Lock()
             try:
                 while True:

@@ -13,6 +13,7 @@ from .flow import (
     DEFAULT_TIMEOUT,
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
+    AUTOGPT_APP_NAME,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
@@ -22,6 +23,8 @@ from .flow import (
     push_app_to_hubble,
     remove_app_on_jcloud,
     syncify,
+    load_local_df,
+    update_requirements,
 )
 
 
@@ -81,10 +84,45 @@ async def serve_babyagi_on_jcloud(
     platform: str = None,
     verbose: bool = False,
 ):
+    requirements = requirements or []
+    update_requirements(
+        path=os.path.join(
+            os.path.dirname(__file__), 'apps', 'babyagi', 'requirements.txt'
+        ),
+        requirements=requirements,
+    )
     await serve_on_jcloud(
         module='lcserve.apps.babyagi.app',
         name=name,
         requirements=requirements,
+        app_id=app_id,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        verbose=verbose,
+    )
+
+
+async def serve_autogpt_on_jcloud(
+    name: str = AUTOGPT_APP_NAME,
+    requirements: List[str] = None,
+    app_id: str = None,
+    version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
+    platform: str = None,
+    verbose: bool = False,
+):
+    requirements = requirements or []
+    update_requirements(
+        path=os.path.join(
+            os.path.dirname(__file__), 'apps', 'autogpt', 'requirements.txt'
+        ),
+        requirements=requirements,
+    )
+    await serve_on_jcloud(
+        module='lcserve.apps.autogpt.app',
+        name=name,
+        requirements=tuple(requirements),
         app_id=app_id,
         version=version,
         timeout=timeout,
@@ -342,6 +380,68 @@ async def pdf_qna(name, app_id, version, timeout, platform):
     )
 
 
+@deploy.command(help='Deploy autogpt on JCloud.')
+@click.option(
+    '--name',
+    type=str,
+    default=AUTOGPT_APP_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+@click.option(
+    '--requirements',
+    default=None,
+    help='List of requirements to be installed.',
+    multiple=True,
+)
+@click.option(
+    '--app-id',
+    type=str,
+    default=None,
+    help='AppID of the deployed agent to be updated.',
+    show_default=True,
+)
+@click.option(
+    '--version',
+    type=str,
+    default='latest',
+    help='Version of serving gateway to be used.',
+    show_default=False,
+)
+@click.option(
+    '--timeout',
+    type=int,
+    default=DEFAULT_TIMEOUT,
+    help='Total request timeout in seconds.',
+    show_default=True,
+)
+@click.option(
+    '--platform',
+    type=str,
+    default=None,
+    help='Platform of Docker image needed for the deployment is built on.',
+    show_default=False,
+)
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
+@click.help_option('-h', '--help')
+@syncify
+async def autogpt(name, requirements, app_id, version, timeout, platform, verbose):
+    await serve_autogpt_on_jcloud(
+        name=name,
+        requirements=requirements,
+        app_id=app_id,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        verbose=verbose,
+    )
+
+
 @deploy.command(help='Deploy pandas-ai on JCloud.')
 @click.option(
     '--name',
@@ -474,6 +574,21 @@ def babyagi(verbose):
     from .playground.babyagi.playground import play
 
     play(verbose=verbose)
+
+
+@playground.command(help='Play with autogpt on JCloud.')
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
+@syncify
+async def autogpt(verbose):
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'autogpt'))
+    from .playground.autogpt.playground import play
+
+    await play(verbose=verbose)
 
 
 @playground.command(help='Play with pdf qna on JCloud.')
