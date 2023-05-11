@@ -473,7 +473,6 @@ def get_flow_dict(
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
     flow_dict = {
         'jtype': 'Flow',
-        # TODO: refactor this
         **(get_with_args_for_jcloud() if jcloud else {}),
         'gateway': {
             'uses': uses,
@@ -485,7 +484,6 @@ def get_flow_dict(
             **get_uvicorn_args(),
             **(jcloud_config.to_dict() if jcloud else {}),
         },
-        # TODO: refactor this
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
     if os.environ.get("LCSERVE_TEST", False):

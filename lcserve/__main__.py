@@ -58,7 +58,6 @@ async def serve_on_jcloud(
         platform=platform,
         verbose=verbose,
     )
-
     app_id, _ = await deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
             module=module,
@@ -506,6 +505,12 @@ def playground():
 
 
 @playground.command(help='Play with babyagi on JCloud.')
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
 def babyagi(verbose):
     sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'babyagi'))
     from .playground.babyagi.playground import play
@@ -514,6 +519,12 @@ def babyagi(verbose):
 
 
 @playground.command(help='Play with autogpt on JCloud.')
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
+)
 @syncify
 async def autogpt(verbose):
     sys.path.append(os.path.join(os.path.dirname(__file__), 'playground', 'autogpt'))
@@ -546,6 +557,12 @@ def pdf_qna():
     'host',
     type=str,
     required=True,
+)
+@click.option(
+    '--verbose',
+    is_flag=True,
+    help='Verbose mode.',
+    show_default=True,
 )
 @syncify
 async def pandas_ai(host, verbose):
