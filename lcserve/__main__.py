@@ -224,7 +224,7 @@ def validate_jcloud_config_callback(ctx, param, value):
     return value
 
 
-jcloud_shared_options = [
+_jcloud_shared_options = [
     click.option(
         '--app-id',
         type=str,
@@ -276,8 +276,8 @@ jcloud_shared_options = [
 ]
 
 
-def add_jcloud_shared_options(func):
-    for option in reversed(jcloud_shared_options):
+def jcloud_shared_options(func):
+    for option in reversed(_jcloud_shared_options):
         func = option(func)
     return func
 
@@ -325,7 +325,7 @@ def local(module, port):
     help='Name of the app.',
     show_default=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def jcloud(
@@ -358,7 +358,7 @@ async def jcloud(
     help='List of requirements to be installed.',
     multiple=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def babyagi(
@@ -385,7 +385,7 @@ async def babyagi(
     help='Name of the app.',
     show_default=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbose):
@@ -415,7 +415,7 @@ async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbos
     help='List of requirements to be installed.',
     multiple=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def autogpt(
@@ -442,7 +442,7 @@ async def autogpt(
     help='Name of the app.',
     show_default=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def pandas_ai(name, app_id, version, timeout, platform, config, cors, verbose):
