@@ -511,8 +511,8 @@ def get_flow_dict(
             'uses': uses,
             'uses_with': {
                 'modules': module,
-                'cors': cors,
             },
+            'cors': cors,
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
             **get_uvicorn_args(),

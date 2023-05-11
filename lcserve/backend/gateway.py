@@ -279,6 +279,7 @@ class ServingGateway(FastAPIBaseGateway):
 
     def _configure_cors(self):
         if self.cors:
+            self.logger.info('Enabling CORS')
             from fastapi.middleware.cors import CORSMiddleware
 
             self._app.add_middleware(
