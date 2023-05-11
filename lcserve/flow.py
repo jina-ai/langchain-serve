@@ -4,18 +4,21 @@ import os
 import sys
 import tempfile
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import wraps
 from http import HTTPStatus
 from importlib import import_module
 from shutil import copytree
 from tempfile import mkdtemp
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import requests
 import yaml
 from docarray import Document, DocumentArray
 from jina import Flow
+
+from .errors import InvalidAutoscaleMinError, InvalidInstanceError
+from .utils import validate_jcloud_config
 
 APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
@@ -177,25 +180,13 @@ def _get_parent_dir(modname: str, filename: str) -> str:
     return parent_dir
 
 
-def push_app_to_hubble(
-    mod: str,
-    tag: str = 'latest',
-    requirements: Tuple[str] = None,
-    version: str = 'latest',
-    platform: str = None,
-    verbose: Optional[bool] = False,
-) -> Tuple[str, bool]:
-    from hubble.executor.hubio import HubIO
-    from hubble.executor.parsers import set_hub_push_parser
-
-    from .backend.playground.utils.helper import get_random_name
-
+def get_app_dir(mod):
     try:
         _add_to_path()
         app = import_module(mod)
         file = app.__file__
         if file.endswith('.py'):
-            appdir = _get_parent_dir(mod, file)
+            return app, _get_parent_dir(mod, file)
         else:
             print(f'Unknown file type for module {mod}')
             sys.exit(1)
@@ -209,10 +200,51 @@ def push_app_to_hubble(
         print(f'Unknown error: {e}')
         sys.exit(1)
 
+
+def resolve_jcloud_config(config, app_dir):
+    # config given from CLI takes higher priority
+    if config:
+        return config
+
+    # Check to see if jcloud YAML/YML file exists at app dir
+    config_path_yml = os.path.join(app_dir, "jcloud.yml")
+    config_path_yaml = os.path.join(app_dir, "jcloud.yaml")
+
+    if os.path.exists(config_path_yml):
+        config_path = config_path_yml
+    elif os.path.exists(config_path_yaml):
+        config_path = config_path_yaml
+    else:
+        return None
+
+    try:
+        validate_jcloud_config(config_path)
+    except (InvalidAutoscaleMinError, InvalidInstanceError):
+        # If it's malformed, we treated as non-existed
+        return None
+
+    print(f'JCloud config file at app directory will be applied: {config_path}')
+    return config_path
+
+
+def push_app_to_hubble(
+    app: Any,
+    app_dir: str,
+    tag: str = 'latest',
+    requirements: Tuple[str] = None,
+    version: str = 'latest',
+    platform: str = None,
+    verbose: Optional[bool] = False,
+) -> Tuple[str, bool]:
+    from hubble.executor.hubio import HubIO
+    from hubble.executor.parsers import set_hub_push_parser
+
+    from .backend.playground.utils.helper import get_random_name
+
     tmpdir = mkdtemp()
 
     # Copy appdir to tmpdir
-    copytree(appdir, tmpdir, dirs_exist_ok=True)
+    copytree(app_dir, tmpdir, dirs_exist_ok=True)
     # Copy lcserve to tmpdir
     copytree(
         os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
@@ -288,11 +320,12 @@ def push_app_to_hubble(
 
 @dataclass
 class Defaults:
-    instance: str = 'C2'
+    instance: str = 'C3'
     autoscale_min: int = 0
     autoscale_max: int = 10
     autoscale_rps: int = 10
     autoscale_stable_window: int = DEFAULT_TIMEOUT
+    autoscale_revision_timeout: int = DEFAULT_TIMEOUT
 
     def __post_init__(self):
         # read from config yaml
@@ -367,6 +400,7 @@ class AutoscaleConfig:
     max: int = Defaults.autoscale_max
     rps: int = Defaults.autoscale_rps
     stable_window: int = Defaults.autoscale_stable_window
+    revision_timeout: int = Defaults.autoscale_revision_timeout
 
     def to_dict(self) -> Dict:
         return {
@@ -376,6 +410,34 @@ class AutoscaleConfig:
                 'metric': 'rps',
                 'target': self.rps,
                 'stable_window': self.stable_window,
+                'revision_timeout': self.revision_timeout,
+            }
+        }
+
+
+@dataclass
+class JCloudConfig:
+    is_websocket: bool
+    instance: str = Defaults.instance
+    timeout: int = DEFAULT_TIMEOUT
+    autoscale: AutoscaleConfig = field(init=False)
+
+    def __post_init__(self):
+        self.autoscale = AutoscaleConfig(
+            stable_window=self.timeout, revision_timeout=self.timeout
+        )
+
+    def to_dict(self) -> Dict:
+        return {
+            'jcloud': {
+                'expose': True,
+                'resources': {
+                    'instance': self.instance,
+                    'capacity': 'spot',
+                },
+                'healthcheck': not self.is_websocket,
+                'timeout': self.timeout,
+                **self.autoscale.to_dict(),
             }
         }
 
@@ -398,29 +460,27 @@ def get_with_args_for_jcloud() -> Dict:
     }
 
 
-def get_gateway_jcloud_args(
-    instance: str = Defaults.instance,
-    is_websocket: bool = False,
-    timeout: int = DEFAULT_TIMEOUT,
-) -> Dict:
-    _autoscale = AutoscaleConfig(stable_window=timeout)
+def get_jcloud_config(
+    config_path: str = None, timeout: int = DEFAULT_TIMEOUT, is_websocket: bool = False
+) -> JCloudConfig:
+    jcloud_config = JCloudConfig(is_websocket=is_websocket, timeout=timeout)
+    if not config_path:
+        return jcloud_config
 
-    # TODO: remove this when websocket + autoscale is supported in JCloud
-    _timeout = 600 if is_websocket else timeout
-    _autoscale_args = {} if is_websocket else _autoscale.to_dict()
+    with open(config_path, 'r') as f:
+        config_data = yaml.safe_load(f)
+        if not config_data:
+            return jcloud_config
 
-    return {
-        'jcloud': {
-            'expose': True,
-            'resources': {
-                'instance': instance,
-                'capacity': 'spot',
-            },
-            'healthcheck': False if is_websocket else True,
-            'timeout': _timeout,
-            **_autoscale_args,
-        }
-    }
+        instance = config_data.get('instance')
+        autoscale_min = config_data.get('autoscale_min')
+
+        if instance:
+            jcloud_config.instance = instance
+        if autoscale_min:
+            jcloud_config.autoscale.min = autoscale_min
+
+    return jcloud_config
 
 
 def get_flow_dict(
@@ -432,10 +492,16 @@ def get_flow_dict(
     app_id: str = None,
     gateway_id: str = None,
     is_websocket: bool = False,
+    jcloud_config_path: str = None,
     cors: bool = True,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
+
+    if jcloud:
+        jcloud_config = get_jcloud_config(
+            config_path=jcloud_config_path, timeout=timeout, is_websocket=is_websocket
+        )
 
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
     flow_dict = {
@@ -450,11 +516,7 @@ def get_flow_dict(
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
             **get_uvicorn_args(),
-            **(
-                get_gateway_jcloud_args(timeout=timeout, is_websocket=is_websocket)
-                if jcloud
-                else {}
-            ),
+            **(jcloud_config.to_dict() if jcloud else {}),
         },
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
@@ -474,15 +536,17 @@ def get_flow_yaml(
     name: str = APP_NAME,
     is_websocket: bool = False,
     cors: bool = True,
+    jcloud_config_path: str = None,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
             module=module,
-            jcloud=jcloud,
             port=port,
             name=name,
             is_websocket=is_websocket,
             cors=cors,
+            jcloud=jcloud,
+            jcloud_config_path=jcloud_config_path,
         ),
         sort_keys=False,
     )

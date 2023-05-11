@@ -3,28 +3,33 @@ import sys
 from typing import List, Union
 
 import click
+import yaml
 from jcloud.constants import Phase
 from jina import Flow
 
 from . import __version__
+from .errors import InvalidAutoscaleMinError, InvalidInstanceError
 from .flow import (
     APP_NAME,
+    AUTOGPT_APP_NAME,
     BABYAGI_APP_NAME,
     DEFAULT_TIMEOUT,
-    PDF_QNA_APP_NAME,
     PANDAS_AI_APP_NAME,
-    AUTOGPT_APP_NAME,
+    PDF_QNA_APP_NAME,
     deploy_app_on_jcloud,
+    get_app_dir,
     get_app_status_on_jcloud,
     get_flow_dict,
     get_flow_yaml,
     list_apps_on_jcloud,
+    load_local_df,
     push_app_to_hubble,
     remove_app_on_jcloud,
+    resolve_jcloud_config,
     syncify,
-    load_local_df,
     update_requirements,
 )
+from .utils import validate_jcloud_config
 
 
 def serve_locally(module: Union[str, List[str]], port: int = 8080):
@@ -43,21 +48,26 @@ async def serve_on_jcloud(
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
+    config: str = None,
     verbose: bool = False,
     cors: bool = True,
 ):
     from .backend.playground.utils.helper import get_random_tag
 
+    app, app_dir = get_app_dir(module)
+    config = resolve_jcloud_config(config, app_dir)
+
     tag = get_random_tag()
     gateway_id_wo_tag, is_websocket = push_app_to_hubble(
-        module,
+        app,
+        app_dir,
         requirements=requirements,
         tag=tag,
         version=version,
         platform=platform,
         verbose=verbose,
     )
-    app_id, endpoint = await deploy_app_on_jcloud(
+    app_id, _ = await deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
             module=module,
             jcloud=True,
@@ -67,12 +77,14 @@ async def serve_on_jcloud(
             app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
             is_websocket=is_websocket,
+            jcloud_config_path=config,
             cors=cors,
         ),
         app_id=app_id,
         verbose=verbose,
     )
     await get_app_status_on_jcloud(app_id=app_id)
+    return app_id
 
 
 async def serve_babyagi_on_jcloud(
@@ -82,7 +94,9 @@ async def serve_babyagi_on_jcloud(
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
+    config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     requirements = requirements or []
     update_requirements(
@@ -99,7 +113,9 @@ async def serve_babyagi_on_jcloud(
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -110,7 +126,9 @@ async def serve_autogpt_on_jcloud(
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
+    config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     requirements = requirements or []
     update_requirements(
@@ -127,7 +145,9 @@ async def serve_autogpt_on_jcloud(
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -137,7 +157,9 @@ async def serve_pdf_qna_on_jcloud(
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
+    config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     await serve_on_jcloud(
         module='lcserve.apps.pdf_qna.app',
@@ -146,7 +168,9 @@ async def serve_pdf_qna_on_jcloud(
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -156,7 +180,9 @@ async def serve_pandas_ai_on_jcloud(
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
+    config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     await serve_on_jcloud(
         module='lcserve.apps.pandas_ai.api',
@@ -165,7 +191,9 @@ async def serve_pandas_ai_on_jcloud(
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -177,6 +205,81 @@ def upload_df_to_jcloud(module: str, name: str):
     click.echo(
         "Uploaded dataframe with ID " + click.style(df_id, fg="green", bold=True)
     )
+
+
+def validate_jcloud_config_callback(ctx, param, value):
+    if not value:
+        return None
+    try:
+        validate_jcloud_config(value)
+    except InvalidInstanceError as e:
+        raise click.BadParameter(
+            f"Invalid instance '{e.instance}' found in config file', please refer to https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers for instance definition."
+        )
+    except InvalidAutoscaleMinError as e:
+        raise click.BadParameter(
+            f"Invalid instance '{e.min}' found in config file', it should be a number >= 0."
+        )
+
+    return value
+
+
+jcloud_shared_options = [
+    click.option(
+        '--app-id',
+        type=str,
+        default=None,
+        help='AppID of the deployed agent to be updated.',
+        show_default=True,
+    ),
+    click.option(
+        '--version',
+        type=str,
+        default='latest',
+        help='Version of serving gateway to be used.',
+        show_default=False,
+    ),
+    click.option(
+        '--timeout',
+        type=int,
+        default=DEFAULT_TIMEOUT,
+        help='Total request timeout in seconds.',
+        show_default=True,
+    ),
+    click.option(
+        '--platform',
+        type=str,
+        default=None,
+        help='Platform of Docker image needed for the deployment is built on.',
+        show_default=False,
+    ),
+    click.option(
+        '--config',
+        type=click.Path(exists=True),
+        help='Path to the config file',
+        callback=validate_jcloud_config_callback,
+        show_default=False,
+    ),
+    click.option(
+        '--cors',
+        is_flag=True,
+        help='Enable CORS.',
+        default=True,
+        show_default=True,
+    ),
+    click.option(
+        '--verbose',
+        is_flag=True,
+        help='Verbose mode.',
+        show_default=True,
+    ),
+]
+
+
+def add_jcloud_shared_options(func):
+    for option in reversed(jcloud_shared_options):
+        func = option(func)
+    return func
 
 
 @click.group()
@@ -222,50 +325,12 @@ def local(module, port):
     help='Name of the app.',
     show_default=True,
 )
-@click.option(
-    '--app-id',
-    type=str,
-    default=None,
-    help='AppID of the deployed agent to be updated.',
-    show_default=True,
-)
-@click.option(
-    '--version',
-    type=str,
-    default='latest',
-    help='Version of serving gateway to be used.',
-    show_default=False,
-)
-@click.option(
-    '--timeout',
-    type=int,
-    default=DEFAULT_TIMEOUT,
-    help='Total request timeout in seconds.',
-    show_default=True,
-)
-@click.option(
-    '--platform',
-    type=str,
-    default=None,
-    help='Platform of Docker image needed for the deployment is built on.',
-    show_default=False,
-)
-@click.option(
-    '--verbose',
-    is_flag=True,
-    help='Verbose mode.',
-    show_default=True,
-)
-@click.option(
-    '--cors',
-    is_flag=True,
-    help='Enable CORS.',
-    default=True,
-    show_default=True,
-)
+@add_jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def jcloud(module, name, app_id, version, timeout, platform, verbose, cors):
+async def jcloud(
+    module, name, app_id, version, timeout, platform, config, cors, verbose
+):
     await serve_on_jcloud(
         module,
         name=name,
@@ -273,6 +338,7 @@ async def jcloud(module, name, app_id, version, timeout, platform, verbose, cors
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
         verbose=verbose,
         cors=cors,
     )
@@ -292,43 +358,12 @@ async def jcloud(module, name, app_id, version, timeout, platform, verbose, cors
     help='List of requirements to be installed.',
     multiple=True,
 )
-@click.option(
-    '--app-id',
-    type=str,
-    default=None,
-    help='AppID of the deployed agent to be updated.',
-    show_default=True,
-)
-@click.option(
-    '--version',
-    type=str,
-    default='latest',
-    help='Version of serving gateway to be used.',
-    show_default=False,
-)
-@click.option(
-    '--timeout',
-    type=int,
-    default=DEFAULT_TIMEOUT,
-    help='Total request timeout in seconds.',
-    show_default=True,
-)
-@click.option(
-    '--platform',
-    type=str,
-    default=None,
-    help='Platform of Docker image needed for the deployment is built on.',
-    show_default=False,
-)
-@click.option(
-    '--verbose',
-    is_flag=True,
-    help='Verbose mode.',
-    show_default=True,
-)
+@add_jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def babyagi(name, requirements, app_id, version, timeout, platform, verbose):
+async def babyagi(
+    name, requirements, app_id, version, timeout, platform, config, cors, verbose
+):
     await serve_babyagi_on_jcloud(
         name=name,
         requirements=requirements,
@@ -336,7 +371,9 @@ async def babyagi(name, requirements, app_id, version, timeout, platform, verbos
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -348,43 +385,19 @@ async def babyagi(name, requirements, app_id, version, timeout, platform, verbos
     help='Name of the app.',
     show_default=True,
 )
-@click.option(
-    '--app-id',
-    type=str,
-    default=None,
-    help='AppID of the deployed agent to be updated.',
-    show_default=True,
-)
-@click.option(
-    '--version',
-    type=str,
-    default='latest',
-    help='Version of serving gateway to be used.',
-    show_default=False,
-)
-@click.option(
-    '--timeout',
-    type=int,
-    default=DEFAULT_TIMEOUT,
-    help='Total request timeout in seconds.',
-    show_default=True,
-)
-@click.option(
-    '--platform',
-    type=str,
-    default=None,
-    help='Platform of Docker image needed for the deployment is built on.',
-    show_default=False,
-)
+@add_jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pdf_qna(name, app_id, version, timeout, platform):
+async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbose):
     await serve_pdf_qna_on_jcloud(
         name=name,
         app_id=app_id,
         version=version,
         timeout=timeout,
+        config=config,
         platform=platform,
+        verbose=verbose,
+        cors=cors,
     )
 
 
@@ -402,43 +415,12 @@ async def pdf_qna(name, app_id, version, timeout, platform):
     help='List of requirements to be installed.',
     multiple=True,
 )
-@click.option(
-    '--app-id',
-    type=str,
-    default=None,
-    help='AppID of the deployed agent to be updated.',
-    show_default=True,
-)
-@click.option(
-    '--version',
-    type=str,
-    default='latest',
-    help='Version of serving gateway to be used.',
-    show_default=False,
-)
-@click.option(
-    '--timeout',
-    type=int,
-    default=DEFAULT_TIMEOUT,
-    help='Total request timeout in seconds.',
-    show_default=True,
-)
-@click.option(
-    '--platform',
-    type=str,
-    default=None,
-    help='Platform of Docker image needed for the deployment is built on.',
-    show_default=False,
-)
-@click.option(
-    '--verbose',
-    is_flag=True,
-    help='Verbose mode.',
-    show_default=True,
-)
+@add_jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def autogpt(name, requirements, app_id, version, timeout, platform, verbose):
+async def autogpt(
+    name, requirements, app_id, version, timeout, platform, config, cors, verbose
+):
     await serve_autogpt_on_jcloud(
         name=name,
         requirements=requirements,
@@ -446,7 +428,9 @@ async def autogpt(name, requirements, app_id, version, timeout, platform, verbos
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -458,43 +442,19 @@ async def autogpt(name, requirements, app_id, version, timeout, platform, verbos
     help='Name of the app.',
     show_default=True,
 )
-@click.option(
-    '--app-id',
-    type=str,
-    default=None,
-    help='AppID of the deployed agent to be updated.',
-    show_default=True,
-)
-@click.option(
-    '--version',
-    type=str,
-    default='latest',
-    help='Version of serving gateway to be used.',
-    show_default=False,
-)
-@click.option(
-    '--timeout',
-    type=int,
-    default=DEFAULT_TIMEOUT,
-    help='Total request timeout in seconds.',
-    show_default=True,
-)
-@click.option(
-    '--platform',
-    type=str,
-    default=None,
-    help='Platform of Docker image needed for the deployment is built on.',
-    show_default=False,
-)
+@add_jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pandas_ai(name, app_id, version, timeout, platform):
+async def pandas_ai(name, app_id, version, timeout, platform, config, cors, verbose):
     await serve_pandas_ai_on_jcloud(
         name=name,
         app_id=app_id,
         version=version,
         timeout=timeout,
         platform=platform,
+        config=config,
+        verbose=verbose,
+        cors=cors,
     )
 
 

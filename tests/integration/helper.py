@@ -1,19 +1,45 @@
 import logging
 import os
+import platform
 import signal
 import subprocess
 import sys
 import time
+from contextlib import asynccontextmanager
 
 import psutil
 import pytest
 import requests
 
+from lcserve.__main__ import remove_app_on_jcloud, serve_on_jcloud
+
 PROMETHEUS_URL = "http://localhost:9090"
 
 
+@asynccontextmanager
+async def deploy_jcloud_app(**deployment_args):
+    # Make sure apps folder is discoverable
+    apps_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'apps')
+    sys.path.append(apps_path)
+
+    # This handle is for Hubble push
+    if platform.machine() == 'arm64':
+        deployment_args["platform"] = "linux/amd64"
+
+    logging.info("Deploying the test app to JCloud ...")
+    app_id = await serve_on_jcloud("basic_app", **deployment_args)
+    # In case endpoints are not available for whatever reason
+    time.sleep(20)
+
+    try:
+        yield app_id
+    finally:
+        logging.info("Cleanup the test app ...")
+        await remove_app_on_jcloud(app_id)
+
+
 @pytest.fixture(scope="session", autouse=True)
-def run_test_server(request):
+def run_test_app_locally(request):
     app_name = request.param
 
     # Make sure apps folder is discoverable
