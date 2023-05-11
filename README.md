@@ -643,7 +643,7 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 }
 ```
 
-### `lc-serve` CLI
+## `lc-serve` CLI
 
 `lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud.
 
@@ -657,7 +657,7 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 | List all apps on Jina AI Cloud | `lc-serve list` |
 | Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
 
-#### Configurations
+### Configurations
 
 For JCloud deployment, you can fine-tune your application by providing a YAML configuration file using the `--config` option. The supported configurations are:
 
