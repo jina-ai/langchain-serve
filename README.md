@@ -657,12 +657,12 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 | List all apps on Jina AI Cloud | `lc-serve list` |
 | Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
 
-### Configurations
+## Configurations
 
-For JCloud deployment, you can fine-tune your application by providing a YAML configuration file using the `--config` option. The supported configurations are:
+For JCloud deployment, you can configure your application infrastructure by providing a YAML configuration file using the `--config` option. The supported configurations are:
 
   - Instance type (`instance`), as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
-  - Minimum number of replicas for the autoscaled instance (`autoscale_min`).
+  - Minimum number of replicas for your application (`autoscale_min`). Setting it 0 enables [serverless](https://en.wikipedia.org/wiki/Serverless_computing).
 
 For example:
 
