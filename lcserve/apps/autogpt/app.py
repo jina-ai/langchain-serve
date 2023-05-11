@@ -1,10 +1,15 @@
 from typing import List
 
-from .helper import CustomTool, PredefinedTools, get_agent, get_tools
-from langchain.callbacks import CallbackManager
+# In order to be compatible with different langchain versions
+try:
+    from langchain.callbacks.manager import CallbackManager
+except ImportError:
+    from langchain.callbacks import CallbackManager
 from langchain.chat_models import ChatOpenAI
 
 from lcserve import serving
+
+from .helper import CustomTool, PredefinedTools, get_agent, get_tools
 
 
 @serving(websocket=True)

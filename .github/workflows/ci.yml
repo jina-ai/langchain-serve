@@ -54,12 +54,47 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - id: set-matrix
+      - name: Install Dependency
         run: |
           sudo apt-get install jq
+      - id: set-matrix-unit
+        run: |
+          echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh unit 1)"
+      - id: set-matrix-integration
+        run: |
           echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh integration_local 1)"
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix-unit: ${{ steps.set-matrix-unit.outputs.matrix }}
+      matrix-integration: ${{ steps.set-matrix-integration.outputs.matrix }}
+
+  unit-tests:
+    needs: prep-testbed
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.9]
+        test-path: ${{fromJson(needs.prep-testbed.outputs.matrix-unit)}}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Prepare environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install wheel
+          pip install -r requirements.txt
+          pip install --no-cache-dir ".[test]"
+          sudo apt-get install libsndfile1
+      - name: Test
+        id: test
+        run: |
+          pytest -v -s --log-cli-level=DEBUG ${{ matrix.test-path }}
+        timeout-minutes: 30
 
   integration-tests:
     needs: prep-testbed
@@ -68,7 +103,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.9]
-        test-path: ${{fromJson(needs.prep-testbed.outputs.matrix)}}
+        test-path: ${{fromJson(needs.prep-testbed.outputs.matrix-integration)}}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -100,7 +135,9 @@ jobs:
 
   # just for blocking the merge until all parallel integration-tests are successful
   success-all-test:
-    needs: integration-tests
+    needs:
+      - unit-tests
+      - integration-tests
     if: always()
     runs-on: ubuntu-latest
     steps:

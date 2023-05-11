@@ -158,7 +158,7 @@
 
 # :muscle: Features
 
-#### 🎉 Custom Apps to production in 4 simple steps
+## 🎉 Custom Apps to production in 4 simple steps
 
   1. Refactor your code to function(s) that should be served with `@serving` decorator.
   1. Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.
@@ -166,7 +166,7 @@
   1. Run `lc-serve deploy jcloud app` to deploy on [Jina AI Cloud](https://jina.ai/product/cloud/).
 
 
-#### 🔥 Secure, Scalable, Serverless, Streaming RESTful/Websocket APIs on Jina AI Cloud
+## 🔥 Secure, Scalable, Serverless, Streaming RESTful/Websocket APIs on Jina AI Cloud
 
   - 🌎 RESTful/Websocket APIs with TLS certs in just 2 lines of code change.
   - 🌊 Stream LLM interactions in real-time with Websockets.
@@ -178,7 +178,7 @@
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
 
 
-#### 🚧 Coming soon
+## 🚧 Coming soon
 
 - [ ] 🛠️ Enable Streamlit playground deployment for your apps
 
@@ -186,7 +186,7 @@
 If you have any feature requests or faced any issue, please [let us know](https://github.com/jina-ai/langchain-serve/issues/new)!
 
 
-## Usage
+# :toolbox: Usage
 
 Let's first install `langchain-serve` using pip.
 
@@ -556,36 +556,6 @@ async def talk(question: str, **kwargs) -> str:
   wscat -H "Authorization: Bearer mysecrettoken" -c ws://localhost:8080/talk
   ```
 
----
-
-#### Reach out to us 📞
-
-- Serverless is not your thing?
-- Do you want larger instances for your API?
-- Looking for file uploads, or other data-in, data-out features?
-
-
-📣 Got your attention? [Join us on Slack](https://jina.ai/slack/) and we'd be happy to help you out.
-
----
-
-
-### `lc-serve` CLI
-
-`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud.
-
-
-| Description | Command | 
-| --- | ---: |
-| Deploy your app locally | `lc-serve deploy local app` |
-| Deploy your app on Jina AI Cloud | `lc-serve deploy jcloud app` |
-| Update existing app on Jina AI Cloud | `lc-serve deploy jcloud app --app-id <app-id>` |
-| Get app status on Jina AI Cloud | `lc-serve status <app-id>` |
-| List all apps on Jina AI Cloud | `lc-serve list` |
-| Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
-
----
-
 ### Agents Playground 🕹️🎮🌐
 
 [LangChain agents](https://python.langchain.com/en/latest/modules/agents/getting_started.html) use LLMs to determine the actions to be taken in what order. An action can either be using a tool and observing its output, or returning to the user. We've hosted a **[Streamlit Playground](https://langchain.wolf.jina.ai/playground/)** on Jina AI Cloud to interact with the agents, which accepts with following inputs:
@@ -673,9 +643,44 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 }
 ```
 
----
+## `lc-serve` CLI
 
-## Frequently Asked Questions
+`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud.
+
+
+| Description | Command | 
+| --- | ---: |
+| Deploy your app locally | `lc-serve deploy local app` |
+| Deploy your app on Jina AI Cloud | `lc-serve deploy jcloud app` |
+| Update existing app on Jina AI Cloud | `lc-serve deploy jcloud app --app-id <app-id>` |
+| Get app status on Jina AI Cloud | `lc-serve status <app-id>` |
+| List all apps on Jina AI Cloud | `lc-serve list` |
+| Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
+
+### Configurations
+
+For JCloud deployment, you can fine-tune your application by providing a YAML configuration file using the `--config` option. The supported configurations are:
+
+  - Instance type (`instance`), as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
+  - Minimum number of replicas for the autoscaled instance (`autoscale_min`).
+
+For example:
+
+```
+instance: C4
+autoscale_min: 1
+```
+
+You can alternatively include a `jcloud.yaml` file in your application directory with the desired configurations. However, please note that if the `--config` option is explicitly used in the command line interface, the local jcloud.yaml file will be disregarded. The command line provided configuration file will take precedence.
+
+If you don't provide a configuration file or a specific configuration isn't specified, the following default settings will be applied: 
+
+```
+instance: C3
+autoscale_min: 0
+```
+
+# :grey_question: Frequently Asked Questions
 
 - [My client that connects to the JCloud hosted App gets timed-out, what should I do?](#my-client-that-connects-to-the-jcloud-hosted-app-gets-timed-out-what-should-I-do)
 - [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
@@ -706,3 +711,11 @@ Please use `--verbose` and retry to get more information. If you are operating o
     ```bash
     lc-serve playground babyagi --verbose
     ```
+
+# 📞 Reach out to us
+
+- Serverless is not your thing?
+- Do you want larger instances for your API?
+- Looking for file uploads, or other data-in, data-out features?
+
+📣 Got your attention? [Join us on Slack](https://jina.ai/slack/) and we'd be happy to help you out.
