@@ -3,12 +3,10 @@ import sys
 from typing import List, Union
 
 import click
-import yaml
 from jcloud.constants import Phase
 from jina import Flow
 
 from . import __version__
-from .errors import InvalidAutoscaleMinError, InvalidInstanceError
 from .flow import (
     APP_NAME,
     AUTOGPT_APP_NAME,
@@ -29,7 +27,7 @@ from .flow import (
     syncify,
     update_requirements,
 )
-from .utils import validate_jcloud_config
+from .utils import validate_jcloud_config_callback
 
 
 def serve_locally(module: Union[str, List[str]], port: int = 8080):
@@ -205,23 +203,6 @@ def upload_df_to_jcloud(module: str, name: str):
     click.echo(
         "Uploaded dataframe with ID " + click.style(df_id, fg="green", bold=True)
     )
-
-
-def validate_jcloud_config_callback(ctx, param, value):
-    if not value:
-        return None
-    try:
-        validate_jcloud_config(value)
-    except InvalidInstanceError as e:
-        raise click.BadParameter(
-            f"Invalid instance '{e.instance}' found in config file', please refer to https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers for instance definition."
-        )
-    except InvalidAutoscaleMinError as e:
-        raise click.BadParameter(
-            f"Invalid instance '{e.min}' found in config file', it should be a number >= 0."
-        )
-
-    return value
 
 
 _jcloud_shared_options = [
