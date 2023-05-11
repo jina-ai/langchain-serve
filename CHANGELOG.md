@@ -26,6 +26,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -638,4 +639,49 @@
 ### 🍹 Other Improvements
 
  - [[```9c4965fe```](https://github.com/jina-ai/langchain-serve/commit/9c4965fe5d23a81e0be591bbc718a336929f5f5b)] __-__ __version__: the next version will be 0.0.26 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-27></a>
+## Release Note (`0.0.27`)
+
+> Release time: 2023-05-11 11:02:09
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```d2a74009```](https://github.com/jina-ai/langchain-serve/commit/d2a740093059f704e49d720b4066732725d70aa8)] __-__ allow option to enable/disable cors (*Deepankar Mahapatro*)
+ - [[```a01041c1```](https://github.com/jina-ai/langchain-serve/commit/a01041c122bf1d61dc6f6581b77d5824458d54ec)] __-__ support jcloud config input (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```fe0eb22d```](https://github.com/jina-ai/langchain-serve/commit/fe0eb22d661b62e07ba6ea56bbdc2b6882398e0a)] __-__ bug fix (*Zac Li*)
+ - [[```69848ff2```](https://github.com/jina-ai/langchain-serve/commit/69848ff2cd89a5c3902e6ba9f249d12be8b107ff)] __-__ merge fix (*Zac Li*)
+ - [[```a5c097de```](https://github.com/jina-ai/langchain-serve/commit/a5c097def2fd0321f78bdd8979dcadcf5dd3e19d)] __-__ re-enable ws+autoscale (*Zac Li*)
+
+### 📗 Documentation
+
+ - [[```5a78395e```](https://github.com/jina-ai/langchain-serve/commit/5a78395e2baa44c4c89b6e0759c3f5bef0d68120)] __-__ update readme.md (*Deepankar Mahapatro*)
+ - [[```ab82f8b7```](https://github.com/jina-ai/langchain-serve/commit/ab82f8b773c1b189e4652edbfacc5bff1d37c2a1)] __-__ readme update (*Zac Li*)
+ - [[```03fa8652```](https://github.com/jina-ai/langchain-serve/commit/03fa8652fc17e8592b2ea0345f479db2432c55bd)] __-__ config docs (*Zac Li*)
+ - [[```13585d80```](https://github.com/jina-ai/langchain-serve/commit/13585d80a7f48f195c420afa9c4acb29ae8d0560)] __-__ update readme (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```f6967185```](https://github.com/jina-ai/langchain-serve/commit/f69671851889dbd8e01956de025c47ccc9c1e765)] __-__ local config file support (*Zac Li*)
+ - [[```a72c7ee1```](https://github.com/jina-ai/langchain-serve/commit/a72c7ee135c847e0353d57b744506fddea2577d3)] __-__ unit test (*Zac Li*)
+ - [[```303eb865```](https://github.com/jina-ai/langchain-serve/commit/303eb865401d65665cd79047fdac0212d988915e)] __-__ jcloud integration tests for basic app (*Zac Li*)
+ - [[```33ac64c2```](https://github.com/jina-ai/langchain-serve/commit/33ac64c2fb66883352fff1480688d0b552ae7b6c)] __-__ jcloud integration tests for timeout (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```3af6b881```](https://github.com/jina-ai/langchain-serve/commit/3af6b881e54b9e57e2e851d790b6d15355dac48e)] __-__ add unit test (*Zac Li*)
+ - [[```24da78d7```](https://github.com/jina-ai/langchain-serve/commit/24da78d745f193c302d7c52972f89b81794d0797)] __-__ __version__: the next version will be 0.0.27 (*Jina Dev Bot*)
+ - [[```9c4965fe```](https://github.com/jina-ai/langchain-serve/commit/9c4965fe5d23a81e0be591bbc718a336929f5f5b)] __-__ __version__: the next version will be 0.0.26 (*Jina Dev Bot*)
+ - [[```46e74074```](https://github.com/jina-ai/langchain-serve/commit/46e740748f802f2d5a8e20c757e845d6c3c35ae2)] __-__ Merge pull request #59 from jina-ai/autogpt (*Deepankar Mahapatro*)
+ - [[```9eb7c5f4```](https://github.com/jina-ai/langchain-serve/commit/9eb7c5f4d03f2024237990810e57979763212096)] __-__ add pyproject.tom (*Zac Li*)
+ - [[```e05901cb```](https://github.com/jina-ai/langchain-serve/commit/e05901cb1ae938b0f789e9c10742dfb704fa51aa)] __-__ __version__: the next version will be 0.0.25 (*Jina Dev Bot*)
 
