@@ -138,14 +138,14 @@ def test_get_flow_dict_for_jcloud(is_websocket, has_config, instance, autoscale_
             flow_dict = get_flow_dict(
                 module="dummy",
                 jcloud=True,
-                jcloud_file_path="dummy.yaml",
+                jcloud_config_path="dummy.yaml",
                 is_websocket=is_websocket,
             )
     else:
         flow_dict = get_flow_dict(
             module="dummy",
             jcloud=True,
-            jcloud_file_path=None,
+            jcloud_config_path=None,
             is_websocket=is_websocket,
         )
 

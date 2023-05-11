@@ -671,6 +671,8 @@ instance: C4
 autoscale_min: 1
 ```
 
+You can alternatively include a jcloud.yaml file in your application directory with the desired configurations. However, please note that if the --config option is explicitly used in the command line interface, the local jcloud.yaml file will be disregarded. The command line provided configuration file will take precedence.
+
 If you don't provide a configuration file or a specific configuration isn't specified, the following default settings will be applied: 
 
 ```

@@ -10,12 +10,15 @@ from http import HTTPStatus
 from importlib import import_module
 from shutil import copytree
 from tempfile import mkdtemp
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import requests
 import yaml
 from docarray import Document, DocumentArray
 from jina import Flow
+
+from .errors import InvalidAutoscaleMinError, InvalidInstanceError
+from .utils import validate_jcloud_config
 
 APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
@@ -177,25 +180,13 @@ def _get_parent_dir(modname: str, filename: str) -> str:
     return parent_dir
 
 
-def push_app_to_hubble(
-    mod: str,
-    tag: str = 'latest',
-    requirements: Tuple[str] = None,
-    version: str = 'latest',
-    platform: str = None,
-    verbose: Optional[bool] = False,
-) -> Tuple[str, bool]:
-    from hubble.executor.hubio import HubIO
-    from hubble.executor.parsers import set_hub_push_parser
-
-    from .backend.playground.utils.helper import get_random_name
-
+def get_app_dir(mod):
     try:
         _add_to_path()
         app = import_module(mod)
         file = app.__file__
         if file.endswith('.py'):
-            appdir = _get_parent_dir(mod, file)
+            return app, _get_parent_dir(mod, file)
         else:
             print(f'Unknown file type for module {mod}')
             sys.exit(1)
@@ -209,10 +200,51 @@ def push_app_to_hubble(
         print(f'Unknown error: {e}')
         sys.exit(1)
 
+
+def resolve_jcloud_config(config, app_dir):
+    # config given from CLI takes higher priority
+    if config:
+        return config
+
+    # Check to see if jcloud YAML/YML file exists at app dir
+    config_path_yml = os.path.join(app_dir, "jcloud.yml")
+    config_path_yaml = os.path.join(app_dir, "jcloud.yaml")
+
+    if os.path.exists(config_path_yml):
+        config_path = config_path_yml
+    elif os.path.exists(config_path_yaml):
+        config_path = config_path_yaml
+    else:
+        return None
+
+    try:
+        validate_jcloud_config(config_path)
+    except (InvalidAutoscaleMinError, InvalidInstanceError):
+        # If it's malformed, we treated as non-existed
+        return None
+
+    print(f'JCloud config file at app directory will be applied: {config_path}')
+    return config_path
+
+
+def push_app_to_hubble(
+    app: Any,
+    app_dir: str,
+    tag: str = 'latest',
+    requirements: Tuple[str] = None,
+    version: str = 'latest',
+    platform: str = None,
+    verbose: Optional[bool] = False,
+) -> Tuple[str, bool]:
+    from hubble.executor.hubio import HubIO
+    from hubble.executor.parsers import set_hub_push_parser
+
+    from .backend.playground.utils.helper import get_random_name
+
     tmpdir = mkdtemp()
 
     # Copy appdir to tmpdir
-    copytree(appdir, tmpdir, dirs_exist_ok=True)
+    copytree(app_dir, tmpdir, dirs_exist_ok=True)
     # Copy lcserve to tmpdir
     copytree(
         os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
@@ -429,13 +461,13 @@ def get_with_args_for_jcloud() -> Dict:
 
 
 def get_jcloud_config(
-    file_path: str = None, timeout: int = DEFAULT_TIMEOUT, is_websocket: bool = False
+    config_path: str = None, timeout: int = DEFAULT_TIMEOUT, is_websocket: bool = False
 ) -> JCloudConfig:
     jcloud_config = JCloudConfig(is_websocket=is_websocket, timeout=timeout)
-    if not file_path:
+    if not config_path:
         return jcloud_config
 
-    with open(file_path, 'r') as f:
+    with open(config_path, 'r') as f:
         config_data = yaml.safe_load(f)
         if not config_data:
             return jcloud_config
@@ -460,14 +492,14 @@ def get_flow_dict(
     app_id: str = None,
     gateway_id: str = None,
     is_websocket: bool = False,
-    jcloud_file_path: str = None,
+    jcloud_config_path: str = None,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
 
     if jcloud:
         jcloud_config = get_jcloud_config(
-            file_path=jcloud_file_path, timeout=timeout, is_websocket=is_websocket
+            config_path=jcloud_config_path, timeout=timeout, is_websocket=is_websocket
         )
 
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
@@ -501,7 +533,7 @@ def get_flow_yaml(
     port: int = 8080,
     name: str = APP_NAME,
     is_websocket: bool = False,
-    jcloud_file_path: str = None,
+    jcloud_config_path: str = None,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
@@ -510,7 +542,7 @@ def get_flow_yaml(
             name=name,
             is_websocket=is_websocket,
             jcloud=jcloud,
-            jcloud_file_path=jcloud_file_path,
+            jcloud_config_path=jcloud_config_path,
         ),
         sort_keys=False,
     )

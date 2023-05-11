@@ -8,6 +8,7 @@ from jcloud.constants import Phase
 from jina import Flow
 
 from . import __version__
+from .errors import InvalidAutoscaleMinError, InvalidInstanceError
 from .flow import (
     APP_NAME,
     AUTOGPT_APP_NAME,
@@ -16,6 +17,7 @@ from .flow import (
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
     deploy_app_on_jcloud,
+    get_app_dir,
     get_app_status_on_jcloud,
     get_flow_dict,
     get_flow_yaml,
@@ -23,9 +25,11 @@ from .flow import (
     load_local_df,
     push_app_to_hubble,
     remove_app_on_jcloud,
+    resolve_jcloud_config,
     syncify,
     update_requirements,
 )
+from .utils import validate_jcloud_config
 
 
 def serve_locally(module: Union[str, List[str]], port: int = 8080):
@@ -49,9 +53,13 @@ async def serve_on_jcloud(
 ):
     from .backend.playground.utils.helper import get_random_tag
 
+    app, app_dir = get_app_dir(module)
+    config = resolve_jcloud_config(config, app_dir)
+
     tag = get_random_tag()
     gateway_id_wo_tag, is_websocket = push_app_to_hubble(
-        module,
+        app,
+        app_dir,
         requirements=requirements,
         tag=tag,
         version=version,
@@ -68,7 +76,7 @@ async def serve_on_jcloud(
             app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
             is_websocket=is_websocket,
-            jcloud_file_path=config,
+            jcloud_config_path=config,
         ),
         app_id=app_id,
         verbose=verbose,
@@ -188,27 +196,20 @@ def upload_df_to_jcloud(module: str, name: str):
     )
 
 
-def validate_config(ctx, param, value):
-    if value is not None:
-        with open(value, "r") as f:
-            config_data = yaml.safe_load(f)
-            instance = config_data.get("instance")
-            autoscale_min = config_data.get("autoscale_min")
+def validate_jcloud_config_callback(ctx, param, value):
+    if not value:
+        return None
+    try:
+        validate_jcloud_config(value)
+    except InvalidInstanceError as e:
+        raise click.BadParameter(
+            f"Invalid instance '{e.instance}' found in config file', please refer to https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers for instance definition."
+        )
+    except InvalidAutoscaleMinError as e:
+        raise click.BadParameter(
+            f"Invalid instance '{e.min}' found in config file', it should be a number >= 0."
+        )
 
-            if instance and not (instance.startswith("C") and instance[1:].isdigit()):
-                raise click.BadParameter(
-                    f"Invalid instance '{instance}' found in config file', please refer to https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers for instance definition."
-                )
-
-            if autoscale_min:
-                try:
-                    autoscale_min_int = int(autoscale_min)
-                    if autoscale_min_int < 0:
-                        raise ValueError()
-                except ValueError:
-                    raise click.BadParameter(
-                        f"Invalid autoscale_min '{autoscale_min} found in config file', it should be a number >= 0."
-                    )
     return value
 
 
@@ -245,7 +246,7 @@ jcloud_shared_options = [
         '--config',
         type=click.Path(exists=True),
         help='Path to the config file',
-        callback=validate_config,
+        callback=validate_jcloud_config_callback,
         show_default=False,
     ),
     click.option(
