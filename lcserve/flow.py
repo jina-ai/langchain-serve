@@ -432,6 +432,7 @@ def get_flow_dict(
     app_id: str = None,
     gateway_id: str = None,
     is_websocket: bool = False,
+    cors: bool = True,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
@@ -444,6 +445,7 @@ def get_flow_dict(
             'uses': uses,
             'uses_with': {
                 'modules': module,
+                'cors': cors,
             },
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
@@ -471,6 +473,7 @@ def get_flow_yaml(
     port: int = 8080,
     name: str = APP_NAME,
     is_websocket: bool = False,
+    cors: bool = True,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
@@ -479,6 +482,7 @@ def get_flow_yaml(
             port=port,
             name=name,
             is_websocket=is_websocket,
+            cors=cors,
         ),
         sort_keys=False,
     )

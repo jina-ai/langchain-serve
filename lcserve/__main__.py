@@ -44,6 +44,7 @@ async def serve_on_jcloud(
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     from .backend.playground.utils.helper import get_random_tag
 
@@ -66,6 +67,7 @@ async def serve_on_jcloud(
             app_id=app_id,
             gateway_id=gateway_id_wo_tag + ':' + tag,
             is_websocket=is_websocket,
+            cors=cors,
         ),
         app_id=app_id,
         verbose=verbose,
@@ -254,9 +256,16 @@ def local(module, port):
     help='Verbose mode.',
     show_default=True,
 )
+@click.option(
+    '--cors',
+    is_flag=True,
+    help='Enable CORS.',
+    default=True,
+    show_default=True,
+)
 @click.help_option('-h', '--help')
 @syncify
-async def jcloud(module, name, app_id, version, timeout, platform, verbose):
+async def jcloud(module, name, app_id, version, timeout, platform, verbose, cors):
     await serve_on_jcloud(
         module,
         name=name,
@@ -265,6 +274,7 @@ async def jcloud(module, name, app_id, version, timeout, platform, verbose):
         timeout=timeout,
         platform=platform,
         verbose=verbose,
+        cors=cors,
     )
 
 
