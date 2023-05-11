@@ -62,7 +62,7 @@ jobs:
           echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh unit 1)"
       - id: set-matrix-integration
         run: |
-          echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh integration 1)"
+          echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh integration_local 1)"
     outputs:
       matrix-unit: ${{ steps.set-matrix-unit.outputs.matrix }}
       matrix-integration: ${{ steps.set-matrix-integration.outputs.matrix }}

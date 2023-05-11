@@ -1,0 +1,68 @@
+name: JCloud Integration Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Pass the branch
+        required: false
+        default: main
+
+jobs:
+  prep-testbed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - id: set-matrix
+        run: |
+          sudo apt-get install jq
+          echo "::set-output name=matrix::$(bash scripts/get-all-test-paths.sh integration_jcloud 1)"
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  integration-tests:
+    needs: prep-testbed
+    runs-on: ubuntu-latest
+    env:
+      JINA_AUTH_TOKEN: ${{ secrets.JINA_AUTH_TOKEN }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.9]
+        test-path: ${{fromJson(needs.prep-testbed.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Prepare environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install wheel
+          pip install -r requirements.txt
+          pip install --no-cache-dir ".[test]"
+          sudo apt-get install libsndfile1
+      - name: Test
+        id: test
+        run: |
+          pytest -v -s --log-cli-level=DEBUG ${{ matrix.test-path }}
+        timeout-minutes: 30
+
+  # just for blocking the merge until all parallel integration-tests are successful
+  success-all-test:
+    needs: integration-tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: technote-space/workflow-conclusion-action@v2
+      - name: Check Failure
+        if: env.WORKFLOW_CONCLUSION == 'failure'
+        run: exit 1
+      - name: Success
+        if: ${{ success() }}
+        run: echo "All Done"

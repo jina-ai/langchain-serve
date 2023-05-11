@@ -82,6 +82,7 @@ async def serve_on_jcloud(
         verbose=verbose,
     )
     await get_app_status_on_jcloud(app_id=app_id)
+    return app_id
 
 
 async def serve_babyagi_on_jcloud(
