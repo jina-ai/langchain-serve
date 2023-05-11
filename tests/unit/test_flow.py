@@ -20,7 +20,10 @@ flow_dict_template = {
     },
     "gateway": {
         "uses": "jinahub+docker://None",
-        "uses_with": {"modules": ["dummy"]},
+        "uses_with": {
+            "modules": ["dummy"],
+            "cors": True,
+        },
         "port": [8080],
         "protocol": [None],
         "uvicorn_kwargs": {"ws_ping_interval": None, "ws_ping_timeout": None},
@@ -97,7 +100,10 @@ def test_get_flow_dict_for_local():
                 os.path.dirname(inspect.getfile(get_jcloud_config)),
                 "servinggateway_config.yml",
             ),
-            "uses_with": {"modules": ["dummy"]},
+            "uses_with": {
+                "modules": ["dummy"],
+                "cors": True,
+            },
             "port": [8080],
             "protocol": ["http"],
             "uvicorn_kwargs": {"ws_ping_interval": None, "ws_ping_timeout": None},
