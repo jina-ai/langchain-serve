@@ -158,7 +158,7 @@
 
 # :muscle: Features
 
-## 🎉 Custom Apps to production in 4 simple steps
+### 🎉 Custom Apps to production in 4 simple steps
 
   1. Refactor your code to function(s) that should be served with `@serving` decorator.
   1. Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.
@@ -166,7 +166,7 @@
   1. Run `lc-serve deploy jcloud app` to deploy on [Jina AI Cloud](https://jina.ai/product/cloud/).
 
 
-## 🔥 Secure, Scalable, Serverless, Streaming RESTful/Websocket APIs on Jina AI Cloud
+### 🔥 Secure, Scalable, Serverless, Streaming RESTful/Websocket APIs on Jina AI Cloud
 
   - 🌎 RESTful/Websocket APIs with TLS certs in just 2 lines of code change.
   - 🌊 Stream LLM interactions in real-time with Websockets.
@@ -178,7 +178,7 @@
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
 
 
-## 🚧 Coming soon
+### 🚧 Coming soon
 
 - [ ] 🛠️ Enable Streamlit playground deployment for your apps
 
