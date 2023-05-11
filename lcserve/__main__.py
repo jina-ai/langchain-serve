@@ -3,12 +3,10 @@ import sys
 from typing import List, Union
 
 import click
-import yaml
 from jcloud.constants import Phase
 from jina import Flow
 
 from . import __version__
-from .errors import InvalidAutoscaleMinError, InvalidInstanceError
 from .flow import (
     APP_NAME,
     AUTOGPT_APP_NAME,
@@ -29,7 +27,7 @@ from .flow import (
     syncify,
     update_requirements,
 )
-from .utils import validate_jcloud_config
+from .utils import validate_jcloud_config_callback
 
 
 def serve_locally(module: Union[str, List[str]], port: int = 8080):
@@ -50,6 +48,7 @@ async def serve_on_jcloud(
     platform: str = None,
     config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     from .backend.playground.utils.helper import get_random_tag
 
@@ -77,6 +76,7 @@ async def serve_on_jcloud(
             gateway_id=gateway_id_wo_tag + ':' + tag,
             is_websocket=is_websocket,
             jcloud_config_path=config,
+            cors=cors,
         ),
         app_id=app_id,
         verbose=verbose,
@@ -94,6 +94,7 @@ async def serve_babyagi_on_jcloud(
     platform: str = None,
     config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     requirements = requirements or []
     update_requirements(
@@ -112,6 +113,7 @@ async def serve_babyagi_on_jcloud(
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -124,6 +126,7 @@ async def serve_autogpt_on_jcloud(
     platform: str = None,
     config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     requirements = requirements or []
     update_requirements(
@@ -142,6 +145,7 @@ async def serve_autogpt_on_jcloud(
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -153,6 +157,7 @@ async def serve_pdf_qna_on_jcloud(
     platform: str = None,
     config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     await serve_on_jcloud(
         module='lcserve.apps.pdf_qna.app',
@@ -163,6 +168,7 @@ async def serve_pdf_qna_on_jcloud(
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -174,6 +180,7 @@ async def serve_pandas_ai_on_jcloud(
     platform: str = None,
     config: str = None,
     verbose: bool = False,
+    cors: bool = True,
 ):
     await serve_on_jcloud(
         module='lcserve.apps.pandas_ai.api',
@@ -184,6 +191,7 @@ async def serve_pandas_ai_on_jcloud(
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -197,24 +205,7 @@ def upload_df_to_jcloud(module: str, name: str):
     )
 
 
-def validate_jcloud_config_callback(ctx, param, value):
-    if not value:
-        return None
-    try:
-        validate_jcloud_config(value)
-    except InvalidInstanceError as e:
-        raise click.BadParameter(
-            f"Invalid instance '{e.instance}' found in config file', please refer to https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers for instance definition."
-        )
-    except InvalidAutoscaleMinError as e:
-        raise click.BadParameter(
-            f"Invalid instance '{e.min}' found in config file', it should be a number >= 0."
-        )
-
-    return value
-
-
-jcloud_shared_options = [
+_jcloud_shared_options = [
     click.option(
         '--app-id',
         type=str,
@@ -251,6 +242,13 @@ jcloud_shared_options = [
         show_default=False,
     ),
     click.option(
+        '--cors',
+        is_flag=True,
+        help='Enable CORS.',
+        default=True,
+        show_default=True,
+    ),
+    click.option(
         '--verbose',
         is_flag=True,
         help='Verbose mode.',
@@ -259,8 +257,8 @@ jcloud_shared_options = [
 ]
 
 
-def add_jcloud_shared_options(func):
-    for option in reversed(jcloud_shared_options):
+def jcloud_shared_options(func):
+    for option in reversed(_jcloud_shared_options):
         func = option(func)
     return func
 
@@ -308,10 +306,12 @@ def local(module, port):
     help='Name of the app.',
     show_default=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def jcloud(module, name, app_id, version, timeout, platform, config, verbose):
+async def jcloud(
+    module, name, app_id, version, timeout, platform, config, cors, verbose
+):
     await serve_on_jcloud(
         module,
         name=name,
@@ -321,6 +321,7 @@ async def jcloud(module, name, app_id, version, timeout, platform, config, verbo
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -338,11 +339,11 @@ async def jcloud(module, name, app_id, version, timeout, platform, config, verbo
     help='List of requirements to be installed.',
     multiple=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def babyagi(
-    name, requirements, app_id, version, timeout, platform, config, verbose
+    name, requirements, app_id, version, timeout, platform, config, cors, verbose
 ):
     await serve_babyagi_on_jcloud(
         name=name,
@@ -353,6 +354,7 @@ async def babyagi(
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -364,10 +366,10 @@ async def babyagi(
     help='Name of the app.',
     show_default=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pdf_qna(name, app_id, version, timeout, platform, config, verbose):
+async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbose):
     await serve_pdf_qna_on_jcloud(
         name=name,
         app_id=app_id,
@@ -376,6 +378,7 @@ async def pdf_qna(name, app_id, version, timeout, platform, config, verbose):
         config=config,
         platform=platform,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -393,11 +396,11 @@ async def pdf_qna(name, app_id, version, timeout, platform, config, verbose):
     help='List of requirements to be installed.',
     multiple=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def autogpt(
-    name, requirements, app_id, version, timeout, platform, config, verbose
+    name, requirements, app_id, version, timeout, platform, config, cors, verbose
 ):
     await serve_autogpt_on_jcloud(
         name=name,
@@ -408,6 +411,7 @@ async def autogpt(
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 
@@ -419,10 +423,10 @@ async def autogpt(
     help='Name of the app.',
     show_default=True,
 )
-@add_jcloud_shared_options
+@jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pandas_ai(name, app_id, version, timeout, platform, config, verbose):
+async def pandas_ai(name, app_id, version, timeout, platform, config, cors, verbose):
     await serve_pandas_ai_on_jcloud(
         name=name,
         app_id=app_id,
@@ -431,6 +435,7 @@ async def pandas_ai(name, app_id, version, timeout, platform, config, verbose):
         platform=platform,
         config=config,
         verbose=verbose,
+        cors=cors,
     )
 
 

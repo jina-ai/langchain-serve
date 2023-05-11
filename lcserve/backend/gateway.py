@@ -264,22 +264,31 @@ class ServingGateway(FastAPIBaseGateway):
         from fastapi import FastAPI
 
         super().__init__(*args, **kwargs)
-        self.logger.debug(f'Loading modules/files: {",".join(modules)}')
+        self._modules = modules
+        self.logger.debug(f'Loading modules/files: {",".join(self._modules)}')
         self._fix_sys_path()
         self._app = FastAPI()
         self._setup_metrics()
-
+        self._configure_cors()
         self._register_healthz()
-        for mod in modules:
-            # TODO: add support for registering a directory
-            if Path(mod).is_file() and mod.endswith('.py'):
-                self._register_file(Path(mod))
-            else:
-                self._register_mod(mod)
+        self._register_modules()
 
     @property
     def app(self) -> 'FastAPI':
         return self._app
+
+    def _configure_cors(self):
+        if self.cors:
+            self.logger.info('Enabling CORS')
+            from fastapi.middleware.cors import CORSMiddleware
+
+            self._app.add_middleware(
+                CORSMiddleware,
+                allow_origins=['*'],
+                allow_credentials=True,
+                allow_methods=['*'],
+                allow_headers=['*'],
+            )
 
     def _fix_sys_path(self):
         if os.getcwd() not in sys.path:
@@ -342,6 +351,14 @@ class ServingGateway(FastAPIBaseGateway):
             await websocket.accept()
             await websocket.send_json({'status': 'ok'})
             await websocket.close()
+
+    def _register_modules(self):
+        for mod in self._modules:
+            # TODO: add support for registering a directory
+            if Path(mod).is_file() and mod.endswith('.py'):
+                self._register_file(Path(mod))
+            else:
+                self._register_mod(mod)
 
     def _register_mod(self, mod: str):
         try:

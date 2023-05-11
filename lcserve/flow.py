@@ -451,9 +451,10 @@ def get_uvicorn_args() -> Dict:
     }
 
 
-def get_with_args_for_jcloud() -> Dict:
+def get_with_args_for_jcloud(cors: bool = True) -> Dict:
     return {
         'with': {
+            'cors': cors,
             'extra_search_paths': ['/workdir/lcserve'],
             **get_uvicorn_args(),
         }
@@ -493,6 +494,7 @@ def get_flow_dict(
     gateway_id: str = None,
     is_websocket: bool = False,
     jcloud_config_path: str = None,
+    cors: bool = True,
 ) -> Dict:
     if isinstance(module, str):
         module = [module]
@@ -505,7 +507,7 @@ def get_flow_dict(
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
     flow_dict = {
         'jtype': 'Flow',
-        **(get_with_args_for_jcloud() if jcloud else {}),
+        **(get_with_args_for_jcloud(cors) if jcloud else {}),
         'gateway': {
             'uses': uses,
             'uses_with': {
@@ -533,6 +535,7 @@ def get_flow_yaml(
     port: int = 8080,
     name: str = APP_NAME,
     is_websocket: bool = False,
+    cors: bool = True,
     jcloud_config_path: str = None,
 ) -> str:
     return yaml.safe_dump(
@@ -541,6 +544,7 @@ def get_flow_yaml(
             port=port,
             name=name,
             is_websocket=is_websocket,
+            cors=cors,
             jcloud=jcloud,
             jcloud_config_path=jcloud_config_path,
         ),
@@ -556,9 +560,13 @@ async def deploy_app_on_jcloud(
     from jcloud.flow import CloudFlow
 
     with tempfile.TemporaryDirectory() as tmpdir:
+        print('tempdir', tmpdir)
         flow_path = os.path.join(tmpdir, 'flow.yml')
         with open(flow_path, 'w') as f:
             yaml.safe_dump(flow_dict, f, sort_keys=False)
+
+        with open(flow_path, 'r') as f:
+            print(f.read())
 
         if app_id is None:  # appid is None means we are deploying a new app
             jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
