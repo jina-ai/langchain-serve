@@ -556,22 +556,6 @@ async def talk(question: str, **kwargs) -> str:
   wscat -H "Authorization: Bearer mysecrettoken" -c ws://localhost:8080/talk
   ```
 
-### `lc-serve` CLI
-
-`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud.
-
-
-| Description | Command | 
-| --- | ---: |
-| Deploy your app locally | `lc-serve deploy local app` |
-| Deploy your app on Jina AI Cloud | `lc-serve deploy jcloud app` |
-| Update existing app on Jina AI Cloud | `lc-serve deploy jcloud app --app-id <app-id>` |
-| Get app status on Jina AI Cloud | `lc-serve status <app-id>` |
-| List all apps on Jina AI Cloud | `lc-serve list` |
-| Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
-
----
-
 ### Agents Playground 🕹️🎮🌐
 
 [LangChain agents](https://python.langchain.com/en/latest/modules/agents/getting_started.html) use LLMs to determine the actions to be taken in what order. An action can either be using a tool and observing its output, or returning to the user. We've hosted a **[Streamlit Playground](https://langchain.wolf.jina.ai/playground/)** on Jina AI Cloud to interact with the agents, which accepts with following inputs:
@@ -657,6 +641,41 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
   "result": "El Palmar, Murcia, Spain",
   "chain_of_thought": "\u001b[1m> Entering new AgentExecutor chain...\u001b[0m\u001b[32;1m\u001b[1;3m Yes.Follow up: Who is the reigning mens U.S. Open champion?\u001b[0mIntermediate answer: \u001b[36;1m\u001b[1;3mCarlos Alcaraz Garfia\u001b[0m\u001b[32;1m\u001b[1;3mFollow up: What is Carlos Alcaraz Garfia's hometown?\u001b[0mIntermediate answer: \u001b[36;1m\u001b[1;3mCarlos Alcaraz Garfia was born on May 5, 2003, in El Palmar, Murcia, Spain to parents Carlos Alcaraz González and Virginia Garfia Escandón. He has three siblings.\u001b[0m\u001b[32;1m\u001b[1;3mSo the final answer is: El Palmar, Murcia, Spain\u001b[0m\u001b[1m> Finished chain.\u001b[0m"
 }
+```
+
+### `lc-serve` CLI
+
+`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud.
+
+
+| Description | Command | 
+| --- | ---: |
+| Deploy your app locally | `lc-serve deploy local app` |
+| Deploy your app on Jina AI Cloud | `lc-serve deploy jcloud app` |
+| Update existing app on Jina AI Cloud | `lc-serve deploy jcloud app --app-id <app-id>` |
+| Get app status on Jina AI Cloud | `lc-serve status <app-id>` |
+| List all apps on Jina AI Cloud | `lc-serve list` |
+| Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
+
+#### Configurations
+
+For JCloud deployment, you can fine-tune your application by providing a YAML configuration file using the `--config` option. The supported configurations are:
+
+  - Instance type (`instance`), as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
+  - Minimum number of replicas for the autoscaled instance (`autoscale_min`).
+
+For example:
+
+```
+instance: C4
+autoscale_min: 1
+```
+
+If you don't provide a configuration file or a specific configuration isn't specified, the following default settings will be applied: 
+
+```
+instance: C3
+autoscale_min: 0
 ```
 
 # :grey_question: Frequently Asked Questions
