@@ -163,6 +163,7 @@ async def serve_autogpt_on_jcloud(
 async def serve_pdf_qna_on_jcloud(
     name: str = PDF_QNA_APP_NAME,
     app_id: str = None,
+    requirements: List[str] = None,
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
@@ -174,6 +175,7 @@ async def serve_pdf_qna_on_jcloud(
         module_str='lcserve.apps.pdf_qna.app',
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,
@@ -186,6 +188,7 @@ async def serve_pdf_qna_on_jcloud(
 async def serve_pandas_ai_on_jcloud(
     name: str = PANDAS_AI_APP_NAME,
     app_id: str = None,
+    requirements: List[str] = None,
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
@@ -197,6 +200,7 @@ async def serve_pandas_ai_on_jcloud(
         module_str='lcserve.apps.pandas_ai.api',
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,
@@ -223,6 +227,16 @@ _jcloud_shared_options = [
         default=None,
         help='AppID of the deployed agent to be updated.',
         show_default=True,
+    ),
+    click.option(
+        '--requirements',
+        default=None,
+        type=str,
+        help='''Pass either 
+        1) multiple requirements or,
+        2) a path to a requirements.txt/pyproject.toml file or,
+        3) a directory containing requirements.txt/pyproject.toml file.''',
+        multiple=True,
     ),
     click.option(
         '--version',
@@ -333,13 +347,24 @@ def local(module_str, app, port):
 @click.help_option('-h', '--help')
 @syncify
 async def jcloud(
-    module_str, app, name, app_id, version, timeout, platform, config, cors, verbose
+    module_str,
+    app,
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
 ):
     await serve_on_jcloud(
         module_str=module_str,
         fastapi_app_str=app,
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,
@@ -357,17 +382,19 @@ async def jcloud(
     help='Name of the app.',
     show_default=True,
 )
-@click.option(
-    '--requirements',
-    default=None,
-    help='List of requirements to be installed.',
-    multiple=True,
-)
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def babyagi(
-    name, requirements, app_id, version, timeout, platform, config, cors, verbose
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
 ):
     await serve_babyagi_on_jcloud(
         name=name,
@@ -393,10 +420,21 @@ async def babyagi(
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbose):
+async def pdf_qna(
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
+):
     await serve_pdf_qna_on_jcloud(
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         config=config,
@@ -414,17 +452,19 @@ async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbos
     help='Name of the app.',
     show_default=True,
 )
-@click.option(
-    '--requirements',
-    default=None,
-    help='List of requirements to be installed.',
-    multiple=True,
-)
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def autogpt(
-    name, requirements, app_id, version, timeout, platform, config, cors, verbose
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
 ):
     await serve_autogpt_on_jcloud(
         name=name,
@@ -450,10 +490,21 @@ async def autogpt(
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pandas_ai(name, app_id, version, timeout, platform, config, cors, verbose):
+async def pandas_ai(
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
+):
     await serve_pandas_ai_on_jcloud(
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,

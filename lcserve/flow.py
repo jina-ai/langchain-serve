@@ -274,50 +274,102 @@ def resolve_jcloud_config(config, module_dir: str):
     return config_path
 
 
-def push_app_to_hubble(
-    module_dir: str,
-    tag: str = 'latest',
-    requirements: Tuple[str] = None,
-    version: str = 'latest',
-    platform: str = None,
-    verbose: Optional[bool] = False,
-) -> str:
-    from hubble.executor.hubio import HubIO
-    from hubble.executor.parsers import set_hub_push_parser
+def _pyproject_toml_to_requirements(tmpdir: str) -> List[str]:
+    import toml
+    import re
 
-    from .backend.playground.utils.helper import get_random_name
+    # Load pyproject.toml file
+    _py_project_toml = os.path.join(tmpdir, 'pyproject.toml')
+    if not os.path.exists(_py_project_toml):
+        return []
 
-    tmpdir = mkdtemp()
+    with open(_py_project_toml, 'r') as f:
+        pyproject = toml.load(f)
 
-    # Copy appdir to tmpdir
-    copytree(module_dir, tmpdir, dirs_exist_ok=True)
-    # Copy lcserve to tmpdir
-    copytree(
-        os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
-    )
+    # Extract dependencies from pyproject.toml
+    try:
+        dependencies = pyproject['tool']['poetry']['dependencies']
+    except KeyError as e:
+        print(f'Could not find {e} in pyproject.toml')
+        dependencies = {}
 
-    name = get_random_name()
+    # Convert dependencies to requirements.txt format
+    requirements = []
+    for package, version in dependencies.items():
+        # Ignore "python" package since it's already specified in the runtime environment
+        if package != 'python':
+            # Handle common version specifiers
+            version = re.sub(r'~=|==|!=|>=|<=', '', version)
+            if version.startswith('^'):
+                version = '==' + version[1:]
+            elif version.startswith('~'):
+                version = (
+                    '>='
+                    + version[1:]
+                    + ','
+                    + '<'
+                    + re.sub(r'[^\d\.]', '', version[1:])
+                    + '.999'
+                )
+            elif version.startswith('*'):
+                version = ''
+            elif version == '':
+                version = ''
+            else:
+                version = '==' + version
 
+            # Add package and version to requirements list
+            requirements.append(f"{package}{version}")
+
+    return requirements
+
+
+def _handle_dependencies(reqs: Union[str, Tuple[str]], tmpdir: str):
     # Create the requirements.txt if requirements are given
-    if requirements is not None and isinstance(requirements, Sequence):
-        # Get existing requirements and add the new ones
-        if os.path.exists(os.path.join(tmpdir, 'requirements.txt')):
-            with open(os.path.join(tmpdir, 'requirements.txt'), 'r') as f:
-                requirements = set(requirements + tuple(f.read().splitlines()))
+    _requirements_txt = 'requirements.txt'
+    _pyproject_toml = 'pyproject.toml'
 
+    if reqs is not None:
+        # Get existing requirements and add the new ones
+        if os.path.exists(os.path.join(tmpdir, _requirements_txt)):
+            with open(os.path.join(tmpdir, _requirements_txt), 'r') as f:
+                _existing_requirements = tuple(f.read().splitlines())
+
+        if isinstance(reqs, str):
+            # assume path to requirements.txt/pyproject.toml or a directory containing them
+            if os.path.isdir(reqs):
+                if os.path.exists(os.path.join(reqs, _requirements_txt)):
+                    with open(os.path.join(reqs, _requirements_txt), 'r') as f:
+                        _new_requirements = f.read().splitlines()
+
+                elif os.path.exists(os.path.join(reqs, _pyproject_toml)):
+                    _new_requirements = _pyproject_toml_to_requirements(reqs)
+            else:
+                # if it's a file and name is requirements.txt, read it
+                if os.path.basename(reqs) == _requirements_txt:
+                    with open(reqs, 'r') as f:
+                        _new_requirements = f.read().splitlines()
+                elif os.path.basename(reqs) == _pyproject_toml:
+                    _new_requirements = _pyproject_toml_to_requirements(
+                        os.path.dirname(reqs)
+                    )
+
+        _final_requirements = set(_existing_requirements).union(set(_new_requirements))
         with open(os.path.join(tmpdir, 'requirements.txt'), 'w') as f:
-            f.write('\n'.join(requirements))
+            f.write('\n'.join(_final_requirements))
 
     # Remove langchain-serve itself from the requirements list as it may be entered by mistake and break things
     if os.path.exists(os.path.join(tmpdir, 'requirements.txt')):
         with open(os.path.join(tmpdir, 'requirements.txt'), 'r') as f:
-            requirements = f.read().splitlines()
+            reqs = f.read().splitlines()
 
-        requirements = [r for r in requirements if not r.startswith("langchain-serve")]
+        reqs = [r for r in reqs if not r.startswith("langchain-serve")]
 
         with open(os.path.join(tmpdir, 'requirements.txt'), 'w') as f:
-            f.write('\n'.join(requirements))
+            f.write('\n'.join(reqs))
 
+
+def _handle_dockerfile(tmpdir: str, version: str):
     # Create the Dockerfile
     with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
         dockerfile = [
@@ -328,6 +380,8 @@ def push_app_to_hubble(
         ]
         f.write('\n\n'.join(dockerfile))
 
+
+def _handle_config_yaml(tmpdir: str, name: str):
     # Create the config.yml
     with open(os.path.join(tmpdir, 'config.yml'), 'w') as f:
         config_dict = {
@@ -338,6 +392,13 @@ def push_app_to_hubble(
             },
         }
         f.write(yaml.safe_dump(config_dict, sort_keys=False))
+
+
+def _push_to_hubble(
+    tmpdir: str, name: str, tag: str, platform: str, verbose: bool
+) -> str:
+    from hubble.executor.hubio import HubIO
+    from hubble.executor.parsers import set_hub_push_parser
 
     args_list = [
         tmpdir,
@@ -362,6 +423,32 @@ def push_app_to_hubble(
         args.force_update = name
 
     return HubIO(args).push().get('id')
+
+
+def push_app_to_hubble(
+    module_dir: str,
+    tag: str = 'latest',
+    requirements: Tuple[str] = None,
+    version: str = 'latest',
+    platform: str = None,
+    verbose: Optional[bool] = False,
+) -> str:
+    from .backend.playground.utils.helper import get_random_name
+
+    tmpdir = mkdtemp()
+
+    # Copy appdir to tmpdir
+    copytree(module_dir, tmpdir, dirs_exist_ok=True)
+    # Copy lcserve to tmpdir
+    copytree(
+        os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
+    )
+
+    name = get_random_name()
+    _handle_dependencies(requirements, tmpdir)
+    _handle_dockerfile(tmpdir, version)
+    _handle_config_yaml(tmpdir, name)
+    return _push_to_hubble(tmpdir, name, tag, platform, verbose)
 
 
 @dataclass
