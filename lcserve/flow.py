@@ -160,20 +160,14 @@ def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
     )
 
 
-def _any_websocket_router(app) -> bool:
-    # Go through the module and find all functions decorated by `serving` decorator
-    for _, func in inspect.getmembers(app, inspect.isfunction):
-        if hasattr(func, '__ws_serving__'):
-            return True
-
-    return False
-
-
 def _add_to_path():
-    sys.path.append(os.getcwd())
+    # add current directory to the beginning of the path to prioritize local imports
+    sys.path.insert(0, os.getcwd())
+
     # get all directories in the apps folder and add them to the path
     for app in os.listdir(os.path.join(os.path.dirname(__file__), 'apps')):
-        sys.path.append(os.path.join(os.path.dirname(__file__), 'apps', app))
+        if os.path.isdir(os.path.join(os.path.dirname(__file__), 'apps', app)):
+            sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'apps', app))
 
 
 def _get_parent_dir(modname: str, filename: str) -> str:
@@ -184,7 +178,7 @@ def _get_parent_dir(modname: str, filename: str) -> str:
     return parent_dir
 
 
-def _get_module_from_str(module_str: str):
+def _load_module_from_str(module_str: str):
     try:
         module = import_module(module_str)
     except ModuleNotFoundError:
@@ -199,7 +193,9 @@ def _get_module_from_str(module_str: str):
     return module
 
 
-def _get_app_from_fastapi_app_str(fastapi_app_str: str) -> Tuple['FastAPI', ModuleType]:
+def _load_app_from_fastapi_app_str(
+    fastapi_app_str: str,
+) -> Tuple['FastAPI', ModuleType]:
     from .backend.playground.utils.helper import (
         import_from_string,
         ImportFromStringError,
@@ -214,36 +210,52 @@ def _get_app_from_fastapi_app_str(fastapi_app_str: str) -> Tuple['FastAPI', Modu
     return fastapi_app, module
 
 
-def get_app_dir(
-    module_str: Union[str, List[str]] = [], fastapi_app_str: str = None
-) -> Tuple[ModuleType, str]:
+def _any_websocket_route_in_app(app: 'FastAPI') -> bool:
+    from fastapi.routing import APIWebSocketRoute
+
+    return any(isinstance(r, APIWebSocketRoute) for r in app.routes)
+
+
+def _any_websocket_router_in_module(module: ModuleType) -> bool:
+    # Go through the module and find all functions decorated by `serving` decorator
+    for _, func in inspect.getmembers(module, inspect.isfunction):
+        if hasattr(func, '__ws_serving__'):
+            return True
+
+    return False
+
+
+def get_module_dir(
+    module_str: str = None, fastapi_app_str: str = None
+) -> Tuple[str, bool]:
     _add_to_path()
 
-    if module_str:
-        if isinstance(module_str, str):
-            module_str = [module_str]
-        module = _get_module_from_str('.'.join(module_str))
-    elif fastapi_app_str:
-        _, module = _get_app_from_fastapi_app_str(fastapi_app_str)
-
-    file = module.__file__
-    if file.endswith('.py'):
-        return module, _get_parent_dir(
-            modname=module_str or fastapi_app_str, filename=file
+    if module_str is not None:
+        _module = _load_module_from_str(module_str)
+        _is_websocket = _any_websocket_router_in_module(_module)
+        _module_dir = _get_parent_dir(modname=module_str, filename=_module.__file__)
+    elif fastapi_app_str is not None:
+        fastapi_app, _module = _load_app_from_fastapi_app_str(fastapi_app_str)
+        _is_websocket = _any_websocket_route_in_app(fastapi_app)
+        _module_dir = _get_parent_dir(
+            modname=fastapi_app_str, filename=_module.__file__
         )
-    else:
+
+    if not _module.__file__.endswith('.py'):
         print(f'Unknown file type for module {module_str}')
         sys.exit(1)
 
+    return _module_dir, _is_websocket
 
-def resolve_jcloud_config(config, app_dir):
+
+def resolve_jcloud_config(config, module_dir: str):
     # config given from CLI takes higher priority
     if config:
         return config
 
     # Check to see if jcloud YAML/YML file exists at app dir
-    config_path_yml = os.path.join(app_dir, "jcloud.yml")
-    config_path_yaml = os.path.join(app_dir, "jcloud.yaml")
+    config_path_yml = os.path.join(module_dir, "jcloud.yml")
+    config_path_yaml = os.path.join(module_dir, "jcloud.yaml")
 
     if os.path.exists(config_path_yml):
         config_path = config_path_yml
@@ -263,14 +275,13 @@ def resolve_jcloud_config(config, app_dir):
 
 
 def push_app_to_hubble(
-    app: Any,
-    app_dir: str,
+    module_dir: str,
     tag: str = 'latest',
     requirements: Tuple[str] = None,
     version: str = 'latest',
     platform: str = None,
     verbose: Optional[bool] = False,
-) -> Tuple[str, bool]:
+) -> str:
     from hubble.executor.hubio import HubIO
     from hubble.executor.parsers import set_hub_push_parser
 
@@ -279,7 +290,7 @@ def push_app_to_hubble(
     tmpdir = mkdtemp()
 
     # Copy appdir to tmpdir
-    copytree(app_dir, tmpdir, dirs_exist_ok=True)
+    copytree(module_dir, tmpdir, dirs_exist_ok=True)
     # Copy lcserve to tmpdir
     copytree(
         os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
@@ -350,7 +361,7 @@ def push_app_to_hubble(
     if hubble_exists(name):
         args.force_update = name
 
-    return HubIO(args).push().get('id'), _any_websocket_router(app)
+    return HubIO(args).push().get('id')
 
 
 @dataclass

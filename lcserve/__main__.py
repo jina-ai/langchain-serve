@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List, Union
+from typing import List
 
 import click
 from jcloud.constants import Phase
@@ -15,10 +15,10 @@ from .flow import (
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
     deploy_app_on_jcloud,
-    get_app_dir,
     get_app_status_on_jcloud,
     get_flow_dict,
     get_flow_yaml,
+    get_module_dir,
     list_apps_on_jcloud,
     load_local_df,
     push_app_to_hubble,
@@ -62,13 +62,13 @@ async def serve_on_jcloud(
 ):
     from .backend.playground.utils.helper import get_random_tag
 
-    app, app_dir = get_app_dir(module_str=module_str, fastapi_app_str=fastapi_app_str)
-    config = resolve_jcloud_config(config, app_dir)
-
+    module_dir, is_websocket = get_module_dir(
+        module_str=module_str, fastapi_app_str=fastapi_app_str
+    )
+    config = resolve_jcloud_config(config, module_dir)
     tag = get_random_tag()
-    gateway_id_wo_tag, is_websocket = push_app_to_hubble(
-        app,
-        app_dir,
+    gateway_id_wo_tag = push_app_to_hubble(
+        module_dir=module_dir,
         requirements=requirements,
         tag=tag,
         version=version,
