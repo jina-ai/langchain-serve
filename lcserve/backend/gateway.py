@@ -33,6 +33,7 @@ from .playground.utils.helper import (
     parse_uses_with,
     run_cmd,
     run_function,
+    import_from_string,
 )
 from .playground.utils.langchain_helper import (
     AsyncStreamingWebsocketCallbackHandler,
@@ -260,14 +261,18 @@ class LangchainAgentGateway(CompositeGateway):
 
 
 class ServingGateway(FastAPIBaseGateway):
-    def __init__(self, modules: Tuple[str] = (), *args, **kwargs):
-        from fastapi import FastAPI
-
+    def __init__(
+        self,
+        modules: Tuple[str] = None,
+        fastapi_app_str: str = None,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self._modules = modules
-        self.logger.debug(f'Loading modules/files: {",".join(self._modules)}')
+        self._fastapi_app_str = fastapi_app_str
         self._fix_sys_path()
-        self._app = FastAPI()
+        self._init_fastapi_app()
         self._setup_metrics()
         self._configure_cors()
         self._register_healthz()
@@ -276,6 +281,15 @@ class ServingGateway(FastAPIBaseGateway):
     @property
     def app(self) -> 'FastAPI':
         return self._app
+
+    def _init_fastapi_app(self):
+        from fastapi import FastAPI
+
+        if self._fastapi_app_str is not None:
+            self.logger.info(f'Loading app from {self._fastapi_app_str}')
+            self._app, _ = import_from_string(self._fastapi_app_str)
+        else:
+            self._app = FastAPI()
 
     def _configure_cors(self):
         if self.cors:
@@ -353,6 +367,10 @@ class ServingGateway(FastAPIBaseGateway):
             await websocket.close()
 
     def _register_modules(self):
+        if self._modules is None:
+            return
+
+        self.logger.debug(f'Loading modules/files: {",".join(self._modules)}')
         for mod in self._modules:
             # TODO: add support for registering a directory
             if Path(mod).is_file() and mod.endswith('.py'):

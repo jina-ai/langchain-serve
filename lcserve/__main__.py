@@ -30,16 +30,26 @@ from .flow import (
 from .utils import validate_jcloud_config_callback
 
 
-def serve_locally(module: Union[str, List[str]], port: int = 8080):
+def serve_locally(
+    module_str: str = None,
+    fastapi_app_str: str = None,
+    port: int = 8080,
+):
     sys.path.append(os.getcwd())
-    f_yaml = get_flow_yaml(module, jcloud=False, port=port)
+    f_yaml = get_flow_yaml(
+        module_str=module_str,
+        fastapi_app_str=fastapi_app_str,
+        jcloud=False,
+        port=port,
+    )
     with Flow.load_config(f_yaml) as f:
         # TODO: add local description
         f.block()
 
 
 async def serve_on_jcloud(
-    module: Union[str, List[str]],
+    module_str: str = None,
+    fastapi_app_str: str = None,
     name: str = APP_NAME,
     requirements: List[str] = None,
     app_id: str = None,
@@ -52,7 +62,7 @@ async def serve_on_jcloud(
 ):
     from .backend.playground.utils.helper import get_random_tag
 
-    app, app_dir = get_app_dir(module)
+    app, app_dir = get_app_dir(module_str=module_str, fastapi_app_str=fastapi_app_str)
     config = resolve_jcloud_config(config, app_dir)
 
     tag = get_random_tag()
@@ -67,7 +77,8 @@ async def serve_on_jcloud(
     )
     app_id, _ = await deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
-            module=module,
+            module_str=module_str,
+            fastapi_app_str=fastapi_app_str,
             jcloud=True,
             port=8080,
             name=name,
@@ -104,7 +115,7 @@ async def serve_babyagi_on_jcloud(
         requirements=requirements,
     )
     await serve_on_jcloud(
-        module='lcserve.apps.babyagi.app',
+        module_str='lcserve.apps.babyagi.app',
         name=name,
         requirements=requirements,
         app_id=app_id,
@@ -136,7 +147,7 @@ async def serve_autogpt_on_jcloud(
         requirements=requirements,
     )
     await serve_on_jcloud(
-        module='lcserve.apps.autogpt.app',
+        module_str='lcserve.apps.autogpt.app',
         name=name,
         requirements=tuple(requirements),
         app_id=app_id,
@@ -160,7 +171,7 @@ async def serve_pdf_qna_on_jcloud(
     cors: bool = True,
 ):
     await serve_on_jcloud(
-        module='lcserve.apps.pdf_qna.app',
+        module_str='lcserve.apps.pdf_qna.app',
         name=name,
         app_id=app_id,
         version=version,
@@ -183,7 +194,7 @@ async def serve_pandas_ai_on_jcloud(
     cors: bool = True,
 ):
     await serve_on_jcloud(
-        module='lcserve.apps.pandas_ai.api',
+        module_str='lcserve.apps.pandas_ai.api',
         name=name,
         app_id=app_id,
         version=version,
@@ -278,9 +289,15 @@ def deploy():
 
 @deploy.command(help='Deploy the app locally.')
 @click.argument(
-    'module',
+    'module_str',
     type=str,
-    required=True,
+    required=False,
+)
+@click.option(
+    '--app',
+    type=str,
+    required=False,
+    help='FastAPI application to run, in the format "<module>:<attribute>"',
 )
 @click.option(
     '--port',
@@ -289,15 +306,21 @@ def deploy():
     help='Port to run the server on.',
 )
 @click.help_option('-h', '--help')
-def local(module, port):
-    serve_locally(module, port=port)
+def local(module_str, app, port):
+    serve_locally(module_str=module_str, fastapi_app_str=app, port=port)
 
 
 @deploy.command(help='Deploy the app on JCloud.')
 @click.argument(
-    'module',
+    'module_str',
     type=str,
-    required=True,
+    required=False,
+)
+@click.option(
+    '--app',
+    type=str,
+    required=False,
+    help='FastAPI application to run, in the format "<module>:<attribute>"',
 )
 @click.option(
     '--name',
@@ -310,10 +333,11 @@ def local(module, port):
 @click.help_option('-h', '--help')
 @syncify
 async def jcloud(
-    module, name, app_id, version, timeout, platform, config, cors, verbose
+    module_str, app, name, app_id, version, timeout, platform, config, cors, verbose
 ):
     await serve_on_jcloud(
-        module,
+        module_str=module_str,
+        fastapi_app_str=app,
         name=name,
         app_id=app_id,
         version=version,

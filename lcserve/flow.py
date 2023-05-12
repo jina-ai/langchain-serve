@@ -10,7 +10,8 @@ from http import HTTPStatus
 from importlib import import_module
 from shutil import copytree
 from tempfile import mkdtemp
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from types import ModuleType
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import requests
 import yaml
@@ -19,6 +20,9 @@ from jina import Flow
 
 from .errors import InvalidAutoscaleMinError, InvalidInstanceError
 from .utils import validate_jcloud_config
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI
 
 APP_NAME = 'langchain'
 BABYAGI_APP_NAME = 'babyagi'
@@ -180,24 +184,55 @@ def _get_parent_dir(modname: str, filename: str) -> str:
     return parent_dir
 
 
-def get_app_dir(mod):
+def _get_module_from_str(module_str: str):
     try:
-        _add_to_path()
-        app = import_module(mod)
-        file = app.__file__
-        if file.endswith('.py'):
-            return app, _get_parent_dir(mod, file)
-        else:
-            print(f'Unknown file type for module {mod}')
-            sys.exit(1)
+        module = import_module(module_str)
     except ModuleNotFoundError:
-        print(f'Could not find module {mod}')
+        print(f'Could not find module {module_str}')
         sys.exit(1)
     except AttributeError:
-        print(f'Could not find appdir for module {mod}')
+        print(f'Could not find appdir for module {module_str}')
         sys.exit(1)
     except Exception as e:
         print(f'Unknown error: {e}')
+        sys.exit(1)
+    return module
+
+
+def _get_app_from_fastapi_app_str(fastapi_app_str: str) -> Tuple['FastAPI', ModuleType]:
+    from .backend.playground.utils.helper import (
+        import_from_string,
+        ImportFromStringError,
+    )
+
+    try:
+        fastapi_app, module = import_from_string(fastapi_app_str)
+    except ImportFromStringError as e:
+        print(f'Could not import app from {fastapi_app_str}: {e}')
+        sys.exit(1)
+
+    return fastapi_app, module
+
+
+def get_app_dir(
+    module_str: Union[str, List[str]] = [], fastapi_app_str: str = None
+) -> Tuple[ModuleType, str]:
+    _add_to_path()
+
+    if module_str:
+        if isinstance(module_str, str):
+            module_str = [module_str]
+        module = _get_module_from_str('.'.join(module_str))
+    elif fastapi_app_str:
+        _, module = _get_app_from_fastapi_app_str(fastapi_app_str)
+
+    file = module.__file__
+    if file.endswith('.py'):
+        return module, _get_parent_dir(
+            modname=module_str or fastapi_app_str, filename=file
+        )
+    else:
+        print(f'Unknown file type for module {module_str}')
         sys.exit(1)
 
 
@@ -485,7 +520,8 @@ def get_jcloud_config(
 
 
 def get_flow_dict(
-    module: Union[str, List[str]],
+    module_str: str = None,
+    fastapi_app_str: str = None,
     jcloud: bool = False,
     port: int = 8080,
     name: str = APP_NAME,
@@ -496,9 +532,6 @@ def get_flow_dict(
     jcloud_config_path: str = None,
     cors: bool = True,
 ) -> Dict:
-    if isinstance(module, str):
-        module = [module]
-
     if jcloud:
         jcloud_config = get_jcloud_config(
             config_path=jcloud_config_path, timeout=timeout, is_websocket=is_websocket
@@ -511,7 +544,8 @@ def get_flow_dict(
         'gateway': {
             'uses': uses,
             'uses_with': {
-                'modules': module,
+                'modules': [module_str] if module_str else [],
+                'fastapi_app_str': fastapi_app_str or '',
             },
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
@@ -530,7 +564,8 @@ def get_flow_dict(
 
 
 def get_flow_yaml(
-    module: Union[str, List[str]],
+    module_str: str = None,
+    fastapi_app_str: str = None,
     jcloud: bool = False,
     port: int = 8080,
     name: str = APP_NAME,
@@ -540,7 +575,8 @@ def get_flow_yaml(
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
-            module=module,
+            module_str=module_str,
+            fastapi_app_str=fastapi_app_str,
             port=port,
             name=name,
             is_websocket=is_websocket,
@@ -560,13 +596,9 @@ async def deploy_app_on_jcloud(
     from jcloud.flow import CloudFlow
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        print('tempdir', tmpdir)
         flow_path = os.path.join(tmpdir, 'flow.yml')
         with open(flow_path, 'w') as f:
             yaml.safe_dump(flow_dict, f, sort_keys=False)
-
-        with open(flow_path, 'r') as f:
-            print(f.read())
 
         if app_id is None:  # appid is None means we are deploying a new app
             jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
