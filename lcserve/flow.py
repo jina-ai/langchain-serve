@@ -2,6 +2,7 @@ import asyncio
 import inspect
 import os
 import sys
+import shutil
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -274,99 +275,86 @@ def resolve_jcloud_config(config, module_dir: str):
     return config_path
 
 
-def _pyproject_toml_to_requirements(tmpdir: str) -> List[str]:
-    import toml
-    import re
+def _remove_langchain_serve(tmpdir: str) -> None:
+    _requirements_txt = 'requirements.txt'
+    _pyproject_toml = 'pyproject.toml'
 
-    # Load pyproject.toml file
-    _py_project_toml = os.path.join(tmpdir, 'pyproject.toml')
-    if not os.path.exists(_py_project_toml):
-        return []
+    # Remove langchain-serve itself from the requirements list as a fixed version might break things
+    if os.path.exists(os.path.join(tmpdir, _requirements_txt)):
+        with open(os.path.join(tmpdir, _requirements_txt), 'r') as f:
+            reqs = f.read().splitlines()
 
-    with open(_py_project_toml, 'r') as f:
-        pyproject = toml.load(f)
+        reqs = [r for r in reqs if not r.startswith("langchain-serve")]
+        with open(os.path.join(tmpdir, _requirements_txt), 'w') as f:
+            f.write('\n'.join(reqs))
 
-    # Extract dependencies from pyproject.toml
-    try:
-        dependencies = pyproject['tool']['poetry']['dependencies']
-    except KeyError as e:
-        print(f'Could not find {e} in pyproject.toml')
-        dependencies = {}
+    if os.path.exists(os.path.join(tmpdir, _pyproject_toml)):
+        import toml
 
-    # Convert dependencies to requirements.txt format
-    requirements = []
-    for package, version in dependencies.items():
-        # Ignore "python" package since it's already specified in the runtime environment
-        if package != 'python':
-            # Handle common version specifiers
-            version = re.sub(r'~=|==|!=|>=|<=', '', version)
-            if version.startswith('^'):
-                version = '==' + version[1:]
-            elif version.startswith('~'):
-                version = (
-                    '>='
-                    + version[1:]
-                    + ','
-                    + '<'
-                    + re.sub(r'[^\d\.]', '', version[1:])
-                    + '.999'
-                )
-            elif version.startswith('*'):
-                version = ''
-            elif version == '':
-                version = ''
-            else:
-                version = '==' + version
+        with open(os.path.join(tmpdir, _pyproject_toml), 'r') as f:
+            pyproject = toml.load(f)
 
-            # Add package and version to requirements list
-            requirements.append(f"{package}{version}")
+        if 'tool' in pyproject and 'poetry' in pyproject['tool']:
+            poetry = pyproject['tool']['poetry']
+            if 'dependencies' in poetry:
+                poetry['dependencies'] = {
+                    k: v
+                    for k, v in poetry['dependencies'].items()
+                    if k != 'langchain-serve'
+                }
 
-    return requirements
+            if 'dev-dependencies' in poetry:
+                poetry['dev-dependencies'] = {
+                    k: v
+                    for k, v in poetry['dev-dependencies'].items()
+                    if k != 'langchain-serve'
+                }
+
+        with open(os.path.join(tmpdir, _pyproject_toml), 'w') as f:
+            toml.dump(pyproject, f)
 
 
-def _handle_dependencies(reqs: Union[str, Tuple[str]], tmpdir: str):
+def _handle_dependencies(reqs: Tuple[str], tmpdir: str):
     # Create the requirements.txt if requirements are given
     _requirements_txt = 'requirements.txt'
     _pyproject_toml = 'pyproject.toml'
 
+    _existing_requirements = []
+    # Get existing requirements and add the new ones
+    if os.path.exists(os.path.join(tmpdir, _requirements_txt)):
+        with open(os.path.join(tmpdir, _requirements_txt), 'r') as f:
+            _existing_requirements = tuple(f.read().splitlines())
+
+    _new_requirements = []
     if reqs is not None:
-        # Get existing requirements and add the new ones
-        if os.path.exists(os.path.join(tmpdir, _requirements_txt)):
-            with open(os.path.join(tmpdir, _requirements_txt), 'r') as f:
-                _existing_requirements = tuple(f.read().splitlines())
-
-        if isinstance(reqs, str):
-            # assume path to requirements.txt/pyproject.toml or a directory containing them
-            if os.path.isdir(reqs):
-                if os.path.exists(os.path.join(reqs, _requirements_txt)):
-                    with open(os.path.join(reqs, _requirements_txt), 'r') as f:
+        for _req in reqs:
+            if os.path.isdir(_req):
+                if os.path.exists(os.path.join(_req, _requirements_txt)):
+                    with open(os.path.join(_req, _requirements_txt), 'r') as f:
                         _new_requirements = f.read().splitlines()
 
-                elif os.path.exists(os.path.join(reqs, _pyproject_toml)):
-                    _new_requirements = _pyproject_toml_to_requirements(reqs)
-            else:
-                # if it's a file and name is requirements.txt, read it
-                if os.path.basename(reqs) == _requirements_txt:
-                    with open(reqs, 'r') as f:
-                        _new_requirements = f.read().splitlines()
-                elif os.path.basename(reqs) == _pyproject_toml:
-                    _new_requirements = _pyproject_toml_to_requirements(
-                        os.path.dirname(reqs)
+                elif os.path.exists(os.path.join(_req, _pyproject_toml)):
+                    # copy pyproject.toml to tmpdir
+                    shutil.copyfile(
+                        os.path.join(_req, _pyproject_toml),
+                        os.path.join(tmpdir, _pyproject_toml),
                     )
+            elif os.path.isfile(_req):
+                # if it's a file and name is requirements.txt, read it
+                if os.path.basename(_req) == _requirements_txt:
+                    with open(_req, 'r') as f:
+                        _new_requirements = f.read().splitlines()
+                elif os.path.basename(_req) == _pyproject_toml:
+                    # copy pyproject.toml to tmpdir
+                    shutil.copyfile(_req, os.path.join(tmpdir, _pyproject_toml))
+            else:
+                _new_requirements.append(_req)
 
         _final_requirements = set(_existing_requirements).union(set(_new_requirements))
-        with open(os.path.join(tmpdir, 'requirements.txt'), 'w') as f:
+        with open(os.path.join(tmpdir, _requirements_txt), 'w') as f:
             f.write('\n'.join(_final_requirements))
 
-    # Remove langchain-serve itself from the requirements list as it may be entered by mistake and break things
-    if os.path.exists(os.path.join(tmpdir, 'requirements.txt')):
-        with open(os.path.join(tmpdir, 'requirements.txt'), 'r') as f:
-            reqs = f.read().splitlines()
-
-        reqs = [r for r in reqs if not r.startswith("langchain-serve")]
-
-        with open(os.path.join(tmpdir, 'requirements.txt'), 'w') as f:
-            f.write('\n'.join(reqs))
+    _remove_langchain_serve(tmpdir)
 
 
 def _handle_dockerfile(tmpdir: str, version: str):
@@ -376,6 +364,7 @@ def _handle_dockerfile(tmpdir: str, version: str):
             f'FROM jinawolf/serving-gateway:{version}',
             'COPY . /appdir/',
             'RUN if [ -e /appdir/requirements.txt ]; then pip install -r /appdir/requirements.txt; fi',
+            'RUN if [ -e /appdir/pyproject.toml ]; then pip install poetry && cd /appdir && poetry install; fi',
             'ENTRYPOINT [ "jina", "gateway", "--uses", "config.yml" ]',
         ]
         f.write('\n\n'.join(dockerfile))
@@ -422,7 +411,8 @@ def _push_to_hubble(
     if hubble_exists(name):
         args.force_update = name
 
-    return HubIO(args).push().get('id')
+    gateway_id = HubIO(args).push().get('id')
+    return gateway_id + ':' + tag
 
 
 def push_app_to_hubble(
