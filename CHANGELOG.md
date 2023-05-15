@@ -29,6 +29,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -756,4 +757,20 @@
 
  - [[```8dfed10e```](https://github.com/jina-ai/langchain-serve/commit/8dfed10e2fc098e3b59f5eac681beb1498000ad6)] __-__ __version__: the next version will be 0.0.29 (*Jina Dev Bot*)
  - [[```e7ea4860```](https://github.com/jina-ai/langchain-serve/commit/e7ea4860e94bdd158e7e726279c8d9459715f076)] __-__ __version__: the next version will be 0.0.28 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-30></a>
+## Release Note (`0.0.30`)
+
+> Release time: 2023-05-15 16:36:53
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🍹 Other Improvements
+
+ - [[```d0fa286d```](https://github.com/jina-ai/langchain-serve/commit/d0fa286d822078ae6ad5cf7ff9cb1b7449dbb6a7)] __-__ disable counter on api routes (*Deepankar Mahapatro*)
+ - [[```302aa82e```](https://github.com/jina-ai/langchain-serve/commit/302aa82ebdb190ab8f3cc85dab555a26ab51e7e1)] __-__ __version__: the next version will be 0.0.30 (*Jina Dev Bot*)
 
