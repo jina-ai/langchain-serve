@@ -510,7 +510,7 @@ def get_gateway_config_yaml_path() -> str:
 
 
 def get_gateway_uses(id: str) -> str:
-    if id.startswith('jinahub+docker') or id.startswith('jinaai://docker'):
+    if id.startswith('jinahub+docker') or id.startswith('jinaai+docker'):
         return id
     return f'jinahub+docker://{id}'
 
