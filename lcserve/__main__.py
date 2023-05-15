@@ -96,7 +96,7 @@ async def serve_on_jcloud(
     config = resolve_jcloud_config(config, module_dir)
 
     if uses is not None:
-        gateway_id = remove_prefix(uses, 'jinahub+docker://')
+        gateway_id = uses
     else:
         gateway_id = _push_app_to_hubble(
             module_dir=module_dir,
