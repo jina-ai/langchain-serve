@@ -27,6 +27,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -684,4 +685,37 @@
  - [[```46e74074```](https://github.com/jina-ai/langchain-serve/commit/46e740748f802f2d5a8e20c757e845d6c3c35ae2)] __-__ Merge pull request #59 from jina-ai/autogpt (*Deepankar Mahapatro*)
  - [[```9eb7c5f4```](https://github.com/jina-ai/langchain-serve/commit/9eb7c5f4d03f2024237990810e57979763212096)] __-__ add pyproject.tom (*Zac Li*)
  - [[```e05901cb```](https://github.com/jina-ai/langchain-serve/commit/e05901cb1ae938b0f789e9c10742dfb704fa51aa)] __-__ __version__: the next version will be 0.0.25 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-28></a>
+## Release Note (`0.0.28`)
+
+> Release time: 2023-05-15 12:20:47
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```9b41b743```](https://github.com/jina-ai/langchain-serve/commit/9b41b743781cb586a74e7a9ce798dbd724a7c1a1)] __-__ push image to hubble (*Deepankar Mahapatro*)
+ - [[```70bc62d9```](https://github.com/jina-ai/langchain-serve/commit/70bc62d9091599b5dec3e7f0825664db642c2862)] __-__ read dependencies from pyproject.toml (*Deepankar Mahapatro*)
+ - [[```b5d766b7```](https://github.com/jina-ai/langchain-serve/commit/b5d766b767c6c376bdc3a89f59a03846af16316d)] __-__ serve any fastapi app (*Deepankar Mahapatro*)
+
+### 🐞 Bug fixes
+
+ - [[```9adeef61```](https://github.com/jina-ai/langchain-serve/commit/9adeef61aa066eb810b71abda3e81ff4ff0060b6)] __-__ push message (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```11d7bf52```](https://github.com/jina-ai/langchain-serve/commit/11d7bf52e4f7c04624838634fcfba4e495518d2b)] __-__ update readme (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```ee33ba6b```](https://github.com/jina-ai/langchain-serve/commit/ee33ba6bd468cb8fe8a28e14b7a27f0c06d1caad)] __-__ fastapi apps (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```e7ea4860```](https://github.com/jina-ai/langchain-serve/commit/e7ea4860e94bdd158e7e726279c8d9459715f076)] __-__ __version__: the next version will be 0.0.28 (*Jina Dev Bot*)
 
