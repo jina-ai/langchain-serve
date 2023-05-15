@@ -321,7 +321,7 @@ def push_app_to_hubble(
 @dataclass
 class Defaults:
     instance: str = 'C3'
-    autoscale_min: int = 0
+    autoscale_min: int = 1
     autoscale_max: int = 10
     autoscale_rps: int = 10
     autoscale_stable_window: int = DEFAULT_TIMEOUT
