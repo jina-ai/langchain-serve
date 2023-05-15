@@ -227,7 +227,7 @@ def _any_websocket_router_in_module(module: ModuleType) -> bool:
 
 
 def get_module_dir(
-    module_str: str = None, fastapi_app_str: str = None
+    module_str: str = None, fastapi_app_str: str = None, app_dir: str = None
 ) -> Tuple[str, bool]:
     _add_to_path()
 
@@ -241,6 +241,10 @@ def get_module_dir(
         _module_dir = _get_parent_dir(
             modname=fastapi_app_str, filename=_module.__file__
         )
+
+    # if app_dir is not None, return it
+    if app_dir is not None:
+        return app_dir, _is_websocket
 
     if not _module.__file__.endswith('.py'):
         print(f'Unknown file type for module {module_str}')
@@ -358,16 +362,36 @@ def _handle_dependencies(reqs: Tuple[str], tmpdir: str):
 
 
 def _handle_dockerfile(tmpdir: str, version: str):
-    # Create the Dockerfile
-    with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
-        dockerfile = [
-            f'FROM jinawolf/serving-gateway:{version}',
-            'COPY . /appdir/',
-            'RUN if [ -e /appdir/requirements.txt ]; then pip install -r /appdir/requirements.txt; fi',
-            'RUN if [ -e /appdir/pyproject.toml ]; then pip install poetry && cd /appdir && poetry install; fi',
-            'ENTRYPOINT [ "jina", "gateway", "--uses", "config.yml" ]',
-        ]
-        f.write('\n\n'.join(dockerfile))
+    # if file `lcserve.Dockefile` exists, use it
+    _lcserve_dockerfile = 'lcserve.Dockerfile'
+    if os.path.exists(os.path.join(tmpdir, _lcserve_dockerfile)):
+        shutil.copyfile(
+            os.path.join(tmpdir, _lcserve_dockerfile),
+            os.path.join(tmpdir, 'Dockerfile'),
+        )
+
+        # read the Dockerfile and replace the version
+        with open(os.path.join(tmpdir, 'Dockerfile'), 'r') as f:
+            dockerfile = f.read()
+        
+        dockerfile = dockerfile.replace(
+            'jinawolf/serving-gateway:${version}', 
+            f'jinawolf/serving-gateway:{version}',
+        )
+
+        with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
+            f.write(dockerfile)
+
+    else:
+        # Create the Dockerfile
+        with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
+            dockerfile = [
+                f'FROM jinawolf/serving-gateway:{version}',
+                'COPY . /appdir/',
+                'RUN if [ -e /appdir/requirements.txt ]; then pip install -r /appdir/requirements.txt; fi',
+                'ENTRYPOINT [ "jina", "gateway", "--uses", "config.yml" ]',
+            ]
+            f.write('\n\n'.join(dockerfile))
 
 
 def _handle_config_yaml(tmpdir: str, name: str):
@@ -417,6 +441,7 @@ def _push_to_hubble(
 
 def push_app_to_hubble(
     module_dir: str,
+    image_name = None,
     tag: str = 'latest',
     requirements: Tuple[str] = None,
     version: str = 'latest',
@@ -434,11 +459,12 @@ def push_app_to_hubble(
         os.path.dirname(__file__), os.path.join(tmpdir, 'lcserve'), dirs_exist_ok=True
     )
 
-    name = get_random_name()
+    if image_name is None:
+        image_name = get_random_name()
     _handle_dependencies(requirements, tmpdir)
     _handle_dockerfile(tmpdir, version)
-    _handle_config_yaml(tmpdir, name)
-    return _push_to_hubble(tmpdir, name, tag, platform, verbose)
+    _handle_config_yaml(tmpdir, image_name)
+    return _push_to_hubble(tmpdir, image_name, tag, platform, verbose)
 
 
 @dataclass
@@ -856,3 +882,7 @@ def update_requirements(path: str, requirements: List[str]) -> List[str]:
             requirements.extend(f.read().splitlines())
 
     return requirements
+
+
+def remove_prefix(text, prefix):
+    return text[len(prefix):] if text.startswith(prefix) else text
