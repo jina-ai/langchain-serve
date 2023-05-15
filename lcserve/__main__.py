@@ -85,7 +85,7 @@ async def serve_on_jcloud(
     config: str = None,
     verbose: bool = False,
     cors: bool = True,
-):
+) -> str:
     from .backend.playground.utils.helper import get_random_tag
 
     module_dir, is_websocket = get_module_dir(
@@ -96,7 +96,7 @@ async def serve_on_jcloud(
     config = resolve_jcloud_config(config, module_dir)
 
     if uses is not None:
-        gateway_id = remove_prefix(uses, 'jinahub+docker://')
+        gateway_id = uses
     else:
         gateway_id = _push_app_to_hubble(
             module_dir=module_dir,
@@ -151,6 +151,7 @@ async def serve_babyagi_on_jcloud(
         name=name,
         requirements=requirements,
         app_id=app_id,
+        app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'babyagi'),
         version=version,
         timeout=timeout,
         platform=platform,
@@ -183,6 +184,7 @@ async def serve_autogpt_on_jcloud(
         name=name,
         requirements=tuple(requirements),
         app_id=app_id,
+        app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'autogpt'),
         version=version,
         timeout=timeout,
         platform=platform,
@@ -207,6 +209,7 @@ async def serve_pdf_qna_on_jcloud(
         module_str='lcserve.apps.pdf_qna.app',
         name=name,
         app_id=app_id,
+        app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'pdf_qna'),
         requirements=requirements,
         version=version,
         timeout=timeout,
@@ -232,6 +235,7 @@ async def serve_pandas_ai_on_jcloud(
         module_str='lcserve.apps.pandas_ai.api',
         name=name,
         app_id=app_id,
+        app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'pandas_ai'),
         requirements=requirements,
         version=version,
         timeout=timeout,
