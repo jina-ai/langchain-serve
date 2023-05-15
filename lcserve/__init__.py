@@ -14,4 +14,4 @@ _ignore_warnings()
 
 from .backend import serving, download_df, upload_df
 
-__version__ = '0.0.28'
+__version__ = '0.0.29'
