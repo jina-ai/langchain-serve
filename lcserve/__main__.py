@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List, Union
+from typing import List
 
 import click
 from jcloud.constants import Phase
@@ -15,31 +15,67 @@ from .flow import (
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
     deploy_app_on_jcloud,
-    get_app_dir,
     get_app_status_on_jcloud,
+    get_gateway_uses,
     get_flow_dict,
     get_flow_yaml,
+    get_module_dir,
     list_apps_on_jcloud,
     load_local_df,
-    push_app_to_hubble,
     remove_app_on_jcloud,
     resolve_jcloud_config,
     syncify,
     update_requirements,
+    remove_prefix,
 )
 from .utils import validate_jcloud_config_callback
 
 
-def serve_locally(module: Union[str, List[str]], port: int = 8080):
+def serve_locally(
+    module_str: str = None,
+    fastapi_app_str: str = None,
+    port: int = 8080,
+):
     sys.path.append(os.getcwd())
-    f_yaml = get_flow_yaml(module, jcloud=False, port=port)
+    f_yaml = get_flow_yaml(
+        module_str=module_str,
+        fastapi_app_str=fastapi_app_str,
+        jcloud=False,
+        port=port,
+    )
     with Flow.load_config(f_yaml) as f:
         # TODO: add local description
         f.block()
 
+def _push_app_to_hubble(
+    module_dir: str,
+    image_name: str = None,
+    tag: str = None,
+    requirements: List[str] = None,
+    version: str = 'latest',
+    platform: str = None,
+    verbose: bool = False,
+):
+    from .flow import push_app_to_hubble
+
+    gateway_id = push_app_to_hubble(
+        module_dir=module_dir,
+        image_name=image_name,
+        tag=tag,
+        requirements=requirements,
+        version=version,
+        platform=platform,
+        verbose=verbose,
+    )
+
+    return gateway_id
+
 
 async def serve_on_jcloud(
-    module: Union[str, List[str]],
+    module_str: str = None,
+    fastapi_app_str: str = None,
+    app_dir: str = None,
+    uses: str = None,
     name: str = APP_NAME,
     requirements: List[str] = None,
     app_id: str = None,
@@ -52,28 +88,35 @@ async def serve_on_jcloud(
 ):
     from .backend.playground.utils.helper import get_random_tag
 
-    app, app_dir = get_app_dir(module)
-    config = resolve_jcloud_config(config, app_dir)
-
-    tag = get_random_tag()
-    gateway_id_wo_tag, is_websocket = push_app_to_hubble(
-        app,
-        app_dir,
-        requirements=requirements,
-        tag=tag,
-        version=version,
-        platform=platform,
-        verbose=verbose,
+    module_dir, is_websocket = get_module_dir(
+        module_str=module_str,
+        fastapi_app_str=fastapi_app_str,
+        app_dir=app_dir,
     )
+    config = resolve_jcloud_config(config, module_dir)
+
+    if uses is not None:
+        gateway_id = remove_prefix(uses, 'jinahub+docker://')
+    else:
+        gateway_id = _push_app_to_hubble(
+            module_dir=module_dir,
+            requirements=requirements,
+            tag=get_random_tag(),
+            version=version,
+            platform=platform,
+            verbose=verbose,
+        )
+
     app_id, _ = await deploy_app_on_jcloud(
         flow_dict=get_flow_dict(
-            module=module,
+            module_str=module_str,
+            fastapi_app_str=fastapi_app_str,
             jcloud=True,
             port=8080,
             name=name,
             timeout=timeout,
             app_id=app_id,
-            gateway_id=gateway_id_wo_tag + ':' + tag,
+            gateway_id=gateway_id,
             is_websocket=is_websocket,
             jcloud_config_path=config,
             cors=cors,
@@ -104,7 +147,7 @@ async def serve_babyagi_on_jcloud(
         requirements=requirements,
     )
     await serve_on_jcloud(
-        module='lcserve.apps.babyagi.app',
+        module_str='lcserve.apps.babyagi.app',
         name=name,
         requirements=requirements,
         app_id=app_id,
@@ -136,7 +179,7 @@ async def serve_autogpt_on_jcloud(
         requirements=requirements,
     )
     await serve_on_jcloud(
-        module='lcserve.apps.autogpt.app',
+        module_str='lcserve.apps.autogpt.app',
         name=name,
         requirements=tuple(requirements),
         app_id=app_id,
@@ -152,6 +195,7 @@ async def serve_autogpt_on_jcloud(
 async def serve_pdf_qna_on_jcloud(
     name: str = PDF_QNA_APP_NAME,
     app_id: str = None,
+    requirements: List[str] = None,
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
@@ -160,9 +204,10 @@ async def serve_pdf_qna_on_jcloud(
     cors: bool = True,
 ):
     await serve_on_jcloud(
-        module='lcserve.apps.pdf_qna.app',
+        module_str='lcserve.apps.pdf_qna.app',
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,
@@ -175,6 +220,7 @@ async def serve_pdf_qna_on_jcloud(
 async def serve_pandas_ai_on_jcloud(
     name: str = PANDAS_AI_APP_NAME,
     app_id: str = None,
+    requirements: List[str] = None,
     version: str = 'latest',
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
@@ -183,9 +229,10 @@ async def serve_pandas_ai_on_jcloud(
     cors: bool = True,
 ):
     await serve_on_jcloud(
-        module='lcserve.apps.pandas_ai.api',
+        module_str='lcserve.apps.pandas_ai.api',
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,
@@ -204,6 +251,51 @@ def upload_df_to_jcloud(module: str, name: str):
         "Uploaded dataframe with ID " + click.style(df_id, fg="green", bold=True)
     )
 
+_hubble_push_options = [
+    click.option(
+        '--image-name',
+        type=str,
+        required=False,
+        help='Name of the image to be pushed.',
+    ),
+    click.option(
+        '--image-tag',
+        type=str,
+        required=False,
+        help='Tag of the image to be pushed.',
+    ),
+    click.option(
+        '--platform',
+        type=str,
+        required=False,
+        help='Platform of Docker image needed for the deployment is built on.',
+    ),
+    click.option(
+        '--requirements',
+        default=None,
+        type=str,
+        help='''Pass either
+
+            1) multiple requirements or,
+            2) a path to a requirements.txt/pyproject.toml file or,
+            3) a directory containing requirements.txt/pyproject.toml file.''',
+        multiple=True,
+    ),
+    click.option(
+        '--version',
+        type=str,
+        default='latest',
+        help='Version of serving gateway to be used.',
+        show_default=False,
+    ),
+    click.option(
+        '--verbose',
+        is_flag=True,
+        help='Verbose mode.',
+        show_default=True,
+    )
+]
+
 
 _jcloud_shared_options = [
     click.option(
@@ -212,6 +304,16 @@ _jcloud_shared_options = [
         default=None,
         help='AppID of the deployed agent to be updated.',
         show_default=True,
+    ),
+    click.option(
+        '--requirements',
+        default=None,
+        type=str,
+        help='''Pass either 
+        1) multiple requirements or,
+        2) a path to a requirements.txt/pyproject.toml file or,
+        3) a directory containing requirements.txt/pyproject.toml file.''',
+        multiple=True,
     ),
     click.option(
         '--version',
@@ -257,6 +359,12 @@ _jcloud_shared_options = [
 ]
 
 
+def hubble_push_options(func):
+    for option in reversed(_hubble_push_options):
+        func = option(func)
+    return func
+
+
 def jcloud_shared_options(func):
     for option in reversed(_jcloud_shared_options):
         func = option(func)
@@ -270,6 +378,57 @@ def serve():
     pass
 
 
+@serve.command(help='Push the app image to Jina AI Cloud.')
+@click.argument(
+    'module_str',
+    type=str,
+    required=False,
+)
+@click.option(
+    '--app',
+    type=str,
+    required=False,
+    help='FastAPI application to run, in the format "<module>:<attribute>"',
+)
+@click.option(
+    '--app-dir',
+    type=str,
+    required=False,
+    help='Base directory to be used for the FastAPI app.',
+)
+@hubble_push_options
+@click.help_option('-h', '--help')
+def push(
+    module_str,
+    app,
+    app_dir,
+    image_name,
+    image_tag,
+    platform,
+    requirements,
+    version,
+    verbose,
+):
+    module_dir, _ = get_module_dir(
+        module_str=module_str,
+        fastapi_app_str=app,
+        app_dir=app_dir,
+    )
+    gateway_id = _push_app_to_hubble(
+        module_dir=module_dir,
+        image_name=image_name,
+        tag=image_tag,
+        platform=platform,
+        requirements=requirements,
+        version=version,
+        verbose=verbose,
+    )
+
+    click.echo(
+        f'Pushed to Hubble. Use {click.style(get_gateway_uses(gateway_id), fg="green")} to deploy.'
+    )
+
+
 @serve.group(help='Deploy the app.')
 @click.help_option('-h', '--help')
 def deploy():
@@ -278,9 +437,15 @@ def deploy():
 
 @deploy.command(help='Deploy the app locally.')
 @click.argument(
-    'module',
+    'module_str',
     type=str,
-    required=True,
+    required=False,
+)
+@click.option(
+    '--app',
+    type=str,
+    required=False,
+    help='FastAPI application to run, in the format "<module>:<attribute>"',
 )
 @click.option(
     '--port',
@@ -289,15 +454,33 @@ def deploy():
     help='Port to run the server on.',
 )
 @click.help_option('-h', '--help')
-def local(module, port):
-    serve_locally(module, port=port)
+def local(module_str, app, port):
+    serve_locally(module_str=module_str, fastapi_app_str=app, port=port)
 
 
 @deploy.command(help='Deploy the app on JCloud.')
 @click.argument(
-    'module',
+    'module_str',
     type=str,
-    required=True,
+    required=False,
+)
+@click.option(
+    '--app',
+    type=str,
+    required=False,
+    help='FastAPI application to run, in the format "<module>:<attribute>"',
+)
+@click.option(
+    '--app-dir',
+    type=str,
+    required=False,
+    help='Base directory to be used for the FastAPI app.',
+)
+@click.option(
+    '--uses',
+    type=str,
+    default=None,
+    help='Pass a pre-existing image that was pushed using `push-only` option.',
 )
 @click.option(
     '--name',
@@ -310,12 +493,28 @@ def local(module, port):
 @click.help_option('-h', '--help')
 @syncify
 async def jcloud(
-    module, name, app_id, version, timeout, platform, config, cors, verbose
+    module_str,
+    app,
+    app_dir,
+    uses,
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
 ):
     await serve_on_jcloud(
-        module,
+        module_str=module_str,
+        fastapi_app_str=app,
+        app_dir=app_dir,
+        uses=uses,
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,
@@ -333,17 +532,19 @@ async def jcloud(
     help='Name of the app.',
     show_default=True,
 )
-@click.option(
-    '--requirements',
-    default=None,
-    help='List of requirements to be installed.',
-    multiple=True,
-)
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def babyagi(
-    name, requirements, app_id, version, timeout, platform, config, cors, verbose
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
 ):
     await serve_babyagi_on_jcloud(
         name=name,
@@ -369,10 +570,21 @@ async def babyagi(
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbose):
+async def pdf_qna(
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
+):
     await serve_pdf_qna_on_jcloud(
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         config=config,
@@ -390,17 +602,19 @@ async def pdf_qna(name, app_id, version, timeout, platform, config, cors, verbos
     help='Name of the app.',
     show_default=True,
 )
-@click.option(
-    '--requirements',
-    default=None,
-    help='List of requirements to be installed.',
-    multiple=True,
-)
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
 async def autogpt(
-    name, requirements, app_id, version, timeout, platform, config, cors, verbose
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
 ):
     await serve_autogpt_on_jcloud(
         name=name,
@@ -426,10 +640,21 @@ async def autogpt(
 @jcloud_shared_options
 @click.help_option('-h', '--help')
 @syncify
-async def pandas_ai(name, app_id, version, timeout, platform, config, cors, verbose):
+async def pandas_ai(
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    verbose,
+):
     await serve_pandas_ai_on_jcloud(
         name=name,
         app_id=app_id,
+        requirements=requirements,
         version=version,
         timeout=timeout,
         platform=platform,

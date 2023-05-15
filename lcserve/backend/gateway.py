@@ -33,6 +33,7 @@ from .playground.utils.helper import (
     parse_uses_with,
     run_cmd,
     run_function,
+    import_from_string,
 )
 from .playground.utils.langchain_helper import (
     AsyncStreamingWebsocketCallbackHandler,
@@ -260,22 +261,36 @@ class LangchainAgentGateway(CompositeGateway):
 
 
 class ServingGateway(FastAPIBaseGateway):
-    def __init__(self, modules: Tuple[str] = (), *args, **kwargs):
-        from fastapi import FastAPI
-
+    def __init__(
+        self,
+        modules: Tuple[str] = None,
+        fastapi_app_str: str = None,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self._modules = modules
-        self.logger.debug(f'Loading modules/files: {",".join(self._modules)}')
+        self._fastapi_app_str = fastapi_app_str
         self._fix_sys_path()
-        self._app = FastAPI()
+        self._init_fastapi_app()
         self._setup_metrics()
         self._configure_cors()
         self._register_healthz()
         self._register_modules()
+        self._register_counters()
 
     @property
     def app(self) -> 'FastAPI':
         return self._app
+
+    def _init_fastapi_app(self):
+        from fastapi import FastAPI
+
+        if self._fastapi_app_str is not None:
+            self.logger.info(f'Loading app from {self._fastapi_app_str}')
+            self._app, _ = import_from_string(self._fastapi_app_str)
+        else:
+            self._app = FastAPI()
 
     def _configure_cors(self):
         if self.cors:
@@ -327,6 +342,36 @@ class ServingGateway(FastAPIBaseGateway):
             unit="s",
         )
 
+    def _register_counters(self):
+        # TODO: doesn't work for now
+        from starlette.routing import Route, WebSocketRoute
+        from fastapi.routing import APIWebSocketRoute, APIRoute
+
+        ignore_paths = {'/healthz', '/dry_run', '/metrics'}
+        measured_routes = []
+
+        for route in self.app.routes:
+            route: Union[Route, WebSocketRoute, APIWebSocketRoute, APIRoute]
+
+            if route.path in ignore_paths or hasattr(route.endpoint, '__decorated__'):
+                measured_routes.append(route)
+                continue
+
+            if isinstance(route, (WebSocketRoute, APIWebSocketRoute)):
+                route.endpoint = measure_duration(self.ws_duration_counter)(
+                    route.endpoint
+                )
+            elif isinstance(route, (Route, APIRoute)):
+                route.endpoint = measure_duration(self.http_duration_counter)(
+                    route.endpoint
+                )
+            else:
+                self.logger.warning(f'Unknown route type: {type(route)}')
+
+            measured_routes.append(route)
+
+        self.app.router.routes = measured_routes
+
     def _register_healthz(self):
         @self.app.get("/healthz")
         async def __healthz():
@@ -353,6 +398,10 @@ class ServingGateway(FastAPIBaseGateway):
             await websocket.close()
 
     def _register_modules(self):
+        if self._modules is None:
+            return
+
+        self.logger.debug(f'Loading modules/files: {",".join(self._modules)}')
         for mod in self._modules:
             # TODO: add support for registering a directory
             if Path(mod).is_file() and mod.endswith('.py'):
@@ -970,7 +1019,9 @@ def measure_duration(duration_counter):
     async def send_metrics_periodically(
         duration_counter, interval, route_name, shared_data
     ):
+        print(f'In send_metrics_periodically for {route_name}')
         while True:
+            print('In send_metrics_periodically while loop')
             await asyncio.sleep(interval)
             current_time = time.perf_counter()
             if duration_counter:
@@ -978,6 +1029,7 @@ def measure_duration(duration_counter):
                     current_time - shared_data.last_reported_time, {"route": route_name}
                 )
             shared_data.last_reported_time = current_time
+            print('shared_data.last_reported_time', shared_data.last_reported_time)
 
     def decorator(func):
         @wraps(func)
@@ -1001,6 +1053,7 @@ def measure_duration(duration_counter):
                         {"route": func.__name__},
                     )
 
+        wrapped.__decorated__ = True
         return wrapped
 
     return decorator
