@@ -682,11 +682,14 @@ def get_flow_dict(
         **(get_global_jcloud_args(app_id=app_id, name=name) if jcloud else {}),
     }
     if os.environ.get("LCSERVE_TEST", False):
-        flow_dict['with'] = {
+        if 'with' not in flow_dict:
+            flow_dict['with'] = {}
+        
+        flow_dict['with'].update({
             'metrics': True,
             'metrics_exporter_host': 'http://localhost',
             'metrics_exporter_port': 4317,
-        }
+        })
     return flow_dict
 
 
