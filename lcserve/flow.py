@@ -12,7 +12,7 @@ from importlib import import_module
 from shutil import copytree
 from tempfile import mkdtemp
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import requests
 import yaml
@@ -226,6 +226,16 @@ def _any_websocket_router_in_module(module: ModuleType) -> bool:
     return False
 
 
+def get_uri(id: str, tag: str):
+    import requests
+
+    r = requests.get(f"https://apihubble.jina.ai/v2/executor/getMeta?id={id}&tag={tag}")
+    _json = r.json()
+    _image_name = _json['data']['name']
+    _user_name = _json['meta']['owner']['name']
+    return f'jinaai+docker://{_user_name}/{_image_name}:{tag}'
+
+
 def get_module_dir(
     module_str: str = None, fastapi_app_str: str = None, app_dir: str = None
 ) -> Tuple[str, bool]:
@@ -373,9 +383,9 @@ def _handle_dockerfile(tmpdir: str, version: str):
         # read the Dockerfile and replace the version
         with open(os.path.join(tmpdir, 'Dockerfile'), 'r') as f:
             dockerfile = f.read()
-        
+
         dockerfile = dockerfile.replace(
-            'jinawolf/serving-gateway:${version}', 
+            'jinawolf/serving-gateway:${version}',
             f'jinawolf/serving-gateway:{version}',
         )
 
@@ -441,7 +451,7 @@ def _push_to_hubble(
 
 def push_app_to_hubble(
     module_dir: str,
-    image_name = None,
+    image_name=None,
     tag: str = 'latest',
     requirements: Tuple[str] = None,
     version: str = 'latest',
@@ -885,4 +895,4 @@ def update_requirements(path: str, requirements: List[str]) -> List[str]:
 
 
 def remove_prefix(text, prefix):
-    return text[len(prefix):] if text.startswith(prefix) else text
+    return text[len(prefix) :] if text.startswith(prefix) else text

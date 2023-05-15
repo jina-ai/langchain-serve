@@ -16,7 +16,6 @@ from .flow import (
     PDF_QNA_APP_NAME,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
-    get_gateway_uses,
     get_flow_dict,
     get_flow_yaml,
     get_module_dir,
@@ -27,6 +26,7 @@ from .flow import (
     syncify,
     update_requirements,
     remove_prefix,
+    get_uri,
 )
 from .utils import validate_jcloud_config_callback
 
@@ -46,6 +46,7 @@ def serve_locally(
     with Flow.load_config(f_yaml) as f:
         # TODO: add local description
         f.block()
+
 
 def _push_app_to_hubble(
     module_dir: str,
@@ -67,7 +68,6 @@ def _push_app_to_hubble(
         platform=platform,
         verbose=verbose,
     )
-
     return gateway_id
 
 
@@ -251,6 +251,7 @@ def upload_df_to_jcloud(module: str, name: str):
         "Uploaded dataframe with ID " + click.style(df_id, fg="green", bold=True)
     )
 
+
 _hubble_push_options = [
     click.option(
         '--image-name',
@@ -293,7 +294,7 @@ _hubble_push_options = [
         is_flag=True,
         help='Verbose mode.',
         show_default=True,
-    )
+    ),
 ]
 
 
@@ -423,9 +424,9 @@ def push(
         version=version,
         verbose=verbose,
     )
-
+    id, tag = gateway_id.split(':')
     click.echo(
-        f'Pushed to Hubble. Use {click.style(get_gateway_uses(gateway_id), fg="green")} to deploy.'
+        f'Pushed to Hubble. Use {click.style(get_uri(id, tag), fg="green")} to deploy.'
     )
 
 
