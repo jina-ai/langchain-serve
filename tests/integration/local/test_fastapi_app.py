@@ -66,6 +66,7 @@ async def test_websocket_endpoint(run_fastapi_app_locally, route):
             assert received_messages == ["0", "1", "2", "3", "4"]
 
 
+@pytest.skip("Metrics doesn't work with FastAPI endpoints")
 @pytest.mark.parametrize(
     "run_fastapi_app_locally, route",
     [(APP, "sleep")],
