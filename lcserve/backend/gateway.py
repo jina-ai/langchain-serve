@@ -277,6 +277,7 @@ class ServingGateway(FastAPIBaseGateway):
         self._configure_cors()
         self._register_healthz()
         self._register_modules()
+        self._register_counters()
 
     @property
     def app(self) -> 'FastAPI':
@@ -340,6 +341,36 @@ class ServingGateway(FastAPIBaseGateway):
             description="WS request duration in seconds",
             unit="s",
         )
+
+    def _register_counters(self):
+        # TODO: doesn't work for now
+        from starlette.routing import Route, WebSocketRoute
+        from fastapi.routing import APIWebSocketRoute, APIRoute
+
+        ignore_paths = {'/healthz', '/dry_run', '/metrics'}
+        measured_routes = []
+
+        for route in self.app.routes:
+            route: Union[Route, WebSocketRoute, APIWebSocketRoute, APIRoute]
+
+            if route.path in ignore_paths or hasattr(route.endpoint, '__decorated__'):
+                measured_routes.append(route)
+                continue
+
+            if isinstance(route, (WebSocketRoute, APIWebSocketRoute)):
+                route.endpoint = measure_duration(self.ws_duration_counter)(
+                    route.endpoint
+                )
+            elif isinstance(route, (Route, APIRoute)):
+                route.endpoint = measure_duration(self.http_duration_counter)(
+                    route.endpoint
+                )
+            else:
+                self.logger.warning(f'Unknown route type: {type(route)}')
+
+            measured_routes.append(route)
+
+        self.app.router.routes = measured_routes
 
     def _register_healthz(self):
         @self.app.get("/healthz")
@@ -988,7 +1019,9 @@ def measure_duration(duration_counter):
     async def send_metrics_periodically(
         duration_counter, interval, route_name, shared_data
     ):
+        print(f'In send_metrics_periodically for {route_name}')
         while True:
+            print('In send_metrics_periodically while loop')
             await asyncio.sleep(interval)
             current_time = time.perf_counter()
             if duration_counter:
@@ -996,6 +1029,7 @@ def measure_duration(duration_counter):
                     current_time - shared_data.last_reported_time, {"route": route_name}
                 )
             shared_data.last_reported_time = current_time
+            print('shared_data.last_reported_time', shared_data.last_reported_time)
 
     def decorator(func):
         @wraps(func)
@@ -1019,6 +1053,7 @@ def measure_duration(duration_counter):
                         {"route": func.__name__},
                     )
 
+        wrapped.__decorated__ = True
         return wrapped
 
     return decorator
