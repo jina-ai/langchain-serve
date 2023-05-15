@@ -32,9 +32,11 @@ async def get_aitem(item_id: int, q: Union[str, None] = None):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, interval: int = 1):
     await websocket.accept()
-    input = await websocket.receive_text()
-    for i in range(1000):
-        await websocket.send_text(str(i))
-        await asyncio.sleep(interval)
+    try:
+        for i in range(5):
+            await websocket.send_text(str(i))
+            await asyncio.sleep(interval)
+        await websocket.close()
+    except Exception as e:
+        print(e)
 
-    await websocket.close()
