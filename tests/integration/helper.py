@@ -1,5 +1,6 @@
 import logging
 import os
+import asyncio
 import platform
 import signal
 import subprocess
@@ -15,6 +16,18 @@ from lcserve.__main__ import remove_app_on_jcloud, serve_on_jcloud
 
 PROMETHEUS_URL = "http://localhost:9090"
 
+async def _serve_on_jcloud(**deployment_args):
+    # This handle is for Hubble push
+    if platform.machine() == 'arm64':
+        deployment_args["platform"] = "linux/amd64"
+
+    logging.info("Deploying the test app to JCloud ...")
+    app_id = await serve_on_jcloud(**deployment_args)
+
+    # In case endpoints are not available for whatever reason
+    await asyncio.sleep(20)
+    return app_id
+
 
 @asynccontextmanager
 async def deploy_jcloud_app(**deployment_args):
@@ -22,14 +35,27 @@ async def deploy_jcloud_app(**deployment_args):
     apps_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'apps')
     sys.path.append(apps_path)
 
-    # This handle is for Hubble push
-    if platform.machine() == 'arm64':
-        deployment_args["platform"] = "linux/amd64"
+    deployment_args["module_str"] = "basic_app"
+    app_id = await _serve_on_jcloud(**deployment_args)
 
-    logging.info("Deploying the test app to JCloud ...")
-    app_id = await serve_on_jcloud("basic_app", **deployment_args)
-    # In case endpoints are not available for whatever reason
-    time.sleep(20)
+    try:
+        yield app_id
+    finally:
+        logging.info("Cleanup the test app ...")
+        await remove_app_on_jcloud(app_id)
+
+
+@asynccontextmanager
+async def deploy_jcloud_fastapi_app(**deployment_args):
+    # Make sure apps folder is discoverable
+    apps_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fastapi_app')
+    sys.path.append(apps_path)
+
+    deployment_args.update({
+        "fastapi_app_str": "endpoints:app",
+        "app_dir": apps_path,
+    })
+    app_id = await _serve_on_jcloud(**deployment_args)
 
     try:
         yield app_id
