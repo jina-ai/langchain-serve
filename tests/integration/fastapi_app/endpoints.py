@@ -11,9 +11,17 @@ app = FastAPI()
 def read_root():
     time.sleep(1)
     return {"Hello": "World"}
+
+
 @app.get("/astatus")
 async def get_astatus():
     await asyncio.sleep(1)
+    return {"Hello": "World"}
+
+
+@app.get("/sleep")
+async def sleep(interval: int):
+    await asyncio.sleep(interval)
     return {"Hello": "World"}
 
 
@@ -39,4 +47,3 @@ async def websocket_endpoint(websocket: WebSocket, interval: int = 1):
         await websocket.close()
     except Exception as e:
         print(e)
-

@@ -64,3 +64,23 @@ async def test_websocket_endpoint(run_fastapi_app_locally, route):
             async for message in websocket:
                 received_messages.append(message.data)
             assert received_messages == ["0", "1", "2", "3", "4"]
+
+
+@pytest.mark.parametrize(
+    "run_fastapi_app_locally, route",
+    [(APP, "sleep")],
+    indirect=["run_fastapi_app_locally"],
+)
+def test_metrics_http(run_fastapi_app_locally, route):
+    url = os.path.join(HTTP_HOST, route)
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    response = requests.get(url, headers=headers, params={"interval": 5})
+    assert response.status_code == 200
+
+    start_time = time.time()
+    examine_prom_with_retry(
+        start_time, metrics="http_request_duration_seconds", expected_value=5
+    )
