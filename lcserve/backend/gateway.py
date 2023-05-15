@@ -277,7 +277,7 @@ class ServingGateway(FastAPIBaseGateway):
         self._configure_cors()
         self._register_healthz()
         self._register_modules()
-        self._register_counters()
+        # self._register_counters()
 
     @property
     def app(self) -> 'FastAPI':
