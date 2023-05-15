@@ -16,9 +16,7 @@ APP = "tests.integration.fastapi_app.endpoints:app"
 
 @pytest.mark.parametrize(
     "run_fastapi_app_locally, route",
-    [
-        (APP, "status"), (APP, "astatus")
-    ],
+    [(APP, "status"), (APP, "astatus")],
     indirect=["run_fastapi_app_locally"],
 )
 def test_get_status_endpoints(run_fastapi_app_locally, route):
@@ -36,9 +34,7 @@ def test_get_status_endpoints(run_fastapi_app_locally, route):
 
 @pytest.mark.parametrize(
     "run_fastapi_app_locally, route",
-    [
-        (APP, "items"), (APP, "aitems")
-    ],
+    [(APP, "items"), (APP, "aitems")],
     indirect=["run_fastapi_app_locally"],
 )
 def test_path_query_params(run_fastapi_app_locally, route):
