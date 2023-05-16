@@ -47,6 +47,8 @@ jobs:
 
       - name: Build and push to Hubble
         run: |
+          make install_backend
+          make install_frontend
           make lcserve_push
         env:
           JINA_AUTH_TOKEN: ${{ secrets.DEEPANKAR_AUTH_TOKEN }}
