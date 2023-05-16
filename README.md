@@ -78,7 +78,7 @@
 
 ## :panda_face: pandas-ai-as-a-service
 
-[pandas-ai](https://github.com/gventuri/pandas-ai) integrates LLM capabilities into Pandas, to make daraframes conversational in Python code. Thanks to langchain-serve, we can now expose pandas-ai APIs on Jina AI Cloud in just a matter of seconds.
+[pandas-ai](https://github.com/gventuri/pandas-ai) integrates LLM capabilities into Pandas, to make dataframes conversational in Python code. Thanks to langchain-serve, we can now expose pandas-ai APIs on Jina AI Cloud in just a matter of seconds.
 
 - Deploy **pandas-ai** on Jina AI Cloud
 
@@ -657,7 +657,8 @@ curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
 | List all apps on Jina AI Cloud | `lc-serve list` |
 | Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
 
-## Configurations
+## JCloud
+### Configurations
 
 For JCloud deployment, you can configure your application infrastructure by providing a YAML configuration file using the `--config` option. The supported configurations are:
 
@@ -668,7 +669,7 @@ For example:
 
 ```
 instance: C4
-autoscale_min: 1
+autoscale_min: 0
 ```
 
 You can alternatively include a `jcloud.yaml` file in your application directory with the desired configurations. However, please note that if the `--config` option is explicitly used in the command line interface, the local jcloud.yaml file will be disregarded. The command line provided configuration file will take precedence.
@@ -677,8 +678,40 @@ If you don't provide a configuration file or a specific configuration isn't spec
 
 ```
 instance: C3
+autoscale_min: 1
+```
+### Pricing
+For applications hosted on JCloud, our pricing is determined according to the instance type (as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers)) and the duration for which your application serves, and the cost associated with maintaining the minimum number of application replicas. To calculate the cost for the last hour, use the following formula:
+```
+Hourly Cost = (Hourly Credits for Selected Instance Type) * (Serving Duration in Last Hour)
+            + (Hourly Credits for Selected Instance Type) * (Minimum Number of Autoscale Configuration Replicas)
+```
+And price per credit is €0.005 as per the [Jina AI Cloud Pricing](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
+
+By default, if no explicit configuration is provided, the following settings will be applied:
+
+```
+instance: C3
+autoscale_min: 1
+```
+
+Example 1:
+
+Consider a HTTP application which, in the last hour, has served requests for `10` minutes (either sequentially or concurrently). The application configuration is as follows:
+```
+instance: C4
 autoscale_min: 0
 ```
+In this case, the cost would be approximately `3.33` credits. The calculation is `20 * 10/60 + 20 * 0`, where `20` is the hourly credit rate for a `C4` instance.
+
+Example 2:
+
+Now, consider a WebSocket application which, in the last hour, has actively served requests for 10 minutes, but was connected for 20 minutes. The application uses the default configuration:
+```
+instance: C3
+autoscale_min: 1
+```
+The cost here would be approximately `13.33` credits. The calculation is `10 * 20/60 + 10 * 1 = 3.33`, where `10` is the hourly credit rate for a `C3` instance. Note that we use `20` as the duration of serving, rather than `10`, as we measure the cost based on the duration the decorated function serves, not the duration during which it actively serves clients.
 
 # :grey_question: Frequently Asked Questions
 
