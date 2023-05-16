@@ -1,6 +1,16 @@
 name: Push Langflow image to JAC
 
 on:
+  repository_dispatch:
+    types: [langflow-push]
+    inputs:
+      push_token:
+        description: Token to push the image
+        required: true
+      branch:
+        description: Pass the branch
+        required: false
+        default: dev
   workflow_dispatch:
     inputs:
       push_token:
