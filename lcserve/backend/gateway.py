@@ -30,10 +30,10 @@ from .playground.utils.helper import (
     SERVING,
     Capturing,
     EnvironmentVarCtxtManager,
+    import_from_string,
     parse_uses_with,
     run_cmd,
     run_function,
-    import_from_string,
 )
 from .playground.utils.langchain_helper import (
     AsyncStreamingWebsocketCallbackHandler,
@@ -344,8 +344,8 @@ class ServingGateway(FastAPIBaseGateway):
 
     def _register_counters(self):
         # TODO: doesn't work for now
+        from fastapi.routing import APIRoute, APIWebSocketRoute
         from starlette.routing import Route, WebSocketRoute
-        from fastapi.routing import APIWebSocketRoute, APIRoute
 
         ignore_paths = {'/healthz', '/dry_run', '/metrics'}
         measured_routes = []
@@ -1019,9 +1019,7 @@ def measure_duration(duration_counter):
     async def send_metrics_periodically(
         duration_counter, interval, route_name, shared_data
     ):
-        print(f'In send_metrics_periodically for {route_name}')
         while True:
-            print('In send_metrics_periodically while loop')
             await asyncio.sleep(interval)
             current_time = time.perf_counter()
             if duration_counter:
@@ -1029,7 +1027,6 @@ def measure_duration(duration_counter):
                     current_time - shared_data.last_reported_time, {"route": route_name}
                 )
             shared_data.last_reported_time = current_time
-            print('shared_data.last_reported_time', shared_data.last_reported_time)
 
     def decorator(func):
         @wraps(func)
