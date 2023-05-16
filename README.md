@@ -4,7 +4,7 @@
 
 <p align=center>
 <a href="https://pypi.org/project/langchain-serve/"><img alt="PyPI" src="https://img.shields.io/pypi/v/langchain-serve?label=Release&style=flat-square"></a>
-<a href="https://jina.ai/slack"><img src="https://img.shields.io/badge/Slack-4.8k-blueviolet?logo=slack&amp;logoColor=white&style=flat-square"></a>
+<a href="https://discord.jina.ai"><img src="https://img.shields.io/discord/1106542220112302130?logo=discord&logoColor=white&style=flat-square"></a>
 <a href="https://pypistats.org/packages/langchain-serve"><img alt="PyPI - Downloads from official pypistats" src="https://img.shields.io/pypi/dm/langchain-serve?style=flat-square"></a>
 <a href="https://github.com/jina-ai/langchain-serve/actions/workflows/cd.yml"><img alt="Github CD status" src="https://github.com/jina-ai/langchain-serve/actions/workflows/cd.yml/badge.svg"></a>
 </p>
@@ -718,4 +718,4 @@ Please use `--verbose` and retry to get more information. If you are operating o
 - Do you want larger instances for your API?
 - Looking for file uploads, or other data-in, data-out features?
 
-📣 Got your attention? [Join us on Slack](https://jina.ai/slack/) and we'd be happy to help you out.
+📣 Got your attention? [Join us on Discord](https://discord.jina.ai) and we'd be happy to help you out.
