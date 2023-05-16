@@ -78,7 +78,7 @@
 
 ## :panda_face: pandas-ai-as-a-service
 
-[pandas-ai](https://github.com/gventuri/pandas-ai) integrates LLM capabilities into Pandas, to make daraframes conversational in Python code. Thanks to langchain-serve, we can now expose pandas-ai APIs on Jina AI Cloud in just a matter of seconds.
+[pandas-ai](https://github.com/gventuri/pandas-ai) integrates LLM capabilities into Pandas, to make dataframes conversational in Python code. Thanks to langchain-serve, we can now expose pandas-ai APIs on Jina AI Cloud in just a matter of seconds.
 
 - Deploy **pandas-ai** on Jina AI Cloud
 
@@ -681,7 +681,7 @@ instance: C3
 autoscale_min: 1
 ```
 ### Pricing
-For application hosted on JCloud, our pricing is determined according to the instance type (as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers)) and the duration for which your application serves, and the cost associated with maintaining the minimum number of application replicas. To calculate the cost for the last hour, use the following formula:
+For applications hosted on JCloud, our pricing is determined according to the instance type (as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers)) and the duration for which your application serves, and the cost associated with maintaining the minimum number of application replicas. To calculate the cost for the last hour, use the following formula:
 ```
 Hourly Cost = (Hourly Credits for Selected Instance Type) * (Serving Duration in Last Hour)
             + (Hourly Credits for Selected Instance Type) * (Minimum Number of Autoscale Configuration Replicas)
@@ -751,4 +751,4 @@ Please use `--verbose` and retry to get more information. If you are operating o
 - Do you want larger instances for your API?
 - Looking for file uploads, or other data-in, data-out features?
 
-📣 Got your attention? [Join us on Slack](https://jina.ai/slack/) and we'd be happy to help you out.
+📣 Got your attention? [Join us on Discord](https://discord.jina.ai/) and we'd be happy to help you out.
