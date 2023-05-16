@@ -683,8 +683,18 @@ autoscale_min: 1
 ### Pricing
 For application hosted on JCloud, our pricing is determined according to the instance type (as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers)) and the duration for which your application serves, and the cost associated with maintaining the minimum number of application replicas. To calculate the cost for the last hour, use the following formula:
 ```
-Hourly Cost = (Hourly Credits for Selected Instance Type) * (Serving Duration in Last Hour) + (Hourly Credits for Selected Instance Type) * (Minimum Number of Autoscale Configuration Replicas) * 1
+Hourly Cost = (Hourly Credits for Selected Instance Type) * (Serving Duration in Last Hour)
+            + (Hourly Credits for Selected Instance Type) * (Minimum Number of Autoscale Configuration Replicas)
 ```
+And price per credit is €0.005 as per the [Jina AI Cloud Pricing](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
+
+By default, if no explicit configuration is provided, the following settings will be applied:
+
+```
+instance: C3
+autoscale_min: 1
+```
+
 Example 1:
 
 Consider a HTTP application which, in the last hour, has served requests for `10` minutes (either sequentially or concurrently). The application configuration is as follows:
