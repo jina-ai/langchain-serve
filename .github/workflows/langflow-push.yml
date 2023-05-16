@@ -64,8 +64,3 @@ jobs:
           make lcserve_push
         env:
           JINA_AUTH_TOKEN: ${{ secrets.DEEPANKAR_AUTH_TOKEN }}
-
-      # If failed, get tmate session
-      - name: Get tmate session URL
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
