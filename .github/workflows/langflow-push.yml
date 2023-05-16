@@ -49,7 +49,7 @@ jobs:
         run: |
           # pip install -U langchain-serve
           # poetry install --extras "production"
-          pip install ".[production]"
+          pip install -e ".[production]"
           make install_frontend
           make lcserve_push
         env:
