@@ -47,6 +47,7 @@ jobs:
 
       - name: Build and push to Hubble
         run: |
+          pip install -U langchain-serve
           make install_backend
           make install_frontend
           make lcserve_push
