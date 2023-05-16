@@ -681,27 +681,27 @@ instance: C3
 autoscale_min: 1
 ```
 ### Pricing
-For application hosted on JCloud, our pricing is determined according to the instance type (as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers)) and the duration for which your application serves. The cost for the last hour can be calculated as follows:
+For application hosted on JCloud, our pricing is determined according to the instance type (as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers)) and the duration for which your application serves, and the cost associated with maintaining the minimum number of application replicas. To calculate the cost for the last hour, use the following formula:
 ```
-Cost for the last hour = (Credits per hour for the chosen instance type) * (Serving duration in the last hour)
+Hourly Cost = (Hourly Credits for Selected Instance Type) * (Serving Duration in Last Hour) + (Hourly Credits for Selected Instance Type) * (Minimum Number of Autoscale Configuration Replicas) * 1
 ```
 Example 1:
 
 Consider a HTTP application which, in the last hour, has served requests for `10` minutes (either sequentially or concurrently). The application configuration is as follows:
 ```
 instance: C4
-autoscale_min: 1
+autoscale_min: 0
 ```
-In this case, the cost would be approximately `3.33` credits. The calculation is `20 * 10/60 = 3.33`, where `20` is the hourly credit rate for a `C4` instance.
+In this case, the cost would be approximately `3.33` credits. The calculation is `20 * 10/60 + 20 * 0`, where `20` is the hourly credit rate for a `C4` instance.
 
 Example 2:
 
 Now, consider a WebSocket application which, in the last hour, has actively served requests for 10 minutes, but was connected for 20 minutes. The application uses the default configuration:
 ```
 instance: C3
-autoscale_min: 0
+autoscale_min: 1
 ```
-The cost here would also be approximately `3.33` credits. The calculation is `10 * 20/60 = 3.33`, where `10` is the hourly credit rate for a `C3` instance. Note that we use `20` as the duration of request service, rather than `10`, as we measure the cost based on the duration the decorated function serves, not the duration during which it serves clients.
+The cost here would be approximately `13.33` credits. The calculation is `10 * 20/60 + 10 * 1 = 3.33`, where `10` is the hourly credit rate for a `C3` instance. Note that we use `20` as the duration of serving, rather than `10`, as we measure the cost based on the duration the decorated function serves, not the duration during which it actively serves clients.
 
 # :grey_question: Frequently Asked Questions
 

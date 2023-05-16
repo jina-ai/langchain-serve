@@ -1,8 +1,8 @@
 import asyncio
 import inspect
 import os
-import sys
 import shutil
+import sys
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -12,7 +12,7 @@ from importlib import import_module
 from shutil import copytree
 from tempfile import mkdtemp
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import requests
 import yaml
@@ -198,8 +198,8 @@ def _load_app_from_fastapi_app_str(
     fastapi_app_str: str,
 ) -> Tuple['FastAPI', ModuleType]:
     from .backend.playground.utils.helper import (
-        import_from_string,
         ImportFromStringError,
+        import_from_string,
     )
 
     try:
@@ -640,7 +640,7 @@ def get_jcloud_config(
 
         if instance:
             jcloud_config.instance = instance
-        if autoscale_min:
+        if autoscale_min is not None:
             jcloud_config.autoscale.min = autoscale_min
 
     return jcloud_config
@@ -684,12 +684,14 @@ def get_flow_dict(
     if os.environ.get("LCSERVE_TEST", False):
         if 'with' not in flow_dict:
             flow_dict['with'] = {}
-        
-        flow_dict['with'].update({
-            'metrics': True,
-            'metrics_exporter_host': 'http://localhost',
-            'metrics_exporter_port': 4317,
-        })
+
+        flow_dict['with'].update(
+            {
+                'metrics': True,
+                'metrics_exporter_host': 'http://localhost',
+                'metrics_exporter_port': 4317,
+            }
+        )
     return flow_dict
 
 
