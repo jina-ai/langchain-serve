@@ -33,7 +33,7 @@ jobs:
       - name: Checkout logspace-ai/langflow
         uses: actions/checkout@v2
         with:
-          repository: logspace-ai/langflow
+          repository: deepankarm/langflow
           ref: ${{ github.event.inputs.branch }}
 
       - name: Install poetry
