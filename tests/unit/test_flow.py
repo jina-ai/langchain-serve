@@ -23,6 +23,7 @@ flow_dict_template = {
         "uses": "jinahub+docker://None",
         "uses_with": {
             "modules": ["dummy"],
+            "fastapi_app_str": "dummy",
         },
         "port": [8080],
         "protocol": [None],
@@ -89,7 +90,8 @@ def test_get_jcloud_config(
 
 def test_get_flow_dict_for_local():
     flow_dict = get_flow_dict(
-        module="dummy",
+        module_str="dummy",
+        fastapi_app_str="dummy",
         jcloud=False,
         is_websocket=False,
     )
@@ -102,6 +104,7 @@ def test_get_flow_dict_for_local():
             ),
             "uses_with": {
                 "modules": ["dummy"],
+                "fastapi_app_str": "dummy",
             },
             "port": [8080],
             "protocol": ["http"],
@@ -141,14 +144,16 @@ def test_get_flow_dict_for_jcloud(is_websocket, has_config, instance, autoscale_
         mocked_open.return_value.__enter__.return_value = io.StringIO(file_content)
         with patch("builtins.open", mocked_open):
             flow_dict = get_flow_dict(
-                module="dummy",
+                module_str="dummy",
+                fastapi_app_str="dummy",
                 jcloud=True,
                 jcloud_config_path="dummy.yaml",
                 is_websocket=is_websocket,
             )
     else:
         flow_dict = get_flow_dict(
-            module="dummy",
+            module_str="dummy",
+            fastapi_app_str="dummy",
             jcloud=True,
             jcloud_config_path=None,
             is_websocket=is_websocket,

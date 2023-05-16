@@ -1,5 +1,6 @@
 import logging
 import os
+import asyncio
 import platform
 import signal
 import subprocess
@@ -15,6 +16,18 @@ from lcserve.__main__ import remove_app_on_jcloud, serve_on_jcloud
 
 PROMETHEUS_URL = "http://localhost:9090"
 
+async def _serve_on_jcloud(**deployment_args):
+    # This handle is for Hubble push
+    if platform.machine() == 'arm64':
+        deployment_args["platform"] = "linux/amd64"
+
+    logging.info("Deploying the test app to JCloud ...")
+    app_id = await serve_on_jcloud(**deployment_args)
+
+    # In case endpoints are not available for whatever reason
+    await asyncio.sleep(20)
+    return app_id
+
 
 @asynccontextmanager
 async def deploy_jcloud_app(**deployment_args):
@@ -22,14 +35,27 @@ async def deploy_jcloud_app(**deployment_args):
     apps_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'apps')
     sys.path.append(apps_path)
 
-    # This handle is for Hubble push
-    if platform.machine() == 'arm64':
-        deployment_args["platform"] = "linux/amd64"
+    deployment_args["module_str"] = "basic_app"
+    app_id = await _serve_on_jcloud(**deployment_args)
 
-    logging.info("Deploying the test app to JCloud ...")
-    app_id = await serve_on_jcloud("basic_app", **deployment_args)
-    # In case endpoints are not available for whatever reason
-    time.sleep(20)
+    try:
+        yield app_id
+    finally:
+        logging.info("Cleanup the test app ...")
+        await remove_app_on_jcloud(app_id)
+
+
+@asynccontextmanager
+async def deploy_jcloud_fastapi_app(**deployment_args):
+    # Make sure apps folder is discoverable
+    apps_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fastapi_app')
+    sys.path.append(apps_path)
+
+    deployment_args.update({
+        "fastapi_app_str": "endpoints:app",
+        "app_dir": apps_path,
+    })
+    app_id = await _serve_on_jcloud(**deployment_args)
 
     try:
         yield app_id
@@ -70,6 +96,38 @@ def run_test_app_locally(request):
     kill_child_pids(server_process.pid)
     logging.info("Done!!")
 
+
+@pytest.fixture(scope="session", autouse=True)
+def run_fastapi_app_locally(request):
+    app_name = request.param
+
+    # Make sure apps folder is discoverable
+    apps_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fastapi_app')
+    sys.path.append(apps_path)
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = (
+        apps_path
+        + (os.pathsep if env.get("PYTHONPATH") else "")
+        + env.get("PYTHONPATH", "")
+    )
+    # Mark LCSERVE_TEST as true to make the Flow tested export metrics (to docker composed monitor stack)
+    env["LCSERVE_TEST"] = "true"
+
+    # Start the app
+    server_process = subprocess.Popen(
+        ["python", "-m", "lcserve", "deploy", "local", "--app", app_name], env=env
+    )
+    logging.info(f"Wait 10s for app [{app_name}] to be ready ...")
+    time.sleep(10)  # Give the server some time to start
+    logging.info("Tests starts ...")
+
+    yield
+
+    # Clean up
+    logging.info("Cleanup the app processes ...")
+    kill_child_pids(server_process.pid)
+    logging.info("Done!!")
 
 def kill_child_pids(pid):
     parent = psutil.Process(pid)
