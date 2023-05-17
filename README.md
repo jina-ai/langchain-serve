@@ -710,22 +710,35 @@ Applications hosted on JCloud are priced in two categories:
 
 **Example 1:**
 
-Consider a HTTP application which, in the last hour, has served requests for `10` minutes (either sequentially or concurrently). The application uses a custom config:
+Consider an HTTP application that has served requests for `10` minutes in the last hour and uses a custom config:
 ```
 instance: C4
 autoscale_min: 0
 ```
-In this case, the cost would be approximately `3.33` credits. The calculation is `20 * 10/60 + 20 * 0`, where `20` is the hourly credit rate for a `C4` instance.
+
+Total credits per hour charged would be `3.33`. The calculation is as follows:
+```
+C4 instance has an hourly credit rate of 20.
+Base credits = 0 (since `autoscale_min` is 0)
+Serving credits = 20 * 10/60 = 3.33
+Total credits per hour = 3.33
+```
 
 **Example 2:**
 
-A WebSocket application which, in the last hour, has actively connections for 20 minutes. The application uses the default configuration.
+Consider a WebSocket application that had active connections for 20 minutes in the last hour and uses the default configuration.
 ```
 instance: C3
 autoscale_min: 1
 ```
 
-The cost here would be approximately `13.33` credits. The calculation is `10 * 20/60 + 10 * 1 = 3.33`, where `10` is the hourly credit rate for a `C3` instance. 
+Total credits per hour charged would be `13.33`. The calculation is as follows:
+```
+C3 instance has an hourly credit rate of 10.
+Base credits = 10 (since `autoscale_min` is 1)
+Serving credits = 10 * 20/60 = 3.33
+Total credits per hour = 10 + 3.33 = 13.33
+```
 
 # :grey_question: Frequently Asked Questions
 
