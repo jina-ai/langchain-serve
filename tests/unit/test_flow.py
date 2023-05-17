@@ -61,10 +61,10 @@ flow_dict_template = {
 @pytest.mark.parametrize(
     "instance,autoscale_min,expected_instance,expected_autoscale_min",
     [
-        (None, None, "C3", 0),
-        ("C4", None, "C4", 0),
-        (None, 1, "C3", 1),
-        ("C4", 1, "C4", 1),
+        (None, None, "C3", 1),
+        ("C4", None, "C4", 1),
+        (None, 0, "C3", 0),
+        ("C4", 0, "C4", 0),
     ],
 )
 def test_get_jcloud_config(
@@ -120,13 +120,13 @@ def test_get_flow_dict_for_local():
             False,
             True,
             "C5",
-            1,
+            0,
         ),
         (
             True,
             False,
             "C3",
-            0,
+            1,
         ),
     ],
 )
