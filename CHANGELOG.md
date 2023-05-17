@@ -31,6 +31,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -793,4 +794,30 @@
 ### 🍹 Other Improvements
 
  - [[```8f5fb3e0```](https://github.com/jina-ai/langchain-serve/commit/8f5fb3e0cc51243a9522ebfb07d208b426fc9ffe)] __-__ __version__: the next version will be 0.0.31 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-32></a>
+## Release Note (`0.0.32`)
+
+> Release time: 2023-05-17 05:23:33
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Han Xiao,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```2f6ab699```](https://github.com/jina-ai/langchain-serve/commit/2f6ab6996c5548fee1addda5d236e7c9eb42600e)] __-__ pricing related (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```b46c55b1```](https://github.com/jina-ai/langchain-serve/commit/b46c55b1035a617b89f023b4f7304a76c8cf801b)] __-__ update langflow-push.yml (*Deepankar Mahapatro*)
+ - [[```76ecf1bc```](https://github.com/jina-ai/langchain-serve/commit/76ecf1bc39ab4ef4a4b3f94f30411b4b44e0b03d)] __-__ create test-push.yml (*Deepankar Mahapatro*)
+ - [[```06eccf9c```](https://github.com/jina-ai/langchain-serve/commit/06eccf9cea27bc1f3e3b0a29a54c97f6b62bdfe0)] __-__ add langflow push workflow (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```cb028852```](https://github.com/jina-ai/langchain-serve/commit/cb028852d3ae5e6ec1ea9f9e2750663e2fe45263)] __-__ fix slack link to discord (*Han Xiao*)
+ - [[```53ccbf99```](https://github.com/jina-ai/langchain-serve/commit/53ccbf9901834ef59db0e95e2dbe09d60bbfe582)] __-__ __version__: the next version will be 0.0.32 (*Jina Dev Bot*)
 
