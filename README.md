@@ -702,9 +702,9 @@ Applications hosted on JCloud are priced in two categories:
 - You are charged for each second your application is serving requests.
 
 
-**Total credits = Base credits + Serving credits**
+**Total credits charged = Base credits + Serving credits**
 
-And price per credit is €0.005 as per the [Jina AI Cloud Pricing](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
+[Jina AI Cloud](https://cloud.jina.ai/pricing) defines each credit as €0.005.
 
 ### Examples
 
