@@ -239,9 +239,9 @@ def get_uri(id: str, tag: str):
 
 
 def get_module_dir(
-    module_str: str = None, 
-    fastapi_app_str: str = None, 
-    app_dir: str = None, 
+    module_str: str = None,
+    fastapi_app_str: str = None,
+    app_dir: str = None,
     lcserve_app: bool = False,
 ) -> Tuple[str, bool]:
     _add_to_path(lcserve_app=lcserve_app)
@@ -428,13 +428,15 @@ def _push_to_hubble(
     from hubble.executor.hubio import HubIO
     from hubble.executor.parsers import set_hub_push_parser
 
-    _secret = secrets.token_hex(8)
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+
+    secret = secrets.token_hex(8)
     args_list = [
         tmpdir,
         '--tag',
         tag,
         '--secret',
-        _secret,
+        secret,
         '--private',
         '--no-usage',
         '--no-cache',
@@ -448,11 +450,15 @@ def _push_to_hubble(
     if platform:
         args.platform = platform
 
-    if hubble_exists(name, _secret):
+    if hubble_exists(name, secret):
         args.force_update = name
 
-    gateway_id = HubIO(args).push().get('id')
-    return gateway_id + ':' + tag
+    push_envs = (
+        {'JINA_HUBBLE_HIDE_EXECUTOR_PUSH_SUCCESS_MSG': 'true'} if not verbose else {}
+    )
+    with EnvironmentVarCtxtManager(push_envs):
+        gateway_id = HubIO(args).push().get('id')
+        return gateway_id + ':' + tag
 
 
 def push_app_to_hubble(
@@ -733,6 +739,8 @@ def get_flow_yaml(
 async def deploy_app_on_jcloud(
     flow_dict: Dict, app_id: str = None, verbose: bool = False
 ) -> Tuple[str, str]:
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+    
     os.environ['JCLOUD_LOGLEVEL'] = 'INFO' if verbose else 'ERROR'
 
     from jcloud.flow import CloudFlow
@@ -742,13 +750,15 @@ async def deploy_app_on_jcloud(
         with open(flow_path, 'w') as f:
             yaml.safe_dump(flow_dict, f, sort_keys=False)
 
-        if app_id is None:  # appid is None means we are deploying a new app
-            jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
-            app_id = jcloud_flow.flow_id
+        deploy_envs = {'JCLOUD_HIDE_SUCCESS_MSG': 'true'} if not verbose else {}
+        with EnvironmentVarCtxtManager(deploy_envs):
+            if app_id is None:  # appid is None means we are deploying a new app
+                jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
+                app_id = jcloud_flow.flow_id
 
-        else:  # appid is not None means we are updating an existing app
-            jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
-            await jcloud_flow.update()
+            else:  # appid is not None means we are updating an existing app
+                jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
+                await jcloud_flow.update()
 
         for k, v in jcloud_flow.endpoints.items():
             if k.lower() == 'gateway (http)' or k.lower() == 'gateway (websocket)':
