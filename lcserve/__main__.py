@@ -59,7 +59,7 @@ def _push_app_to_hubble(
 ):
     from .flow import push_app_to_hubble
 
-    gateway_id = push_app_to_hubble(
+    return push_app_to_hubble(
         module_dir=module_dir,
         image_name=image_name,
         tag=tag,
@@ -68,7 +68,6 @@ def _push_app_to_hubble(
         platform=platform,
         verbose=verbose,
     )
-    return gateway_id
 
 
 async def serve_on_jcloud(
@@ -85,6 +84,7 @@ async def serve_on_jcloud(
     config: str = None,
     verbose: bool = False,
     cors: bool = True,
+    lc_serve_app: bool = False,
 ) -> str:
     from .backend.playground.utils.helper import get_random_tag
 
@@ -92,6 +92,7 @@ async def serve_on_jcloud(
         module_str=module_str,
         fastapi_app_str=fastapi_app_str,
         app_dir=app_dir,
+        lc_serve_app=lc_serve_app,
     )
     config = resolve_jcloud_config(config, module_dir)
 
@@ -120,6 +121,7 @@ async def serve_on_jcloud(
             is_websocket=is_websocket,
             jcloud_config_path=config,
             cors=cors,
+            lc_serve_app=lc_serve_app,
         ),
         app_id=app_id,
         verbose=verbose,
@@ -158,6 +160,7 @@ async def serve_babyagi_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lc_serve_app=True,
     )
 
 
@@ -191,6 +194,7 @@ async def serve_autogpt_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lc_serve_app=True,
     )
 
 
@@ -217,6 +221,7 @@ async def serve_pdf_qna_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lc_serve_app=True,
     )
 
 
@@ -243,6 +248,7 @@ async def serve_pandas_ai_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lc_serve_app=True,
     )
 
 

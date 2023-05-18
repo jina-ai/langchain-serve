@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import os
+import secrets
 import shutil
 import sys
 import tempfile
@@ -161,14 +162,15 @@ def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
     )
 
 
-def _add_to_path():
+def _add_to_path(lc_serve_app: bool = False):
     # add current directory to the beginning of the path to prioritize local imports
     sys.path.insert(0, os.getcwd())
 
-    # get all directories in the apps folder and add them to the path
-    for app in os.listdir(os.path.join(os.path.dirname(__file__), 'apps')):
-        if os.path.isdir(os.path.join(os.path.dirname(__file__), 'apps', app)):
-            sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'apps', app))
+    if lc_serve_app:
+        # get all directories in the apps folder and add them to the path
+        for app in os.listdir(os.path.join(os.path.dirname(__file__), 'apps')):
+            if os.path.isdir(os.path.join(os.path.dirname(__file__), 'apps', app)):
+                sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'apps', app))
 
 
 def _get_parent_dir(modname: str, filename: str) -> str:
@@ -237,9 +239,12 @@ def get_uri(id: str, tag: str):
 
 
 def get_module_dir(
-    module_str: str = None, fastapi_app_str: str = None, app_dir: str = None
+    module_str: str = None, 
+    fastapi_app_str: str = None, 
+    app_dir: str = None, 
+    lc_serve_app: bool = False,
 ) -> Tuple[str, bool]:
-    _add_to_path()
+    _add_to_path(lc_serve_app=lc_serve_app)
 
     if module_str is not None:
         _module = _load_module_from_str(module_str)
@@ -423,13 +428,14 @@ def _push_to_hubble(
     from hubble.executor.hubio import HubIO
     from hubble.executor.parsers import set_hub_push_parser
 
+    _secret = secrets.token_hex(8)
     args_list = [
         tmpdir,
         '--tag',
         tag,
         '--secret',
-        'somesecret',
-        '--public',
+        _secret,
+        '--private',
         '--no-usage',
         '--no-cache',
     ]
@@ -442,7 +448,7 @@ def _push_to_hubble(
     if platform:
         args.platform = platform
 
-    if hubble_exists(name):
+    if hubble_exists(name, _secret):
         args.force_update = name
 
     gateway_id = HubIO(args).push().get('id')
@@ -658,6 +664,7 @@ def get_flow_dict(
     is_websocket: bool = False,
     jcloud_config_path: str = None,
     cors: bool = True,
+    lc_serve_app: bool = False,
 ) -> Dict:
     if jcloud:
         jcloud_config = get_jcloud_config(
@@ -673,6 +680,7 @@ def get_flow_dict(
             'uses_with': {
                 'modules': [module_str] if module_str else [],
                 'fastapi_app_str': fastapi_app_str or '',
+                'lc_serve_app': lc_serve_app,
             },
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
@@ -704,6 +712,7 @@ def get_flow_yaml(
     is_websocket: bool = False,
     cors: bool = True,
     jcloud_config_path: str = None,
+    lc_serve_app: bool = False,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
@@ -715,6 +724,7 @@ def get_flow_yaml(
             cors=cors,
             jcloud=jcloud,
             jcloud_config_path=jcloud_config_path,
+            lc_serve_app=lc_serve_app,
         ),
         sort_keys=False,
     )

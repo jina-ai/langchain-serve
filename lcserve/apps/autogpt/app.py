@@ -9,7 +9,10 @@ from langchain.chat_models import ChatOpenAI
 
 from lcserve import serving
 
-from .helper import CustomTool, PredefinedTools, get_agent, get_tools
+try:
+    from .helper import CustomTool, PredefinedTools, get_agent, get_tools
+except ImportError:
+    from helper import CustomTool, PredefinedTools, get_agent, get_tools
 
 
 @serving(websocket=True)
