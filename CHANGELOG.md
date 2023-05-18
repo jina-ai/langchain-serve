@@ -32,6 +32,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -820,4 +821,24 @@
 
  - [[```cb028852```](https://github.com/jina-ai/langchain-serve/commit/cb028852d3ae5e6ec1ea9f9e2750663e2fe45263)] __-__ fix slack link to discord (*Han Xiao*)
  - [[```53ccbf99```](https://github.com/jina-ai/langchain-serve/commit/53ccbf9901834ef59db0e95e2dbe09d60bbfe582)] __-__ __version__: the next version will be 0.0.32 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-33></a>
+## Release Note (`0.0.33`)
+
+> Release time: 2023-05-18 05:23:34
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 📗 Documentation
+
+ - [[```cb2e0a08```](https://github.com/jina-ai/langchain-serve/commit/cb2e0a088586d5c6eaa57ed39ddeb6f0a2eca2ad)] __-__ refactor pricing (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```fea3ce82```](https://github.com/jina-ai/langchain-serve/commit/fea3ce823f21f0f401ebdcf6b004f33559bce432)] __-__ remove pandasai to support python 3.8 (*Deepankar Mahapatro*)
+ - [[```1e5966fe```](https://github.com/jina-ai/langchain-serve/commit/1e5966feb9d1ecf50578289a27eb4b1139891a32)] __-__ __version__: the next version will be 0.0.33 (*Jina Dev Bot*)
 
