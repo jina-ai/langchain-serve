@@ -33,6 +33,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -841,4 +842,24 @@
 
  - [[```fea3ce82```](https://github.com/jina-ai/langchain-serve/commit/fea3ce823f21f0f401ebdcf6b004f33559bce432)] __-__ remove pandasai to support python 3.8 (*Deepankar Mahapatro*)
  - [[```1e5966fe```](https://github.com/jina-ai/langchain-serve/commit/1e5966feb9d1ecf50578289a27eb4b1139891a32)] __-__ __version__: the next version will be 0.0.33 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-34></a>
+## Release Note (`0.0.34`)
+
+> Release time: 2023-05-18 11:47:24
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```7c400421```](https://github.com/jina-ai/langchain-serve/commit/7c40042115f8918a4343f508ac264ae783b8ab69)] __-__ hide boxes if verbose is not set (*Deepankar Mahapatro*)
+ - [[```9a827f85```](https://github.com/jina-ai/langchain-serve/commit/9a827f853752bff90c4f00ecf924bb289a64e6d4)] __-__ sys path for apps (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```5d322ccb```](https://github.com/jina-ai/langchain-serve/commit/5d322ccb17f7b4657079cfeedfe02b36df6d258b)] __-__ __version__: the next version will be 0.0.34 (*Jina Dev Bot*)
 
