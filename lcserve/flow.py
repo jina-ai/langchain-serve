@@ -162,11 +162,11 @@ def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
     )
 
 
-def _add_to_path(lc_serve_app: bool = False):
+def _add_to_path(lcserve_app: bool = False):
     # add current directory to the beginning of the path to prioritize local imports
     sys.path.insert(0, os.getcwd())
 
-    if lc_serve_app:
+    if lcserve_app:
         # get all directories in the apps folder and add them to the path
         for app in os.listdir(os.path.join(os.path.dirname(__file__), 'apps')):
             if os.path.isdir(os.path.join(os.path.dirname(__file__), 'apps', app)):
@@ -242,9 +242,9 @@ def get_module_dir(
     module_str: str = None, 
     fastapi_app_str: str = None, 
     app_dir: str = None, 
-    lc_serve_app: bool = False,
+    lcserve_app: bool = False,
 ) -> Tuple[str, bool]:
-    _add_to_path(lc_serve_app=lc_serve_app)
+    _add_to_path(lcserve_app=lcserve_app)
 
     if module_str is not None:
         _module = _load_module_from_str(module_str)
@@ -664,7 +664,7 @@ def get_flow_dict(
     is_websocket: bool = False,
     jcloud_config_path: str = None,
     cors: bool = True,
-    lc_serve_app: bool = False,
+    lcserve_app: bool = False,
 ) -> Dict:
     if jcloud:
         jcloud_config = get_jcloud_config(
@@ -680,7 +680,7 @@ def get_flow_dict(
             'uses_with': {
                 'modules': [module_str] if module_str else [],
                 'fastapi_app_str': fastapi_app_str or '',
-                'lc_serve_app': lc_serve_app,
+                'lcserve_app': lcserve_app,
             },
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
@@ -712,7 +712,7 @@ def get_flow_yaml(
     is_websocket: bool = False,
     cors: bool = True,
     jcloud_config_path: str = None,
-    lc_serve_app: bool = False,
+    lcserve_app: bool = False,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
@@ -724,7 +724,7 @@ def get_flow_yaml(
             cors=cors,
             jcloud=jcloud,
             jcloud_config_path=jcloud_config_path,
-            lc_serve_app=lc_serve_app,
+            lcserve_app=lcserve_app,
         ),
         sort_keys=False,
     )

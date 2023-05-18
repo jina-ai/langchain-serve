@@ -24,6 +24,7 @@ flow_dict_template = {
         "uses_with": {
             "modules": ["dummy"],
             "fastapi_app_str": "dummy",
+            "lcserve_app": False,
         },
         "port": [8080],
         "protocol": [None],
@@ -105,6 +106,7 @@ def test_get_flow_dict_for_local():
             "uses_with": {
                 "modules": ["dummy"],
                 "fastapi_app_str": "dummy",
+                "lcserve_app": False, 
             },
             "port": [8080],
             "protocol": ["http"],
