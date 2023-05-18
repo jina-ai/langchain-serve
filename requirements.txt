@@ -6,5 +6,4 @@ langchain
 jina-hubble-sdk
 nest-asyncio
 textual
-pandasai
 toml
