@@ -265,12 +265,14 @@ class ServingGateway(FastAPIBaseGateway):
         self,
         modules: Tuple[str] = None,
         fastapi_app_str: str = None,
+        lcserve_app: bool = False,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self._modules = modules
         self._fastapi_app_str = fastapi_app_str
+        self._lcserve_app = lcserve_app
         self._fix_sys_path()
         self._init_fastapi_app()
         self._setup_metrics()
@@ -312,10 +314,11 @@ class ServingGateway(FastAPIBaseGateway):
             # This is where the app code is mounted in the container
             sys.path.append(APPDIR)
 
-        # register all predefined apps to sys.path if they exist
-        if os.path.exists(os.path.join(APPDIR, 'lcserve', 'apps')):
-            for app in os.listdir(os.path.join(APPDIR, 'lcserve', 'apps')):
-                sys.path.append(os.path.join(APPDIR, 'lcserve', 'apps', app))
+        if self._lcserve_app:
+            # register all predefined apps to sys.path if they exist
+            if os.path.exists(os.path.join(APPDIR, 'lcserve', 'apps')):
+                for app in os.listdir(os.path.join(APPDIR, 'lcserve', 'apps')):
+                    sys.path.append(os.path.join(APPDIR, 'lcserve', 'apps', app))
 
     def _setup_metrics(self):
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor

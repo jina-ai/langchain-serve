@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import os
+import secrets
 import shutil
 import sys
 import tempfile
@@ -161,14 +162,15 @@ def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
     )
 
 
-def _add_to_path():
+def _add_to_path(lcserve_app: bool = False):
     # add current directory to the beginning of the path to prioritize local imports
     sys.path.insert(0, os.getcwd())
 
-    # get all directories in the apps folder and add them to the path
-    for app in os.listdir(os.path.join(os.path.dirname(__file__), 'apps')):
-        if os.path.isdir(os.path.join(os.path.dirname(__file__), 'apps', app)):
-            sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'apps', app))
+    if lcserve_app:
+        # get all directories in the apps folder and add them to the path
+        for app in os.listdir(os.path.join(os.path.dirname(__file__), 'apps')):
+            if os.path.isdir(os.path.join(os.path.dirname(__file__), 'apps', app)):
+                sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'apps', app))
 
 
 def _get_parent_dir(modname: str, filename: str) -> str:
@@ -237,9 +239,12 @@ def get_uri(id: str, tag: str):
 
 
 def get_module_dir(
-    module_str: str = None, fastapi_app_str: str = None, app_dir: str = None
+    module_str: str = None,
+    fastapi_app_str: str = None,
+    app_dir: str = None,
+    lcserve_app: bool = False,
 ) -> Tuple[str, bool]:
-    _add_to_path()
+    _add_to_path(lcserve_app=lcserve_app)
 
     if module_str is not None:
         _module = _load_module_from_str(module_str)
@@ -423,13 +428,16 @@ def _push_to_hubble(
     from hubble.executor.hubio import HubIO
     from hubble.executor.parsers import set_hub_push_parser
 
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+
+    secret = secrets.token_hex(8)
     args_list = [
         tmpdir,
         '--tag',
         tag,
         '--secret',
-        'somesecret',
-        '--public',
+        secret,
+        '--private',
         '--no-usage',
         '--no-cache',
     ]
@@ -442,11 +450,15 @@ def _push_to_hubble(
     if platform:
         args.platform = platform
 
-    if hubble_exists(name):
+    if hubble_exists(name, secret):
         args.force_update = name
 
-    gateway_id = HubIO(args).push().get('id')
-    return gateway_id + ':' + tag
+    push_envs = (
+        {'JINA_HUBBLE_HIDE_EXECUTOR_PUSH_SUCCESS_MSG': 'true'} if not verbose else {}
+    )
+    with EnvironmentVarCtxtManager(push_envs):
+        gateway_id = HubIO(args).push().get('id')
+        return gateway_id + ':' + tag
 
 
 def push_app_to_hubble(
@@ -658,6 +670,7 @@ def get_flow_dict(
     is_websocket: bool = False,
     jcloud_config_path: str = None,
     cors: bool = True,
+    lcserve_app: bool = False,
 ) -> Dict:
     if jcloud:
         jcloud_config = get_jcloud_config(
@@ -673,6 +686,7 @@ def get_flow_dict(
             'uses_with': {
                 'modules': [module_str] if module_str else [],
                 'fastapi_app_str': fastapi_app_str or '',
+                'lcserve_app': lcserve_app,
             },
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
@@ -704,6 +718,7 @@ def get_flow_yaml(
     is_websocket: bool = False,
     cors: bool = True,
     jcloud_config_path: str = None,
+    lcserve_app: bool = False,
 ) -> str:
     return yaml.safe_dump(
         get_flow_dict(
@@ -715,6 +730,7 @@ def get_flow_yaml(
             cors=cors,
             jcloud=jcloud,
             jcloud_config_path=jcloud_config_path,
+            lcserve_app=lcserve_app,
         ),
         sort_keys=False,
     )
@@ -723,6 +739,8 @@ def get_flow_yaml(
 async def deploy_app_on_jcloud(
     flow_dict: Dict, app_id: str = None, verbose: bool = False
 ) -> Tuple[str, str]:
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+    
     os.environ['JCLOUD_LOGLEVEL'] = 'INFO' if verbose else 'ERROR'
 
     from jcloud.flow import CloudFlow
@@ -732,13 +750,15 @@ async def deploy_app_on_jcloud(
         with open(flow_path, 'w') as f:
             yaml.safe_dump(flow_dict, f, sort_keys=False)
 
-        if app_id is None:  # appid is None means we are deploying a new app
-            jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
-            app_id = jcloud_flow.flow_id
+        deploy_envs = {'JCLOUD_HIDE_SUCCESS_MSG': 'true'} if not verbose else {}
+        with EnvironmentVarCtxtManager(deploy_envs):
+            if app_id is None:  # appid is None means we are deploying a new app
+                jcloud_flow = await CloudFlow(path=flow_path).__aenter__()
+                app_id = jcloud_flow.flow_id
 
-        else:  # appid is not None means we are updating an existing app
-            jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
-            await jcloud_flow.update()
+            else:  # appid is not None means we are updating an existing app
+                jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
+                await jcloud_flow.update()
 
         for k, v in jcloud_flow.endpoints.items():
             if k.lower() == 'gateway (http)' or k.lower() == 'gateway (websocket)':

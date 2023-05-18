@@ -25,7 +25,6 @@ from .flow import (
     resolve_jcloud_config,
     syncify,
     update_requirements,
-    remove_prefix,
     get_uri,
 )
 from .utils import validate_jcloud_config_callback
@@ -48,29 +47,6 @@ def serve_locally(
         f.block()
 
 
-def _push_app_to_hubble(
-    module_dir: str,
-    image_name: str = None,
-    tag: str = None,
-    requirements: List[str] = None,
-    version: str = 'latest',
-    platform: str = None,
-    verbose: bool = False,
-):
-    from .flow import push_app_to_hubble
-
-    gateway_id = push_app_to_hubble(
-        module_dir=module_dir,
-        image_name=image_name,
-        tag=tag,
-        requirements=requirements,
-        version=version,
-        platform=platform,
-        verbose=verbose,
-    )
-    return gateway_id
-
-
 async def serve_on_jcloud(
     module_str: str = None,
     fastapi_app_str: str = None,
@@ -85,20 +61,23 @@ async def serve_on_jcloud(
     config: str = None,
     verbose: bool = False,
     cors: bool = True,
+    lcserve_app: bool = False,
 ) -> str:
+    from .flow import push_app_to_hubble
     from .backend.playground.utils.helper import get_random_tag
 
     module_dir, is_websocket = get_module_dir(
         module_str=module_str,
         fastapi_app_str=fastapi_app_str,
         app_dir=app_dir,
+        lcserve_app=lcserve_app,
     )
     config = resolve_jcloud_config(config, module_dir)
 
     if uses is not None:
         gateway_id = uses
     else:
-        gateway_id = _push_app_to_hubble(
+        gateway_id = push_app_to_hubble(
             module_dir=module_dir,
             requirements=requirements,
             tag=get_random_tag(),
@@ -120,6 +99,7 @@ async def serve_on_jcloud(
             is_websocket=is_websocket,
             jcloud_config_path=config,
             cors=cors,
+            lcserve_app=lcserve_app,
         ),
         app_id=app_id,
         verbose=verbose,
@@ -158,6 +138,7 @@ async def serve_babyagi_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lcserve_app=True,
     )
 
 
@@ -191,6 +172,7 @@ async def serve_autogpt_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lcserve_app=True,
     )
 
 
@@ -217,6 +199,7 @@ async def serve_pdf_qna_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lcserve_app=True,
     )
 
 
@@ -243,6 +226,7 @@ async def serve_pandas_ai_on_jcloud(
         config=config,
         verbose=verbose,
         cors=cors,
+        lcserve_app=True,
     )
 
 
@@ -414,12 +398,14 @@ def push(
     version,
     verbose,
 ):
+    from .flow import push_app_to_hubble
+
     module_dir, _ = get_module_dir(
         module_str=module_str,
         fastapi_app_str=app,
         app_dir=app_dir,
     )
-    gateway_id = _push_app_to_hubble(
+    gateway_id = push_app_to_hubble(
         module_dir=module_dir,
         image_name=image_name,
         tag=image_tag,
