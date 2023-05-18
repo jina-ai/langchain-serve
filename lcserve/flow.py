@@ -34,8 +34,7 @@ AUTOGPT_APP_NAME = 'autogpt'
 DEFAULT_TIMEOUT = 120
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 JCloudConfigFile = 'jcloud_config.yml'
-# TODO: this needs to be pulled from Jina Wolf API dynamically after the issue has been fixed on the API side
-APP_LOGS_URL = "[dashboards.wolf.jina.ai](https://dashboard.wolf.jina.ai/d/flow/flow-monitor?var-flow={flow}&var-datasource=thanos&orgId=2&from=now-24h&to=now&viewPanel=85)"
+APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
 
 
 def syncify(f):
@@ -816,14 +815,13 @@ async def get_app_status_on_jcloud(app_id: str):
 
         status: Dict = app_status['status']
         endpoint = _get_endpoint(status)
-        flow_namespace = app_id.split("-")[-1]
 
         _add_row('App ID', app_id, bold_key=True, bold_value=True)
         _add_row('Phase', status.get('phase', ''))
         _add_row('Endpoint', endpoint)
         _add_row(
             'App logs',
-            Markdown(APP_LOGS_URL.format(flow=flow_namespace), justify='center'),
+            Markdown(APP_LOGS_URL.format(app_id=app_id), justify='center'),
         )
         _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
         _add_row('OpenAPI JSON', _replace_wss_with_https(f'{endpoint}/openapi.json'))
