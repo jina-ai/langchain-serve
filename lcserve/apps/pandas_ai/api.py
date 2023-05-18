@@ -5,8 +5,12 @@ import nest_asyncio
 from lcserve import serving, download_df
 from fastapi import WebSocket
 
-from pandasai import PandasAI
-from pandasai.llm.openai import OpenAI
+try:
+    from pandasai import PandasAI
+    from pandasai.llm.openai import OpenAI
+except ImportError:
+    print("PandasAI not installed. Install with `pip install pandasai`.")
+    raise
 
 nest_asyncio.apply()
 
