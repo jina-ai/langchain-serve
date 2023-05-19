@@ -996,14 +996,18 @@ class Timer:
     def __init__(self, interval: int):
         self.interval = interval
 
-    async def send_duration_periodically(self, shared_data, counter):
+    async def send_duration_periodically(
+        self, shared_data: SharedData, route: str, counter: Optional['Counter'] = None
+    ):
         while True:
             await asyncio.sleep(self.interval)
             current_time = time.perf_counter()
             duration = current_time - shared_data.last_reported_time
             print(f"Duration: {duration} seconds")
             if counter:
-                counter.add(current_time - shared_data.last_reported_time)
+                counter.add(
+                    current_time - shared_data.last_reported_time, {"route": route}
+                )
 
             shared_data.last_reported_time = current_time
 
@@ -1031,7 +1035,9 @@ class BaseMeasureDurationMiddleware:
             timer = Timer(5)
             shared_data = timer.SharedData(last_reported_time=time.perf_counter())
             send_duration_task = asyncio.create_task(
-                timer.send_duration_periodically(shared_data, self.counter)
+                timer.send_duration_periodically(
+                    shared_data, scope['path'], self.counter
+                )
             )
             try:
                 await self.app(scope, receive, send)
@@ -1039,7 +1045,8 @@ class BaseMeasureDurationMiddleware:
                 send_duration_task.cancel()
                 if self.counter:
                     self.counter.add(
-                        time.perf_counter() - shared_data.last_reported_time
+                        time.perf_counter() - shared_data.last_reported_time,
+                        {"route": scope['path']},
                     )
         else:
             await self.app(scope, receive, send)

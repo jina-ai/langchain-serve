@@ -1,10 +1,11 @@
 import json
 import os
-import aiohttp
 import time
 
+import aiohttp
 import pytest
 import requests
+import websockets
 
 from ..helper import examine_prom_with_retry, run_fastapi_app_locally
 
@@ -66,7 +67,6 @@ async def test_websocket_endpoint(run_fastapi_app_locally, route):
             assert received_messages == ["0", "1", "2", "3", "4"]
 
 
-@pytest.mark.skip("Metrics doesn't work with FastAPI endpoints")
 @pytest.mark.parametrize(
     "run_fastapi_app_locally, route",
     [(APP, "sleep")],
@@ -84,4 +84,27 @@ def test_metrics_http(run_fastapi_app_locally, route):
     start_time = time.time()
     examine_prom_with_retry(
         start_time, metrics="http_request_duration_seconds", expected_value=5
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "run_fastapi_app_locally, route",
+    [(APP, "ws")],
+    indirect=["run_fastapi_app_locally"],
+)
+async def test_metrics_ws(run_fastapi_app_locally, route):
+    async with websockets.connect(os.path.join(WS_HOST, route)) as websocket:
+        await websocket.send(json.dumps({"interval": 1}))
+
+        received_messages = []
+        for _ in range(5):
+            message = await websocket.recv()
+            received_messages.append(message)
+
+        assert received_messages == ["0", "1", "2", "3", "4"]
+
+    start_time = time.time()
+    examine_prom_with_retry(
+        start_time, metrics="ws_request_duration_seconds", expected_value=5
     )
