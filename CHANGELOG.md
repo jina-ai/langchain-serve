@@ -34,6 +34,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -862,4 +863,37 @@
 ### 🍹 Other Improvements
 
  - [[```5d322ccb```](https://github.com/jina-ai/langchain-serve/commit/5d322ccb17f7b4657079cfeedfe02b36df6d258b)] __-__ __version__: the next version will be 0.0.34 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-35></a>
+## Release Note (`0.0.35`)
+
+> Release time: 2023-05-19 11:30:20
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```3875be03```](https://github.com/jina-ai/langchain-serve/commit/3875be038c520a658ab7fd2ee4c49ec36731e718)] __-__ replace with metrics middleware (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```9cce41c0```](https://github.com/jina-ai/langchain-serve/commit/9cce41c0151bd4b8c4020a23d9000d7f558719a6)] __-__ point to cloud.jina.ai logs url (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```cb2e0a08```](https://github.com/jina-ai/langchain-serve/commit/cb2e0a088586d5c6eaa57ed39ddeb6f0a2eca2ad)] __-__ refactor pricing (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```9cf4b939```](https://github.com/jina-ai/langchain-serve/commit/9cf4b939e15736f4f252bd5a3aaa9c8694e1ee85)] __-__ metrics tests (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```51f6df77```](https://github.com/jina-ai/langchain-serve/commit/51f6df7732260c1ed5f218a8b86c2c6e4b2c42b7)] __-__ __version__: the next version will be 0.0.35 (*Jina Dev Bot*)
+ - [[```1e5966fe```](https://github.com/jina-ai/langchain-serve/commit/1e5966feb9d1ecf50578289a27eb4b1139891a32)] __-__ __version__: the next version will be 0.0.33 (*Jina Dev Bot*)
+ - [[```94c16e7d```](https://github.com/jina-ai/langchain-serve/commit/94c16e7d56ef9bc3ad9fc31b973475c7a282254d)] __-__ Merge pull request #76 from jina-ai/feat-pricing (*Deepankar Mahapatro*)
 
