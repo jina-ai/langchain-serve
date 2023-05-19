@@ -258,7 +258,10 @@ def test_metrics_http(run_test_app_locally, route):
 
     start_time = time.time()
     examine_prom_with_retry(
-        start_time, metrics="http_request_duration_seconds", expected_value=5
+        start_time,
+        metrics="http_request_duration_seconds",
+        expected_value=5,
+        route="/" + route,
     )
 
 
@@ -281,5 +284,8 @@ async def test_metrics_ws(run_test_app_locally, route):
 
     start_time = time.time()
     examine_prom_with_retry(
-        start_time, metrics="ws_request_duration_seconds", expected_value=5
+        start_time,
+        metrics="ws_request_duration_seconds",
+        expected_value=5,
+        route="/" + route,
     )

@@ -1,6 +1,6 @@
+import asyncio
 import logging
 import os
-import asyncio
 import platform
 import signal
 import subprocess
@@ -15,6 +15,7 @@ import requests
 from lcserve.__main__ import remove_app_on_jcloud, serve_on_jcloud
 
 PROMETHEUS_URL = "http://localhost:9090"
+
 
 async def _serve_on_jcloud(**deployment_args):
     # This handle is for Hubble push
@@ -51,10 +52,12 @@ async def deploy_jcloud_fastapi_app(**deployment_args):
     apps_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'fastapi_app')
     sys.path.append(apps_path)
 
-    deployment_args.update({
-        "fastapi_app_str": "endpoints:app",
-        "app_dir": apps_path,
-    })
+    deployment_args.update(
+        {
+            "fastapi_app_str": "endpoints:app",
+            "app_dir": apps_path,
+        }
+    )
     app_id = await _serve_on_jcloud(**deployment_args)
 
     try:
@@ -129,6 +132,7 @@ def run_fastapi_app_locally(request):
     kill_child_pids(server_process.pid)
     logging.info("Done!!")
 
+
 def kill_child_pids(pid):
     parent = psutil.Process(pid)
     children = parent.children(recursive=True)
@@ -136,7 +140,7 @@ def kill_child_pids(pid):
         os.kill(child.pid, signal.SIGTERM)
 
 
-def get_values_from_prom(metrics):
+def get_values_from_prom(metrics, route):
     response = requests.get(
         f"{PROMETHEUS_URL}/api/v1/query",
         params={"query": metrics},
@@ -144,13 +148,20 @@ def get_values_from_prom(metrics):
     assert response.status_code == 200
 
     try:
-        duration_seconds = response.json()["data"]["result"][0]["value"][1]
+        metrics = [
+            metric
+            for metric in response.json()["data"]["result"]
+            if metric['metric']['route'] == route
+        ]
+
+        # Fetch the latest metric at index 0 from metrics
+        duration_seconds = metrics[0]['value'][1]
     except:
         duration_seconds = 0
     return duration_seconds
 
 
-def examine_prom_with_retry(start_time, metrics, expected_value):
+def examine_prom_with_retry(start_time, metrics, expected_value, route):
     timeout = 120
     interval = 10
 
@@ -159,7 +170,7 @@ def examine_prom_with_retry(start_time, metrics, expected_value):
         if elapsed_time > timeout:
             pytest.fail("Timed out waiting for the Prometheus data to be populated")
 
-        duration_seconds = get_values_from_prom(metrics)
+        duration_seconds = get_values_from_prom(metrics, route)
         if round(float(duration_seconds)) == expected_value:
             break
 
