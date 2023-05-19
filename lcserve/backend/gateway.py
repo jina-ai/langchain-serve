@@ -1003,7 +1003,6 @@ class Timer:
             await asyncio.sleep(self.interval)
             current_time = time.perf_counter()
             duration = current_time - shared_data.last_reported_time
-            print(f"Duration: {duration} seconds")
             if counter:
                 counter.add(
                     current_time - shared_data.last_reported_time, {"route": route}
