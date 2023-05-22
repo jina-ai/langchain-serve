@@ -594,10 +594,36 @@ lc-serve --app filename:app
 ```
 
 <details>
-<summary>Show FastAPI app</summary>
+<summary>Show details</summary>
+
+Let's take an example of a simple FastAPI app with directory structure
+
+```bash
+.
+└── endpoints.py
+```
 
 ```python
+# endpoints.py
+from typing import Union
 
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/status")
+def read_root():
+    return {"Hello": "World"}
+
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: Union[str, None] = None):
+    return {"item_id": item_id, "q": q}
+```
+
+```bash
+lc-serve --app endpoints:app
 ```
 
 </details>
@@ -606,17 +632,18 @@ lc-serve --app filename:app
 
 ## `lc-serve` CLI
 
-`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud.
+`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud (JCloud) 
 
 
 | Description | Command | 
 | --- | ---: |
 | Deploy your app locally | `lc-serve deploy local app` |
-| Deploy your app on Jina AI Cloud | `lc-serve deploy jcloud app` |
-| Update existing app on Jina AI Cloud | `lc-serve deploy jcloud app --app-id <app-id>` |
-| Get app status on Jina AI Cloud | `lc-serve status <app-id>` |
-| List all apps on Jina AI Cloud | `lc-serve list` |
-| Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
+| Deploy your app on JCloud | `lc-serve deploy jcloud app` |
+| Deploy FastAPI app on JCloud | `lc-serve deploy jcloud --app <app-name>:<app-object>` |
+| Update existing app on JCloud | `lc-serve deploy jcloud app --app-id <app-id>` |
+| Get app status on JCloud | `lc-serve status <app-id>` |
+| List all apps on JCloud | `lc-serve list` |
+| Remove app on JCloud | `lc-serve remove <app-id>` |
 
 # JCloud
 ## Configurations
