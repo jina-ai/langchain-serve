@@ -199,6 +199,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   - 🔑 Protect your APIs with [API authorization](#-authorize-your-apis) using Bearer tokens.
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless, autoscaling apps that scales automatically with your traffic.
+  - 📁 Persistent storage (EFS) mounted on your app for your data.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
 
