@@ -199,7 +199,7 @@ OR,
 
 #### [Bring your own FastAPI app](#-bring-your-own-fastapi-app)
 
-### 🔥 Secure, Scalable, Serverless, Streaming RESTful/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
+### 🔥 Secure, Scalable, Serverless, Streaming REST/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
 
   - 🌎 Globally available REST/Websocket APIs with automatic TLS certs.
   - 🌊 Stream LLM interactions in real-time with Websockets.
