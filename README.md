@@ -187,8 +187,9 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 # 💪 Features
 
 ### 🎉 LLM Apps on production
-
-Either, **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** **OR** **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)** !
+  
+  - 👉 **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** OR,
+  - 👉 **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)** !
 
 ### 🔥 Secure, Scalable, Serverless, Streaming REST/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
 
