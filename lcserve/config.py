@@ -8,11 +8,12 @@ import click
 from .errors import InvalidAutoscaleMinError, InvalidInstanceError
 
 
-DEFAULT_TIMEOUT = 120
 INSTANCE = 'instance'
 AUTOSCALE_MIN = 'autoscale_min'
 DISK_SIZE = 'disk_size'
 JCloudConfigFile = 'jcloud_config.yml'
+DEFAULT_TIMEOUT = 120
+DEFAULT_DISK_SIZE = '1G'
 
 
 @dataclass
@@ -23,7 +24,7 @@ class Defaults:
     autoscale_rps: int = 10
     autoscale_stable_window: int = DEFAULT_TIMEOUT
     autoscale_revision_timeout: int = DEFAULT_TIMEOUT
-    disk_size: str = '1G'
+    disk_size: str = DEFAULT_DISK_SIZE
 
     def __post_init__(self):
         _path = os.path.join(os.getcwd(), JCloudConfigFile)
