@@ -22,12 +22,11 @@ from .flow import (
     list_apps_on_jcloud,
     load_local_df,
     remove_app_on_jcloud,
-    resolve_jcloud_config,
     syncify,
     update_requirements,
     get_uri,
 )
-from .config import validate_jcloud_config_callback
+from .config import validate_jcloud_config_callback, resolve_jcloud_config
 
 
 def serve_locally(
