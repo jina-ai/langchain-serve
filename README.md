@@ -188,16 +188,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 ### 🎉 LLM Apps on production
 
-Either,
-
-  1. Refactor your code to function(s) that should be served with `@serving` decorator.
-  1. Create a `requirements.txt` file in your app directory with all required dependencies.
-  1. Run `lc-serve deploy local app` to test your API locally.
-  1. Run `lc-serve deploy jcloud app` to deploy on [Jina AI Cloud](https://jina.ai/product/cloud/).
-
-OR, 
-
-#### [Bring your own FastAPI app](#-bring-your-own-fastapi-app)
+Either, **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** **OR** **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)**
 
 ### 🔥 Secure, Scalable, Serverless, Streaming REST/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
 
@@ -221,13 +212,6 @@ Let's first install `langchain-serve` using pip.
 ```bash
 pip install langchain-serve
 ```
-
-## 🙋‍♂️ Enable Human-in-the-loop (HITL) for your agents
-
-HITL for LangChain agents on production can be challenging since the agents are typically running on servers where humans don't have direct access. **langchain-serve** bridges this gap by enabling websocket APIs that allow for real-time interaction and feedback between the agent and a human operator.
-
-Check out this [example](examples/websockets/hitl/README.md) to see how you can enable HITL for your agents.
-
 
 ## 🔄 REST APIs using `@serving` decorator
 
@@ -593,6 +577,12 @@ async def talk(question: str, **kwargs) -> str:
 </details>
 
 ---
+
+## 🙋‍♂️ Enable Human-in-the-loop (HITL) for your agents
+
+HITL for LangChain agents on production can be challenging since the agents are typically running on servers where humans don't have direct access. **langchain-serve** bridges this gap by enabling websocket APIs that allow for real-time interaction and feedback between the agent and a human operator.
+
+Check out this [example](examples/websockets/hitl/README.md) to see how you can enable HITL for your agents.
 
 ## 🚀 Bring your own FastAPI app
 
