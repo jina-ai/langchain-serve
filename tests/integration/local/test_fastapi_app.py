@@ -7,7 +7,11 @@ import pytest
 import requests
 import websockets
 
-from ..helper import examine_prom_with_retry, run_fastapi_app_locally
+from ..helper import (
+    examine_request_count_with_retry,
+    examine_request_duration_with_retry,
+    run_fastapi_app_locally,
+)
 
 HOST = "localhost:8080"
 HTTP_HOST = f"http://{HOST}"
@@ -82,10 +86,14 @@ def test_metrics_http(run_fastapi_app_locally, route):
     assert response.status_code == 200
 
     start_time = time.time()
-    examine_prom_with_retry(
+    examine_request_duration_with_retry(
         start_time,
-        metrics="http_request_duration_seconds",
         expected_value=5,
+        route="/" + route,
+    )
+    examine_request_count_with_retry(
+        start_time,
+        expected_value=1,
         route="/" + route,
     )
 
@@ -108,9 +116,13 @@ async def test_metrics_ws(run_fastapi_app_locally, route):
         assert received_messages == ["0", "1", "2", "3", "4"]
 
     start_time = time.time()
-    examine_prom_with_retry(
+    examine_request_duration_with_retry(
         start_time,
-        metrics="ws_request_duration_seconds",
         expected_value=5,
+        route="/" + route,
+    )
+    examine_request_count_with_retry(
+        start_time,
+        expected_value=1,
         route="/" + route,
     )

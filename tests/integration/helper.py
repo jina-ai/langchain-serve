@@ -161,7 +161,7 @@ def get_values_from_prom(metrics, route):
     return duration_seconds
 
 
-def examine_prom_with_retry(start_time, metrics, expected_value, route):
+def examine_request_duration_with_retry(start_time, expected_value, route):
     timeout = 120
     interval = 10
 
@@ -170,8 +170,26 @@ def examine_prom_with_retry(start_time, metrics, expected_value, route):
         if elapsed_time > timeout:
             pytest.fail("Timed out waiting for the Prometheus data to be populated")
 
-        duration_seconds = get_values_from_prom(metrics, route)
+        duration_seconds = get_values_from_prom(
+            "lcserve_request_duration_seconds", route
+        )
         if round(float(duration_seconds)) == expected_value:
+            break
+
+        time.sleep(interval)
+
+
+def examine_request_count_with_retry(start_time, expected_value, route):
+    timeout = 120
+    interval = 10
+
+    while True:
+        elapsed_time = time.time() - start_time
+        if elapsed_time > timeout:
+            pytest.fail("Timed out waiting for the Prometheus data to be populated")
+
+        request_count = get_values_from_prom("lcserve_request_count", route)
+        if float(request_count) == expected_value:
             break
 
         time.sleep(interval)

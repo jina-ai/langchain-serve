@@ -343,23 +343,21 @@ class ServingGateway(FastAPIBaseGateway):
             meter_provider=self.meter_provider,
         )
 
-        self.http_duration_counter = self.meter.create_counter(
-            name="http_request_duration_seconds",
-            description="HTTP request duration in seconds",
+        self.duration_counter = self.meter.create_counter(
+            name="lcserve_request_duration_seconds",
+            description="Lc-serve Request duration in seconds",
             unit="s",
         )
 
-        self.ws_duration_counter = self.meter.create_counter(
-            name="ws_request_duration_seconds",
-            description="WS request duration in seconds",
-            unit="s",
+        self.request_counter = self.meter.create_counter(
+            name="lcserve_request_count",
+            description="Lc-serve Request count",
         )
 
         self.app.add_middleware(
-            MeasureDurationHTTPMiddleware, counter=self.http_duration_counter
-        )
-        self.app.add_middleware(
-            MeasureDurationWebSocketMiddleware, counter=self.ws_duration_counter
+            MetricsMiddleware,
+            duration_counter=self.duration_counter,
+            request_counter=self.request_counter,
         )
 
     def _register_healthz(self):
@@ -1005,7 +1003,6 @@ class Timer:
         while True:
             await asyncio.sleep(self.interval)
             current_time = time.perf_counter()
-            duration = current_time - shared_data.last_reported_time
             if counter:
                 counter.add(
                     current_time - shared_data.last_reported_time, {"route": route}
@@ -1014,13 +1011,16 @@ class Timer:
             shared_data.last_reported_time = current_time
 
 
-class BaseMeasureDurationMiddleware:
+class MetricsMiddleware:
     def __init__(
-        self, app: ASGIApp, scope_type: str, counter: Optional['Counter'] = None
+        self,
+        app: ASGIApp,
+        duration_counter: Optional['Counter'] = None,
+        request_counter: Optional['Counter'] = None,
     ):
         self.app = app
-        self.scope_type = scope_type
-        self.counter = counter
+        self.duration_counter = duration_counter
+        self.request_counter = request_counter
         # TODO: figure out solution for static assets
         self.skip_routes = [
             '/docs',
@@ -1033,32 +1033,24 @@ class BaseMeasureDurationMiddleware:
         ]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] == self.scope_type and scope['path'] not in self.skip_routes:
+        if scope['path'] not in self.skip_routes:
             timer = Timer(5)
             shared_data = timer.SharedData(last_reported_time=time.perf_counter())
             send_duration_task = asyncio.create_task(
                 timer.send_duration_periodically(
-                    shared_data, scope['path'], self.counter
+                    shared_data, scope['path'], self.duration_counter
                 )
             )
             try:
                 await self.app(scope, receive, send)
             finally:
                 send_duration_task.cancel()
-                if self.counter:
-                    self.counter.add(
+                if self.duration_counter:
+                    self.duration_counter.add(
                         time.perf_counter() - shared_data.last_reported_time,
                         {"route": scope['path']},
                     )
+                if self.request_counter:
+                    self.request_counter.add(1, {"route": scope['path']})
         else:
             await self.app(scope, receive, send)
-
-
-class MeasureDurationHTTPMiddleware(BaseMeasureDurationMiddleware):
-    def __init__(self, app: ASGIApp, counter: Optional['Counter'] = None):
-        super().__init__(app, "http", counter)
-
-
-class MeasureDurationWebSocketMiddleware(BaseMeasureDurationMiddleware):
-    def __init__(self, app: ASGIApp, counter: Optional['Counter'] = None):
-        super().__init__(app, "websocket", counter)
