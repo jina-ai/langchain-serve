@@ -16,7 +16,16 @@
 
 > Give us a :star: and tell us what more you'd like to see! 
 
+# ☁️ LLM Apps as-a-service
+
+langchain-serve currently wraps following apps as a service to be deployed on Jina AI Cloud with one command.
+
 ## 🔮 AutoGPT-as-a-service
+
+[AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT) is an "AI agent" that given a goal in natural language, will attempt to achieve it by breaking it into sub-tasks and using the internet and other tools in an automatic loop.
+
+<details>
+<summary>Show usage</summary>
 
 - Deploy `autogpt` on Jina AI Cloud with one command
 
@@ -56,7 +65,14 @@
   <img src=".github/images/autogpt-playground.gif" title="autogpt-as-a-service Playground">
   </details>
 
+</details>
+
 ## 🧠 Babyagi-as-a-service
+
+[Babyagi](https://github.com/yoheinakajima/babyagi) is a task-driven autonomous agent that uses LLMs to create, prioritize, and execute tasks. It is a general-purpose AI agent that can be used to automate a wide variety of tasks.
+
+<details>
+<summary>Show usage</summary>
 
 - Deploy `babyagi` on Jina AI Cloud with one command
 
@@ -75,10 +91,14 @@
   <img src=".github/images/babyagi-playground.gif" title="Babyagi-as-a-service Playground">
   </details>
 
+</details>
 
 ## :panda_face: pandas-ai-as-a-service
 
 [pandas-ai](https://github.com/gventuri/pandas-ai) integrates LLM capabilities into Pandas, to make dataframes conversational in Python code. Thanks to langchain-serve, we can now expose pandas-ai APIs on Jina AI Cloud in just a matter of seconds.
+
+<details>
+<summary>Show usage</summary>
 
 - Deploy **pandas-ai** on Jina AI Cloud
 
@@ -133,8 +153,14 @@
   <img src=".github/images/pandas-ai-playground.gif" title="pandas-ai-as-a-service Playground">
   </details>
 
+</details>
 
 ## 💬 Question Answer Bot on PDFs
+
+`pdfqna` is a simple question answering bot that uses LLMs to answer questions on PDF documents, showcasing the how easy it is to integrate langchain apps on Jina AI Cloud.
+
+<details>
+<summary>Show usage</summary>
 
 - Deploy `pdf_qna` on Jina AI Cloud with one command
 
@@ -156,37 +182,30 @@
 
   https://github.com/jina-ai/langchain-serve/blob/8f7a9272e99490a5357655becfc5da3569655f38/lcserve/apps/pdf_qna/app.py#L8-L12
 
-# :muscle: Features
+</details>
 
-### 🎉 Custom Apps to production in 4 simple steps
+# 💪 Features
 
-  1. Refactor your code to function(s) that should be served with `@serving` decorator.
-  1. Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.
-  1. Run `lc-serve deploy local app` to test your API locally.
-  1. Run `lc-serve deploy jcloud app` to deploy on [Jina AI Cloud](https://jina.ai/product/cloud/).
+### 🎉 LLM Apps on production
 
+Either, **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** **OR** **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)** !
 
-### 🔥 Secure, Scalable, Serverless, Streaming RESTful/Websocket APIs on Jina AI Cloud
+### 🔥 Secure, Scalable, Serverless, Streaming REST/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
 
-  - 🌎 RESTful/Websocket APIs with TLS certs in just 2 lines of code change.
+  - 🌎 Globally available REST/Websocket APIs with automatic TLS certs.
   - 🌊 Stream LLM interactions in real-time with Websockets.
   - 👥 Enable human in the loop for your agents.
-  - 🔑 [Authorize API endpoints](#-authorize-your-apis) using Bearer tokens.
+  - 🔑 Protect your APIs with [API authorization](#-authorize-your-apis) using Bearer tokens.
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
-  - ⚡️ Serverless apps that scales automatically with your traffic.
+  - ⚡️ Serverless, autoscaling apps that scales automatically with your traffic.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
-
-
-### 🚧 Coming soon
-
-- [ ] 🛠️ Enable Streamlit playground deployment for your apps
 
 
 If you have any feature requests or faced any issue, please [let us know](https://github.com/jina-ai/langchain-serve/issues/new)!
 
 
-# :toolbox: Usage
+# 🧰 Usage
 
 Let's first install `langchain-serve` using pip.
 
@@ -194,18 +213,13 @@ Let's first install `langchain-serve` using pip.
 pip install langchain-serve
 ```
 
-## Enable Human-in-the-loop (HITL) for your agents
+## 🔄 REST APIs using `@serving` decorator
 
-HITL for LangChain agents on production can be challenging since the agents are typically running on servers where humans don't have direct access. **langchain-serve** bridges this gap by enabling websocket APIs that allow for real-time interaction and feedback between the agent and a human operator.
-
-Check out this [example](examples/websockets/hitl/README.md) to see how you can enable HITL for your agents.
+Let's build & deploy a custom agent using this example taken from [LangChain documentation](https://python.langchain.com/en/latest/modules/agents/agents/custom_agent.html). 
 
 
-## Enable REST APIs 
-
-
-Let's build a custom agent using this example taken from [LangChain documentation](https://python.langchain.com/en/latest/modules/agents/agents/custom_agent.html). 
-
+<details>
+<summary>Show example</summary>
 
 <details>
 <summary>Show agent code (app.py)</summary>
@@ -514,12 +528,16 @@ curl -X 'POST' \
 - The API includes a Swagger UI and the OpenAPI specification, so it can be easily integrated with other services. 
 - Now, other agents can integrate with your agents on Jina AI Cloud thanks to the [OpenAPI Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/openapi.html) 💡
 
+</details>
 
 ---
 
-### 🔐 Authorize your APIs
+## 🔐 Authorize your APIs
 
-To add an extra layer of security, we can integrate any custom API authorization by adding a `auth` argument to the `serving` decorator. 
+To add an extra layer of security, we can integrate any custom API authorization by adding a `auth` argument to the `@serving` decorator. 
+
+<details>
+<summary>Show code & gotchas</summary>
 
 ```python
 from lcserve import serving
@@ -556,109 +574,78 @@ async def talk(question: str, **kwargs) -> str:
   wscat -H "Authorization: Bearer mysecrettoken" -c ws://localhost:8080/talk
   ```
 
-### Agents Playground 🕹️🎮🌐
+</details>
 
-[LangChain agents](https://python.langchain.com/en/latest/modules/agents/getting_started.html) use LLMs to determine the actions to be taken in what order. An action can either be using a tool and observing its output, or returning to the user. We've hosted a **[Streamlit Playground](https://langchain.wolf.jina.ai/playground/)** on Jina AI Cloud to interact with the agents, which accepts with following inputs:
+---
 
-- **[Agent Types](https://python.langchain.com/en/latest/modules/agents/agents.html):** Choose from different agent types that Langchain supports. 
+## 🙋‍♂️ Enable Human-in-the-loop (HITL) for your agents
 
-- **[Tools](https://python.langchain.com/en/latest/modules/agents/tools.html):** Choose from different tools that Langchain supports. Some tools may require an API token or other related arguments.
+HITL for LangChain agents on production can be challenging since the agents are typically running on servers where humans don't have direct access. **langchain-serve** bridges this gap by enabling websocket APIs that allow for real-time interaction and feedback between the agent and a human operator.
 
-To use the playground, simply type your input in the text box provided to get the agent's output and chain of thought. Enjoy exploring Langchain's capabilities! In addition to streamlit, you can also use our RESTful APIs on the playground to interact with the agents. 
+Check out this [example](examples/websockets/hitl/README.md) to see how you can enable HITL for your agents.
 
+## 🚀 Bring your own FastAPI app
 
-### [Zero-shot React Description agent with SerpAPI and Calculator](https://python.langchain.com/en/latest/modules/agents/getting_started.html)
-
-#### Streamlit Playground
-
-![Streamlit Playground](.github/images/playground_one.gif)
-
-#### RESTful API
+If you already have a FastAPI app with pre-defined endpoints, you can use `lc-serve` to deploy it on Jina AI Cloud. 
 
 ```bash
-export OPENAI_API_KEY=sk-***
-export SERPAPI_API_KEY=***
-
-curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  --data-raw '{
-    "text": "Who is Leo DiCaprios girlfriend? What is her current age raised to the 0.43 power?",
-    "parameters": {
-        "tools": {
-            "tool_names": ["serpapi", "llm-math"]
-        },
-        "agent": "zero-shot-react-description",
-        "verbose": true
-    },
-    "envs": {
-        "OPENAI_API_KEY": "'"${OPENAI_API_KEY}"'",
-        "SERPAPI_API_KEY": "'"${SERPAPI_API_KEY}"'"
-    }
-}' | jq
-``` 
-
-```json
-{
-  "result": "Camila Morrone is Leo DiCaprio's girlfriend, and her current age raised to the 0.43 power is 3.6261260611529527.",
-  "chain_of_thought": "\u001b[1m> Entering new AgentExecutor chain...\u001b[0m\u001b[32;1m\u001b[1;3m I need to find out the name of Leo's girlfriend and then use the calculator to calculate her age to the 0.43 power.Action: SearchAction Input: Leo DiCaprio girlfriend\u001b[0mObservation: \u001b[36;1m\u001b[1;3mDiCaprio met actor Camila Morrone in December 2017, when she was 20 and he was 43. They were spotted at Coachella and went on multiple vacations together. Some reports suggested that DiCaprio was ready to ask Morrone to marry him. The couple made their red carpet debut at the 2020 Academy Awards.\u001b[0mThought:\u001b[32;1m\u001b[1;3m I need to use the calculator to calculate her age to the 0.43 powerAction: CalculatorAction Input: 20^0.43\u001b[0mObservation: \u001b[33;1m\u001b[1;3mAnswer: 3.6261260611529527\u001b[0mThought:\u001b[32;1m\u001b[1;3m I now know the final answerFinal Answer: Camila Morrone is Leo DiCaprio's girlfriend, and her current age raised to the 0.43 power is 3.6261260611529527.\u001b[0m\u001b[1m> Finished chain.\u001b[0m"
-}
+lc-serve deploy jcloud --app filename:app 
 ```
 
-### [Self Ask With Search](https://python.langchain.com/en/latest/modules/agents/implementations/self_ask_with_search.html)
+<details>
+<summary>Show details</summary>
 
-#### Streamlit Playground
-
-![Streamlit Playground](.github/images/playground_two.gif)
-
-#### RESTful API
+Let's take an example of a simple FastAPI app with directory structure
 
 ```bash
-export OPENAI_API_KEY=sk-***
-export SERPAPI_API_KEY=***
-
-curl -sX POST 'https://langchain.wolf.jina.ai/api/run' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  --data-raw '{
-    "text": "What is the hometown of the reigning mens U.S. Open champion?",
-    "parameters": {
-        "tools": {
-            "tool_names": ["serpapi"]
-        },
-        "agent": "self-ask-with-search",
-        "verbose": true
-    },
-    "envs": {
-        "OPENAI_API_KEY": "'"${OPENAI_API_KEY}"'",
-        "SERPAPI_API_KEY": "'"${SERPAPI_API_KEY}"'"
-    }
-}' | jq
+.
+└── endpoints.py
 ```
 
-```json
-{
-  "result": "El Palmar, Murcia, Spain",
-  "chain_of_thought": "\u001b[1m> Entering new AgentExecutor chain...\u001b[0m\u001b[32;1m\u001b[1;3m Yes.Follow up: Who is the reigning mens U.S. Open champion?\u001b[0mIntermediate answer: \u001b[36;1m\u001b[1;3mCarlos Alcaraz Garfia\u001b[0m\u001b[32;1m\u001b[1;3mFollow up: What is Carlos Alcaraz Garfia's hometown?\u001b[0mIntermediate answer: \u001b[36;1m\u001b[1;3mCarlos Alcaraz Garfia was born on May 5, 2003, in El Palmar, Murcia, Spain to parents Carlos Alcaraz González and Virginia Garfia Escandón. He has three siblings.\u001b[0m\u001b[32;1m\u001b[1;3mSo the final answer is: El Palmar, Murcia, Spain\u001b[0m\u001b[1m> Finished chain.\u001b[0m"
-}
+```python
+# endpoints.py
+from typing import Union
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/status")
+def read_root():
+    return {"Hello": "World"}
+
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: Union[str, None] = None):
+    return {"item_id": item_id, "q": q}
 ```
 
-## `lc-serve` CLI
+```bash
+lc-serve deploy jcloud --app endpoints:app
+```
 
-`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud.
+</details>
+
+---
+
+## 💻 `lc-serve` CLI
+
+`lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud (JCloud) 
 
 
 | Description | Command | 
 | --- | ---: |
 | Deploy your app locally | `lc-serve deploy local app` |
-| Deploy your app on Jina AI Cloud | `lc-serve deploy jcloud app` |
-| Update existing app on Jina AI Cloud | `lc-serve deploy jcloud app --app-id <app-id>` |
-| Get app status on Jina AI Cloud | `lc-serve status <app-id>` |
-| List all apps on Jina AI Cloud | `lc-serve list` |
-| Remove app on Jina AI Cloud | `lc-serve remove <app-id>` |
+| Deploy your app on JCloud | `lc-serve deploy jcloud app` |
+| Deploy FastAPI app on JCloud | `lc-serve deploy jcloud --app <app-name>:<app-object>` |
+| Update existing app on JCloud | `lc-serve deploy jcloud app --app-id <app-id>` |
+| Get app status on JCloud | `lc-serve status <app-id>` |
+| List all apps on JCloud | `lc-serve list` |
+| Remove app on JCloud | `lc-serve remove <app-id>` |
 
-# JCloud
-## Configurations
+# 💡 JCloud Deployment
+## ⚙️ Configurations
 
 For JCloud deployment, you can configure your application infrastructure by providing a YAML configuration file using the `--config` option. The supported configurations are:
 
@@ -680,7 +667,7 @@ If you don't provide a configuration file or a specific configuration isn't spec
 instance: C3
 autoscale_min: 1
 ```
-## Pricing
+## 💰 Pricing
 
 Applications hosted on JCloud are priced in two categories:
 
@@ -740,7 +727,7 @@ Serving credits = 10 * 20/60 = 3.33
 Total credits per hour = 10 + 3.33 = 13.33
 ```
 
-# :grey_question: Frequently Asked Questions
+# ❓ Frequently Asked Questions
 
 - [My client that connects to the JCloud hosted App gets timed-out, what should I do?](#my-client-that-connects-to-the-jcloud-hosted-app-gets-timed-out-what-should-I-do)
 - [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
