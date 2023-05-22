@@ -588,7 +588,7 @@ Check out this [example](examples/websockets/hitl/README.md) to see how you can 
 
 ## 📁 Persistent storage on Jina AI Cloud
 
-Every app deployed on Jina AI Cloud gets a persistent (network file) storage mounted locally which can be accessed via `workspace` kwarg in the `@serving` function.
+Every app deployed on Jina AI Cloud gets a persistent storage (EFS) mounted locally which can be accessed via `workspace` kwarg in the `@serving` function.
 
 <details>
 <summary>Show code</summary>
@@ -731,9 +731,7 @@ Applications hosted on JCloud are priced in two categories:
 - You are charged for each second your application is serving requests.
 
 
-**Total credits charged = Base credits + Serving credits**
-
-[Jina AI Cloud](https://cloud.jina.ai/pricing) defines each credit as €0.005.
+**Total credits charged = Base credits + Serving credits**. ([Jina AI Cloud](https://cloud.jina.ai/pricing) defines each credit as €0.005)
 
 ### Examples
 
