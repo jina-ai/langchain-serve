@@ -588,7 +588,7 @@ Check out this [example](examples/websockets/hitl/README.md) to see how you can 
 
 ## 📁 Persistent storage on Jina AI Cloud
 
-Every app deployed on Jina AI Cloud gets a persistent storage mounted locally which can be accessed via `workspace` kwarg in the `@serving` function.
+Every app deployed on Jina AI Cloud gets a persistent (network file) storage mounted locally which can be accessed via `workspace` kwarg in the `@serving` function.
 
 <details>
 <summary>Show code</summary>
