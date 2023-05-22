@@ -599,7 +599,7 @@ async def talk(question: str, **kwargs) -> str:
 If you already have a FastAPI app with pre-defined endpoints, you can use `lc-serve` to deploy it on Jina AI Cloud. 
 
 ```bash
-lc-serve --app filename:app 
+lc-serve deploy jcloud --app filename:app 
 ```
 
 <details>
@@ -632,7 +632,7 @@ def read_item(item_id: int, q: Union[str, None] = None):
 ```
 
 ```bash
-lc-serve --app endpoints:app
+lc-serve deploy jcloud --app endpoints:app
 ```
 
 </details>
