@@ -199,6 +199,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   - 🔑 Protect your APIs with [API authorization](#-authorize-your-apis) using Bearer tokens.
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless, autoscaling apps that scales automatically with your traffic.
+  - 📁 Persistent storage (EFS) mounted on your app for your data.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
 
@@ -579,11 +580,47 @@ async def talk(question: str, **kwargs) -> str:
 
 ---
 
-## 🙋‍♂️ Enable Human-in-the-loop (HITL) for your agents
+## 🙋‍♂️ Enable streaming & human-in-the-loop (HITL) with WebSockets
 
 HITL for LangChain agents on production can be challenging since the agents are typically running on servers where humans don't have direct access. **langchain-serve** bridges this gap by enabling websocket APIs that allow for real-time interaction and feedback between the agent and a human operator.
 
 Check out this [example](examples/websockets/hitl/README.md) to see how you can enable HITL for your agents.
+
+## 📁 Persistent storage on Jina AI Cloud
+
+Every app deployed on Jina AI Cloud gets a persistent storage (EFS) mounted locally which can be accessed via `workspace` kwarg in the `@serving` function.
+
+<details>
+<summary>Show code</summary>
+
+```python
+from lcserve import serving
+
+@serving
+def store(text: str, **kwargs):
+    workspace: str = kwargs.get('workspace')
+    path = f'{workspace}/store.txt'
+    print(f'Writing to {path}')
+    with open(path, 'a') as f:
+        f.writelines(text + '\n')
+    return 'OK'
+
+
+@serving(websocket=True)
+async def stream(**kwargs):
+    workspace: str = kwargs.get('workspace')
+    websocket: WebSocket = kwargs.get('websocket')
+    path = f'{workspace}/store.txt'
+    print(f'Streaming {path}')
+    async with aiofiles.open(path, 'r') as f:
+        async for line in f:
+            await websocket.send_text(line)
+    return 'OK'
+```
+
+Here, we are using the `workspace` to store the incoming text in a file via the REST endpoint and streaming the contents of the file via the WebSocket endpoint.
+
+</details>
 
 ## 🚀 Bring your own FastAPI app
 
@@ -652,12 +689,14 @@ For JCloud deployment, you can configure your application infrastructure by prov
 
   - Instance type (`instance`), as defined by [Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
   - Minimum number of replicas for your application (`autoscale_min`). Setting it 0 enables [serverless](https://en.wikipedia.org/wiki/Serverless_computing).
+  - Disk size (`disk_size`), in GB. The default value is 1 GB.
 
 For example:
 
 ```
 instance: C4
 autoscale_min: 0
+disk_size: 1.5G
 ```
 
 You can alternatively include a `jcloud.yaml` file in your application directory with the desired configurations. However, please note that if the `--config` option is explicitly used in the command line interface, the local jcloud.yaml file will be disregarded. The command line provided configuration file will take precedence.
@@ -667,7 +706,9 @@ If you don't provide a configuration file or a specific configuration isn't spec
 ```
 instance: C3
 autoscale_min: 1
+disk_size: 1G
 ```
+
 ## 💰 Pricing
 
 Applications hosted on JCloud are priced in two categories:
@@ -676,7 +717,7 @@ Applications hosted on JCloud are priced in two categories:
 
 - Base credits are charged to ensure high availability for your application by maintaining at least one instance running continuously, ready to handle incoming requests.
 - Actual credits charged for base credits are calculated based on the [instance type as defined by Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
-- By default, instance type `C3` is used with a minimum of 1 instance, which means that if your application is served on JCloud, you will be charged 10 credits per hour.
+- By default, instance type `C3` is used with a minimum of 1 instance and efs disk of size 1G, which means that if your application is served on JCloud, you will be charged ~10 credits per hour.
 - You can change the instance type and the minimum number of instances by providing a YAML configuration file using the `--config` option. For example, if you want to use instance type `C4` with a minimum of 0 replicas, you can provide the following configuration file:
   ```yaml
   instance: C4
@@ -690,9 +731,7 @@ Applications hosted on JCloud are priced in two categories:
 - You are charged for each second your application is serving requests.
 
 
-**Total credits charged = Base credits + Serving credits**
-
-[Jina AI Cloud](https://cloud.jina.ai/pricing) defines each credit as €0.005.
+**Total credits charged = Base credits + Serving credits**. ([Jina AI Cloud](https://cloud.jina.ai/pricing) defines each credit as €0.005)
 
 ### Examples
 
