@@ -545,7 +545,7 @@ curl -X 'POST' \
 
 ---
 
-### 🔐 Authorize your APIs
+## 🔐 Authorize your APIs
 
 To add an extra layer of security, we can integrate any custom API authorization by adding a `auth` argument to the `@serving` decorator. 
 
