@@ -27,7 +27,7 @@ from .flow import (
     update_requirements,
     get_uri,
 )
-from .utils import validate_jcloud_config_callback
+from .config import validate_jcloud_config_callback
 
 
 def serve_locally(
