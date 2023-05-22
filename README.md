@@ -644,7 +644,7 @@ lc-serve deploy jcloud --app endpoints:app
 | List all apps on JCloud | `lc-serve list` |
 | Remove app on JCloud | `lc-serve remove <app-id>` |
 
-# JCloud Deployment
+# 💡 JCloud Deployment
 ## ⚙️ Configurations
 
 For JCloud deployment, you can configure your application infrastructure by providing a YAML configuration file using the `--config` option. The supported configurations are:
