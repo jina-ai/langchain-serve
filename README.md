@@ -16,7 +16,14 @@
 
 > Give us a :star: and tell us what more you'd like to see! 
 
+# LLM Apps as a Service
+
+langchain-serve currently wraps following apps as a service to be deployed on Jina AI Cloud with one command.
+
 ## 🔮 AutoGPT-as-a-service
+
+<details>
+<summary>Show usage</summary>
 
 - Deploy `autogpt` on Jina AI Cloud with one command
 
@@ -55,6 +62,8 @@
   <summary>Show playground</summary>
   <img src=".github/images/autogpt-playground.gif" title="autogpt-as-a-service Playground">
   </details>
+
+</details>
 
 ## 🧠 Babyagi-as-a-service
 
@@ -158,7 +167,7 @@
 
 # :muscle: Features
 
-### 🎉 Custom Apps to production in 4 simple steps
+### 🎉 LLM Apps to production in 4 simple steps
 
   1. Refactor your code to function(s) that should be served with `@serving` decorator.
   1. Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.
