@@ -3,6 +3,7 @@ import time
 from typing import List, Dict, Any
 from lcserve import serving
 
+import aiofiles
 from fastapi import WebSocket, UploadFile
 
 
@@ -113,3 +114,25 @@ def multiple_file_uploads_with_extra_arg(
         "question": question,
         "someint": someint,
     }
+
+
+@serving
+def store(text: str, **kwargs):
+    workspace: str = kwargs.get('workspace')
+    path = f'{workspace}/store.txt'
+    print(f'Writing to {path}')
+    with open(path, 'a') as f:
+        f.writelines(text + '\n')
+    return 'OK'
+
+
+@serving(websocket=True)
+async def stream(**kwargs):
+    workspace: str = kwargs.get('workspace')
+    websocket: WebSocket = kwargs.get('websocket')
+    path = f'{workspace}/store.txt'
+    print(f'Streaming {path}')
+    async with aiofiles.open(path, 'r') as f:
+        async for line in f:
+            await websocket.send_text(line)
+    return 'OK'
