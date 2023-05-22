@@ -5,7 +5,7 @@ from typing import Dict
 import yaml
 import click
 
-from .errors import InvalidAutoscaleMinError, InvalidInstanceError
+from .errors import InvalidAutoscaleMinError, InvalidInstanceError, InvalidDiskSizeError
 
 
 INSTANCE = 'instance'
@@ -109,6 +109,7 @@ def validate_jcloud_config(config_path):
         config_data: Dict = yaml.safe_load(f)
         instance: str = config_data.get(INSTANCE)
         autoscale_min: str = config_data.get(AUTOSCALE_MIN)
+        disk_size: str = config_data.get(DISK_SIZE)
 
         if instance and not (
             instance.startswith(("C", "G")) and instance[1:].isdigit()
@@ -122,6 +123,10 @@ def validate_jcloud_config(config_path):
                     raise InvalidAutoscaleMinError(autoscale_min)
             except ValueError:
                 raise InvalidAutoscaleMinError(autoscale_min)
+
+        if disk_size:
+            if not disk_size.endswith(("M", "MB", "Mi", "G", "GB", "Gi")):
+                raise InvalidDiskSizeError(disk_size)
 
 
 def validate_jcloud_config_callback(ctx, param, value):
