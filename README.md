@@ -22,6 +22,8 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 ## 🔮 AutoGPT-as-a-service
 
+[AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT) is an "AI agent" that given a goal in natural language, will attempt to achieve it by breaking it into sub-tasks and using the internet and other tools in an automatic loop.
+
 <details>
 <summary>Show usage</summary>
 
@@ -67,6 +69,11 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 ## 🧠 Babyagi-as-a-service
 
+[Babyagi](https://github.com/yoheinakajima/babyagi) is a task-driven autonomous agent that uses LLMs to create, prioritize, and execute tasks. It is a general-purpose AI agent that can be used to automate a wide variety of tasks.
+
+<details>
+<summary>Show usage</summary>
+
 - Deploy `babyagi` on Jina AI Cloud with one command
 
   ```bash
@@ -84,10 +91,14 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   <img src=".github/images/babyagi-playground.gif" title="Babyagi-as-a-service Playground">
   </details>
 
+</details>
 
 ## :panda_face: pandas-ai-as-a-service
 
 [pandas-ai](https://github.com/gventuri/pandas-ai) integrates LLM capabilities into Pandas, to make dataframes conversational in Python code. Thanks to langchain-serve, we can now expose pandas-ai APIs on Jina AI Cloud in just a matter of seconds.
+
+<details>
+<summary>Show usage</summary>
 
 - Deploy **pandas-ai** on Jina AI Cloud
 
@@ -142,8 +153,14 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   <img src=".github/images/pandas-ai-playground.gif" title="pandas-ai-as-a-service Playground">
   </details>
 
+</details>
 
 ## 💬 Question Answer Bot on PDFs
+
+`pdfqna` is a simple question answering bot that uses LLMs to answer questions on PDF documents, showcasing the how easy it is to integrate langchain apps on Jina AI Cloud.
+
+<details>
+<summary>Show usage</summary>
 
 - Deploy `pdf_qna` on Jina AI Cloud with one command
 
@@ -164,6 +181,8 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 - Expand the Q&A bot to multiple languages, different document types & integrate with external services using simple REST APIs.
 
   https://github.com/jina-ai/langchain-serve/blob/8f7a9272e99490a5357655becfc5da3569655f38/lcserve/apps/pdf_qna/app.py#L8-L12
+
+</details>
 
 # :muscle: Features
 
