@@ -189,12 +189,15 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 ### 🎉 LLM Apps on production
 
 Either,
+
   1. Refactor your code to function(s) that should be served with `@serving` decorator.
   1. Create a `requirements.txt` file in your app directory with all required dependencies.
   1. Run `lc-serve deploy local app` to test your API locally.
   1. Run `lc-serve deploy jcloud app` to deploy on [Jina AI Cloud](https://jina.ai/product/cloud/).
 
-OR, **Bring your own FastAPI app**
+OR, 
+
+#### [Bring your own FastAPI app](#-bring-your-own-fastapi-app)
 
 ### 🔥 Secure, Scalable, Serverless, Streaming RESTful/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
 
@@ -549,6 +552,9 @@ curl -X 'POST' \
 
 To add an extra layer of security, we can integrate any custom API authorization by adding a `auth` argument to the `@serving` decorator. 
 
+<details>
+<summary>Show code & gotchas</summary>
+
 ```python
 from lcserve import serving
 
@@ -583,6 +589,9 @@ async def talk(question: str, **kwargs) -> str:
   ```bash
   wscat -H "Authorization: Bearer mysecrettoken" -c ws://localhost:8080/talk
   ```
+
+</details>
+
 ---
 
 ## 🚀 Bring your own FastAPI app
