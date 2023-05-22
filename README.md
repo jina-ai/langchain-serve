@@ -188,7 +188,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 ### 🎉 LLM Apps on production
 
-Either, **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** **OR** **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)**
+Either, **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** **OR** **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)** !
 
 ### 🔥 Secure, Scalable, Serverless, Streaming REST/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
 
@@ -629,7 +629,7 @@ lc-serve deploy jcloud --app endpoints:app
 
 ---
 
-## `lc-serve` CLI
+## 💻 `lc-serve` CLI
 
 `lc-serve` is a simple CLI that helps you to deploy your agents on Jina AI Cloud (JCloud) 
 
