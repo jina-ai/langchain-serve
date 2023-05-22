@@ -2,7 +2,11 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from lcserve.errors import InvalidAutoscaleMinError, InvalidInstanceError
+from lcserve.errors import (
+    InvalidAutoscaleMinError,
+    InvalidInstanceError,
+    InvalidDiskSizeError,
+)
 from lcserve.config import validate_jcloud_config
 
 
@@ -41,6 +45,6 @@ def test_validate_jcloud_config():
     # Test with invalid disk_size
     invalid_disk_size_data = "instance: C1\nautoscale_min: 0\ndisk_size: 1abc\n"
     with patch("builtins.open", mock_open(read_data=invalid_disk_size_data)):
-        with pytest.raises(ValueError):
+        with pytest.raises(InvalidDiskSizeError):
             validate_jcloud_config("path/to/invalid_disk_size_config.yaml")
-            assert e.disk_size == "1GB"
+            assert e.disk_size == "1abc"
