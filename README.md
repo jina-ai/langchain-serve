@@ -16,7 +16,7 @@
 
 > Give us a :star: and tell us what more you'd like to see! 
 
-# LLM Apps as-a-service
+# ☁️ LLM Apps as-a-service
 
 langchain-serve currently wraps following apps as a service to be deployed on Jina AI Cloud with one command.
 
@@ -184,7 +184,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 </details>
 
-# :muscle: Features
+# 💪 Features
 
 ### 🎉 LLM Apps on production
 
@@ -214,7 +214,7 @@ OR,
 If you have any feature requests or faced any issue, please [let us know](https://github.com/jina-ai/langchain-serve/issues/new)!
 
 
-# :toolbox: Usage
+# 🧰 Usage
 
 Let's first install `langchain-serve` using pip.
 
@@ -654,8 +654,8 @@ lc-serve deploy jcloud --app endpoints:app
 | List all apps on JCloud | `lc-serve list` |
 | Remove app on JCloud | `lc-serve remove <app-id>` |
 
-# JCloud
-## Configurations
+# JCloud Deployment
+## ⚙️ Configurations
 
 For JCloud deployment, you can configure your application infrastructure by providing a YAML configuration file using the `--config` option. The supported configurations are:
 
@@ -677,7 +677,7 @@ If you don't provide a configuration file or a specific configuration isn't spec
 instance: C3
 autoscale_min: 1
 ```
-## Pricing
+## 💰 Pricing
 
 Applications hosted on JCloud are priced in two categories:
 
@@ -737,7 +737,7 @@ Serving credits = 10 * 20/60 = 3.33
 Total credits per hour = 10 + 3.33 = 13.33
 ```
 
-# :grey_question: Frequently Asked Questions
+# ❓ Frequently Asked Questions
 
 - [My client that connects to the JCloud hosted App gets timed-out, what should I do?](#my-client-that-connects-to-the-jcloud-hosted-app-gets-timed-out-what-should-I-do)
 - [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
