@@ -35,6 +35,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -896,4 +897,32 @@
  - [[```51f6df77```](https://github.com/jina-ai/langchain-serve/commit/51f6df7732260c1ed5f218a8b86c2c6e4b2c42b7)] __-__ __version__: the next version will be 0.0.35 (*Jina Dev Bot*)
  - [[```1e5966fe```](https://github.com/jina-ai/langchain-serve/commit/1e5966feb9d1ecf50578289a27eb4b1139891a32)] __-__ __version__: the next version will be 0.0.33 (*Jina Dev Bot*)
  - [[```94c16e7d```](https://github.com/jina-ai/langchain-serve/commit/94c16e7d56ef9bc3ad9fc31b973475c7a282254d)] __-__ Merge pull request #76 from jina-ai/feat-pricing (*Deepankar Mahapatro*)
+
+<a name=release-note-0-0-36></a>
+## Release Note (`0.0.36`)
+
+> Release time: 2023-05-22 15:11:29
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```19f2ca5c```](https://github.com/jina-ai/langchain-serve/commit/19f2ca5cc648af067dad534194e8ec22239d7dda)] __-__ mount efs with gateway (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```3ecd8388```](https://github.com/jina-ai/langchain-serve/commit/3ecd83882698d2cedb6d62878cd61f7ed106d612)] __-__ update readme (*Deepankar Mahapatro*)
+ - [[```8d01dddf```](https://github.com/jina-ai/langchain-serve/commit/8d01dddffd15268533d51770552c8a0ab3795e68)] __-__ refactor readme (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```a06a1925```](https://github.com/jina-ai/langchain-serve/commit/a06a1925846b51fea92da0bf5e95b6564effc0b6)] __-__ assign and pass workspace to methods (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```bc881f81```](https://github.com/jina-ai/langchain-serve/commit/bc881f8142613ba6b943bfe2d9e2aa667a43f0f6)] __-__ __version__: the next version will be 0.0.36 (*Jina Dev Bot*)
 

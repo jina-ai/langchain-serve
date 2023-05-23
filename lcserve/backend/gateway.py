@@ -6,6 +6,7 @@ import sys
 import time
 import uuid
 from enum import Enum
+from functools import cached_property
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
@@ -296,6 +297,23 @@ class ServingGateway(FastAPIBaseGateway):
     def app(self) -> 'FastAPI':
         return self._app
 
+    @cached_property
+    def workspace(self) -> str:
+        import tempfile
+
+        _temp_dir = tempfile.mkdtemp()
+        if 'FLOW_ID' not in os.environ:
+            self.logger.debug(f'Using temporary workspace directory: {_temp_dir}')
+            return _temp_dir
+
+        try:
+            flow_id = os.environ['FLOW_ID']
+            namespace = flow_id.split('-')[-1]
+            return os.path.join('/data', f'jnamespace-{namespace}')
+        except Exception as e:
+            self.logger.warning(f'Failed to get workspace directory: {e}')
+            return _temp_dir
+
     def _init_fastapi_app(self):
         from fastapi import FastAPI
 
@@ -515,6 +533,7 @@ class ServingGateway(FastAPIBaseGateway):
                     'description': func.__doc__ or '',
                     'tags': [SERVING],
                 },
+                workspace=self.workspace,
                 logger=self.logger,
             )
 
@@ -533,6 +552,7 @@ class ServingGateway(FastAPIBaseGateway):
                     'name': _name,
                 },
                 include_callback_handlers=include_callback_handlers,
+                workspace=self.workspace,
                 logger=self.logger,
             )
 
@@ -554,6 +574,7 @@ def _get_func_data(
     input_data: Union[str, Dict, BaseModel],
     files_data: Dict,
     auth_response: Any = None,
+    workspace: str = None,
     include_if_kwargs_exist: Dict = {},
 ) -> Tuple[Dict[str, Any], Dict[str, str]]:
     import json
@@ -576,6 +597,11 @@ def _get_func_data(
         _func_data['auth_response'] = auth_response
     elif 'kwargs' in _func_params_names:
         _func_data.update({'auth_response': auth_response})
+
+    if 'workspace' in _func_params_names:
+        _func_data['workspace'] = workspace
+    elif 'kwargs' in _func_params_names:
+        _func_data.update({'workspace': workspace})
 
     if include_if_kwargs_exist:
         _func_data.update(include_if_kwargs_exist)
@@ -616,6 +642,7 @@ def create_http_route(
     input_model: BaseModel,
     output_model: BaseModel,
     post_kwargs: Dict,
+    workspace: str,
     logger: JinaLogger,
 ):
     from fastapi import Depends, Form, HTTPException, Security, UploadFile, status
@@ -648,7 +675,13 @@ def create_http_route(
         auth_response: Any = None,
     ) -> output_model:
         _output, _error = '', ''
-        _func_data, _envs = _get_func_data(func, input_data, files_data, auth_response)
+        _func_data, _envs = _get_func_data(
+            func=func,
+            input_data=input_data,
+            files_data=files_data,
+            auth_response=auth_response,
+            workspace=workspace,
+        )
         with EnvironmentVarCtxtManager(_envs):
             with Capturing() as stdout:
                 try:
@@ -753,6 +786,7 @@ def create_websocket_route(
     output_model: BaseModel,
     include_callback_handlers: bool,
     ws_kwargs: Dict,
+    workspace: str,
     logger: JinaLogger,
 ):
     from fastapi import (
@@ -843,6 +877,7 @@ def create_websocket_route(
                         input_data=_input_data,
                         files_data={},
                         auth_response=auth_response,
+                        workspace=workspace,
                         include_if_kwargs_exist={
                             'websocket': websocket,
                             'streaming_handler': StreamingWebsocketCallbackHandler(

@@ -301,3 +301,29 @@ async def test_metrics_ws(run_test_app_locally, route):
         expected_value=1,
         route="/" + route,
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "run_test_app_locally",
+    [("basic_app")],
+    indirect=["run_test_app_locally"],
+)
+async def test_workspace(run_test_app_locally):
+    http_url = os.path.join(HTTP_HOST, "store")
+    ws_url = os.path.join(WS_HOST, "stream")
+
+    for i in range(10):
+        data = {"text": f"Here's string {i}", "envs": {}}
+        response = requests.post(http_url, json=data)
+        assert response.status_code == 200
+
+    async with websockets.connect(ws_url) as websocket:
+        await websocket.send(json.dumps({}))
+
+        received_messages = []
+        for _ in range(10):
+            message = await websocket.recv()
+            received_messages.append(message.strip())
+
+        assert received_messages == [f"Here's string {i}" for i in range(10)]
