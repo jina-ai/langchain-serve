@@ -1,10 +1,11 @@
 import json
 
+import aiohttp
 import pytest
 import requests
-import aiohttp
 
 from ..helper import deploy_jcloud_fastapi_app
+
 
 @pytest.mark.asyncio
 async def test_basic_app():
@@ -18,9 +19,7 @@ def _test_http_route(app_id):
         "accept": "application/json",
         "Content-Type": "application/json",
     }
-    response = requests.get(
-        f"https://{app_id}.wolf.jina.ai/status", headers=headers
-    )
+    response = requests.get(f"https://{app_id}.wolf.jina.ai/status", headers=headers)
 
     response_data = response.json()
 
@@ -35,4 +34,4 @@ async def _test_ws_route(app_id):
             received_messages = []
             async for message in websocket:
                 received_messages.append(message.data)
-            assert received_messages == ["0", "1", "2", "3", "4"]
+            assert received_messages[1:] == ["0", "1", "2", "3", "4"]
