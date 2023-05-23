@@ -4,8 +4,8 @@ import os
 import shutil
 import sys
 import time
+import uuid
 from enum import Enum
-from functools import wraps
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
@@ -290,6 +290,7 @@ class ServingGateway(FastAPIBaseGateway):
         self._register_healthz()
         self._register_modules()
         self._setup_metrics()
+        self._setup_logging()
 
     @property
     def app(self) -> 'FastAPI':
@@ -359,6 +360,9 @@ class ServingGateway(FastAPIBaseGateway):
             duration_counter=self.duration_counter,
             request_counter=self.request_counter,
         )
+
+    def _setup_logging(self):
+        self.app.add_middleware(LoggingMiddleware, logger=self.logger)
 
     def _register_healthz(self):
         @self.app.get("/healthz")
@@ -1059,5 +1063,88 @@ class MetricsMiddleware:
                     self.request_counter.add(
                         1, {'route': scope['path'], 'protocol': scope['type']}
                     )
+        else:
+            await self.app(scope, receive, send)
+
+
+class LoggingMiddleware:
+    def __init__(self, app: ASGIApp, logger: JinaLogger):
+        self.app = app
+        self.logger = logger
+        self.skip_routes = [
+            '/docs',
+            '/redoc',
+            '/openapi.json',
+            '/healthz',
+            '/dry_run',
+            '/metrics',
+            '/favicon.ico',
+        ]
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['path'] not in self.skip_routes:
+            # Get IP address, use X-Forwarded-For if set else use scope['client'][0]
+            ip_address = scope.get('client')[0] if scope.get('client') else None
+            if scope.get('headers'):
+                for header in scope['headers']:
+                    if header[0].decode('latin-1') == 'x-forwarded-for':
+                        ip_address = header[1].decode('latin-1')
+                        break
+
+            # Init the request/connection ID
+            request_id = connection_id = None
+            if scope["type"] == "http":
+                request_id = uuid.uuid4()
+            elif scope["type"] == "websocket":
+                connection_id = uuid.uuid4()
+
+            original_send = send
+            is_accepted = False
+            status_code = None
+            start_time = time.perf_counter()
+
+            async def custom_send(message: dict) -> None:
+                nonlocal is_accepted
+                nonlocal status_code
+
+                if request_id and message.get('type') == 'http.response.start':
+                    message.setdefault('headers', []).append(
+                        (b'X-API-Request-ID', str(request_id).encode())
+                    )
+                    status_code = message.get('status')
+                    print(status_code)
+                elif message["type"] == "websocket.accept":
+                    is_accepted = True
+
+                await original_send(message)
+
+                # Ensure that the websocket.send message containing the connection ID is only sent once,
+                # and only after the websocket.accept message
+                if is_accepted and message.get('type') not in [
+                    'websocket.send',
+                    'websocket.close',
+                ]:
+                    await original_send(
+                        {
+                            "type": "websocket.send",
+                            "text": f"connection_id:{connection_id}",
+                        }
+                    )
+                    is_accepted = False
+
+            await self.app(scope, receive, custom_send)
+
+            end_time = time.perf_counter()
+            duration = round(end_time - start_time, 2)
+
+            if scope["type"] == "http":
+                self.logger.info(
+                    f"HTTP response id: {request_id} - Path: {scope['path']} - Client IP: {ip_address} - Status code: {status_code} - Duration: {duration}"
+                )
+            elif scope["type"] == "websocket":
+                self.logger.info(
+                    f"WebSocket disconnection id: {connection_id} - Path: {scope['path']} - Client IP: {ip_address} - Duration: {duration}"
+                )
+
         else:
             await self.app(scope, receive, send)
