@@ -1,10 +1,11 @@
 import json
 
+import aiohttp
 import pytest
 import requests
-import aiohttp
 
 from ..helper import deploy_jcloud_fastapi_app
+
 
 @pytest.mark.asyncio
 async def test_basic_app():
@@ -18,9 +19,7 @@ def _test_http_route(app_id):
         "accept": "application/json",
         "Content-Type": "application/json",
     }
-    response = requests.get(
-        f"https://{app_id}.wolf.jina.ai/status", headers=headers
-    )
+    response = requests.get(f"https://{app_id}.wolf.jina.ai/status", headers=headers)
 
     response_data = response.json()
 
