@@ -38,11 +38,11 @@ async def _test_ws_route(app_id):
         await websocket.send(json.dumps({"interval": 1}))
 
         received_messages = []
-        for _ in range(6):
+        for _ in range(5):
             message = await websocket.recv()
             received_messages.append(message)
 
-        assert received_messages[1:] == ["0", "1", "2", "3", "4"]
+        assert received_messages == ["0", "1", "2", "3", "4"]
 
 
 async def _test_workspace(app_id):
@@ -63,6 +63,6 @@ async def _test_workspace(app_id):
                 message = await websocket.recv()
                 received_messages.append(message.strip())
 
-            assert received_messages[1:] == [f"Here's string {i}" for i in range(10)]
+            assert received_messages == [f"Here's string {i}" for i in range(10)]
     except ConnectionClosedOK:
         pass

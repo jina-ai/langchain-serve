@@ -68,7 +68,7 @@ async def test_websocket_endpoint(run_fastapi_app_locally, route):
             received_messages = []
             async for message in websocket:
                 received_messages.append(message.data)
-            assert received_messages[1:] == ["0", "1", "2", "3", "4"]
+            assert received_messages == ["0", "1", "2", "3", "4"]
 
 
 @pytest.mark.parametrize(
@@ -109,11 +109,11 @@ async def test_metrics_ws(run_fastapi_app_locally, route):
         await websocket.send(json.dumps({"interval": 1}))
 
         received_messages = []
-        for _ in range(6):
+        for _ in range(5):
             message = await websocket.recv()
             received_messages.append(message)
 
-        assert received_messages[1:] == ["0", "1", "2", "3", "4"]
+        assert received_messages == ["0", "1", "2", "3", "4"]
 
     start_time = time.time()
     examine_request_duration_with_retry(

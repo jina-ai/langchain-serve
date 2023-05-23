@@ -1127,58 +1127,36 @@ class LoggingMiddleware:
                         break
 
             # Init the request/connection ID
-            request_id = connection_id = None
-            if scope["type"] == "http":
-                request_id = uuid.uuid4()
-            elif scope["type"] == "websocket":
-                connection_id = uuid.uuid4()
+            request_id = str(uuid.uuid4()) if scope["type"] == "http" else None
+            connection_id = str(uuid.uuid4()) if scope["type"] == "websocket" else None
 
-            original_send = send
-            is_accepted = False
             status_code = None
             start_time = time.perf_counter()
 
             async def custom_send(message: dict) -> None:
-                nonlocal is_accepted
                 nonlocal status_code
 
+                # TODO: figure out a way to do the same for ws
                 if request_id and message.get('type') == 'http.response.start':
                     message.setdefault('headers', []).append(
                         (b'X-API-Request-ID', str(request_id).encode())
                     )
                     status_code = message.get('status')
-                    print(status_code)
-                elif message["type"] == "websocket.accept":
-                    is_accepted = True
 
-                await original_send(message)
-
-                # Ensure that the websocket.send message containing the connection ID is only sent once,
-                # and only after the websocket.accept message
-                if is_accepted and message.get('type') not in [
-                    'websocket.send',
-                    'websocket.close',
-                ]:
-                    await original_send(
-                        {
-                            "type": "websocket.send",
-                            "text": f"connection_id:{connection_id}",
-                        }
-                    )
-                    is_accepted = False
+                await send(message)
 
             await self.app(scope, receive, custom_send)
 
             end_time = time.perf_counter()
-            duration = round(end_time - start_time, 2)
+            duration = round(end_time - start_time, 3)
 
             if scope["type"] == "http":
                 self.logger.info(
-                    f"HTTP response id: {request_id} - Path: {scope['path']} - Client IP: {ip_address} - Status code: {status_code} - Duration: {duration}"
+                    f"HTTP request: {request_id} - Path: {scope['path']} - Client IP: {ip_address} - Status code: {status_code} - Duration: {duration} s"
                 )
             elif scope["type"] == "websocket":
                 self.logger.info(
-                    f"WebSocket disconnection id: {connection_id} - Path: {scope['path']} - Client IP: {ip_address} - Duration: {duration}"
+                    f"WebSocket connection: {connection_id} - Path: {scope['path']} - Client IP: {ip_address} - Duration: {duration}"
                 )
 
         else:

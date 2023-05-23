@@ -47,11 +47,11 @@ async def test_basic_app_ws(run_test_app_locally, route):
         await websocket.send(json.dumps({"interval": 1}))
 
         received_messages = []
-        for _ in range(6):
+        for _ in range(5):
             message = await websocket.recv()
             received_messages.append(message)
 
-        assert received_messages[1:] == ["0", "1", "2", "3", "4"]
+        assert received_messages == ["0", "1", "2", "3", "4"]
 
 
 @pytest.mark.parametrize(
@@ -136,11 +136,11 @@ async def test_basic_app_ws_authorized(run_test_app_locally, route):
         await websocket.send(json.dumps({"interval": 1}))
 
         received_messages = []
-        for _ in range(6):
+        for _ in range(5):
             message = await websocket.recv()
             received_messages.append(message)
 
-        assert received_messages[1:] == ["0", "1", "2", "3", "4"]
+        assert received_messages == ["0", "1", "2", "3", "4"]
 
 
 @pytest.mark.parametrize(
@@ -284,11 +284,11 @@ async def test_metrics_ws(run_test_app_locally, route):
         await websocket.send(json.dumps({"interval": 1}))
 
         received_messages = []
-        for _ in range(6):
+        for _ in range(5):
             message = await websocket.recv()
             received_messages.append(message)
 
-        assert received_messages[1:] == ["0", "1", "2", "3", "4"]
+        assert received_messages == ["0", "1", "2", "3", "4"]
 
     start_time = time.time()
     examine_request_duration_with_retry(
@@ -322,8 +322,8 @@ async def test_workspace(run_test_app_locally):
         await websocket.send(json.dumps({}))
 
         received_messages = []
-        for _ in range(11):
+        for _ in range(10):
             message = await websocket.recv()
             received_messages.append(message.strip())
 
-        assert received_messages[1:] == [f"Here's string {i}" for i in range(10)]
+        assert received_messages == [f"Here's string {i}" for i in range(10)]
