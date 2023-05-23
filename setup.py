@@ -49,7 +49,7 @@ setup(
     packages=find_packages(),
     version=__version__,
     include_package_data=True,
-    description='Langchain Serve - serve your langchain apps on Jina AI Cloud.',
+    description='Langchain Serve - serve your langchain apps on Jina AI Cloud',
     author='Jina AI',
     author_email='hello@jina.ai',
     license='Apache 2.0',
