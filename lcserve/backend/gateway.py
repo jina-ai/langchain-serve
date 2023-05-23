@@ -1123,7 +1123,7 @@ class LoggingMiddleware:
             if scope.get('headers'):
                 for header in scope['headers']:
                     if header[0].decode('latin-1') == 'x-forwarded-for':
-                        ip_address = header[1].decode('latin-1')
+                        ip_address = header[1].decode('latin-1').split(",")[0].strip()
                         break
 
             # Init the request/connection ID
@@ -1156,7 +1156,7 @@ class LoggingMiddleware:
                 )
             elif scope["type"] == "websocket":
                 self.logger.info(
-                    f"WebSocket connection: {connection_id} - Path: {scope['path']} - Client IP: {ip_address} - Duration: {duration}"
+                    f"WebSocket connection: {connection_id} - Path: {scope['path']} - Client IP: {ip_address} - Duration: {duration} s"
                 )
 
         else:
