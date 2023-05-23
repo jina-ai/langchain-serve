@@ -2,7 +2,7 @@ jina==3.15.2
 click
 jcloud>=0.2.8
 requests
-langchain==0.0.170
+langchain==0.0.163
 jina-hubble-sdk
 nest-asyncio
 textual
