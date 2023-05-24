@@ -2,11 +2,10 @@ import os
 from dataclasses import dataclass, field
 from typing import Dict
 
-import yaml
 import click
+import yaml
 
-from .errors import InvalidAutoscaleMinError, InvalidInstanceError, InvalidDiskSizeError
-
+from .errors import InvalidAutoscaleMinError, InvalidDiskSizeError, InvalidInstanceError
 
 INSTANCE = 'instance'
 AUTOSCALE_MIN = 'autoscale_min'
@@ -86,22 +85,27 @@ class JCloudConfig:
         )
 
     def to_dict(self) -> Dict:
-        return {
+        jcloud_dict = {
             'jcloud': {
                 'expose': True,
                 'resources': {
                     'instance': self.instance,
                     'capacity': 'spot',
-                    'storage': {
-                        'kind': 'efs',
-                        'size': self.disk_size,
-                    },
                 },
                 'healthcheck': not self.is_websocket,
                 'timeout': self.timeout,
                 **self.autoscale.to_dict(),
             }
         }
+
+        # Don't add the volume block if self.disk_size is 0
+        if isinstance(self.disk_size, str):
+            jcloud_dict['jcloud']['resources']['storage'] = {
+                'kind': 'efs',
+                'size': self.disk_size,
+            }
+
+        return jcloud_dict
 
 
 def validate_jcloud_config(config_path):
@@ -124,8 +128,11 @@ def validate_jcloud_config(config_path):
             except ValueError:
                 raise InvalidAutoscaleMinError(autoscale_min)
 
-        if disk_size:
-            if not disk_size.endswith(("M", "MB", "Mi", "G", "GB", "Gi")):
+        if disk_size is not None:
+            if (
+                isinstance(disk_size, str)
+                and not disk_size.endswith(("M", "MB", "Mi", "G", "GB", "Gi"))
+            ) or (isinstance(disk_size, int) and disk_size != 0):
                 raise InvalidDiskSizeError(disk_size)
 
 
@@ -141,6 +148,10 @@ def validate_jcloud_config_callback(ctx, param, value):
     except InvalidAutoscaleMinError as e:
         raise click.BadParameter(
             f"Invalid instance '{e.min}' found in config file', it should be a number >= 0."
+        )
+    except InvalidDiskSizeError as e:
+        raise click.BadParameter(
+            f"Invalid disk size '{e.disk_size}' found in config file."
         )
 
     return value
@@ -164,7 +175,7 @@ def resolve_jcloud_config(config, module_dir: str):
 
     try:
         validate_jcloud_config(config_path)
-    except (InvalidAutoscaleMinError, InvalidInstanceError):
+    except (InvalidAutoscaleMinError, InvalidInstanceError, InvalidDiskSizeError):
         # If it's malformed, we treated as non-existed
         return None
 

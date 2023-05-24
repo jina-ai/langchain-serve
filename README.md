@@ -717,11 +717,12 @@ Applications hosted on JCloud are priced in two categories:
 
 - Base credits are charged to ensure high availability for your application by maintaining at least one instance running continuously, ready to handle incoming requests.
 - Actual credits charged for base credits are calculated based on the [instance type as defined by Jina AI Cloud](https://docs.jina.ai/concepts/jcloud/configuration/#cpu-tiers).
-- By default, instance type `C3` is used with a minimum of 1 instance and efs disk of size 1G, which means that if your application is served on JCloud, you will be charged ~10 credits per hour.
-- You can change the instance type and the minimum number of instances by providing a YAML configuration file using the `--config` option. For example, if you want to use instance type `C4` with a minimum of 0 replicas, you can provide the following configuration file:
+- By default, instance type `C3` is used with a minimum of 1 instance and [Amazon EFS](https://aws.amazon.com/efs/) disk of size 1G, which means that if your application is served on JCloud, you will be charged ~10 credits per hour.
+- You can change the instance type and the minimum number of instances by providing a YAML configuration file using the `--config` option. For example, if you want to use instance type `C4` with a minimum of 0 replicas, and 2G EFS disk, you can provide the following configuration file:
   ```yaml
   instance: C4
   autoscale_min: 0
+  disk_size: 2G
   ```
 
 **Serving credits**
@@ -741,14 +742,16 @@ Consider an HTTP application that has served requests for `10` minutes in the la
 ```
 instance: C4
 autoscale_min: 0
+disk_size: 2G
 ```
 
 Total credits per hour charged would be `3.33`. The calculation is as follows:
 ```
 C4 instance has an hourly credit rate of 20.
-Base credits = 0 (since `autoscale_min` is 0)
+EFS has hourly credit rate of 0.104 per GB.
+Base credits = 0 + 2 * 0.104 = 0.208 (since `autoscale_min` is 0)
 Serving credits = 20 * 10/60 = 3.33
-Total credits per hour = 3.33
+Total credits per hour = 0.208 + 3.33 = 3.538
 ```
 
 **Example 2:**
@@ -757,14 +760,16 @@ Consider a WebSocket application that had active connections for 20 minutes in t
 ```
 instance: C3
 autoscale_min: 1
+disk_size: 1G
 ```
 
 Total credits per hour charged would be `13.33`. The calculation is as follows:
 ```
 C3 instance has an hourly credit rate of 10.
-Base credits = 10 (since `autoscale_min` is 1)
+EFS has hourly credit rate of 0.104 per GB.
+Base credits = 10 + 1 * 0.104 = 10.104 (since `autoscale_min` is 1)
 Serving credits = 10 * 20/60 = 3.33
-Total credits per hour = 10 + 3.33 = 13.33
+Total credits per hour = 10.104 + 3.33 = 13.434
 ```
 
 # ❓ Frequently Asked Questions
