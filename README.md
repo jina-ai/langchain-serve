@@ -742,15 +742,16 @@ Consider an HTTP application that has served requests for `10` minutes in the la
 ```
 instance: C4
 autoscale_min: 0
-disk_size: 0
+disk_size: 2G
 ```
 
 Total credits per hour charged would be `3.33`. The calculation is as follows:
 ```
 C4 instance has an hourly credit rate of 20.
-Base credits = 0 (since `autoscale_min` is 0)
+EFS has hourly credit rate of 0.104 per GB.
+Base credits = 0 + 2 * 0.104 = 0.208 (since `autoscale_min` is 0)
 Serving credits = 20 * 10/60 = 3.33
-Total credits per hour = 3.33
+Total credits per hour = 0.208 + 3.33 = 3.538
 ```
 
 **Example 2:**
@@ -766,7 +767,7 @@ Total credits per hour charged would be `13.33`. The calculation is as follows:
 ```
 C3 instance has an hourly credit rate of 10.
 EFS has hourly credit rate of 0.104 per GB.
-Base credits = 10 + 0.104 = 10.104 (since `autoscale_min` is 1)
+Base credits = 10 + 1 * 0.104 = 10.104 (since `autoscale_min` is 1)
 Serving credits = 10 * 20/60 = 3.33
 Total credits per hour = 10.104 + 3.33 = 13.434
 ```
