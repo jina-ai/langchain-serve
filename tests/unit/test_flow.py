@@ -19,6 +19,7 @@ flow_dict_template = {
         "cors": True,
         "extra_search_paths": ["/workdir/lcserve"],
         "uvicorn_kwargs": {"ws_ping_interval": None, "ws_ping_timeout": None},
+        "env": {},
     },
     "gateway": {
         "uses": "jinahub+docker://None",
@@ -30,6 +31,7 @@ flow_dict_template = {
         "port": [8080],
         "protocol": [None],
         "uvicorn_kwargs": {"ws_ping_interval": None, "ws_ping_timeout": None},
+        "env": {},
         "jcloud": {
             "expose": True,
             "resources": {
@@ -130,6 +132,7 @@ def test_get_flow_dict_for_local():
             "port": [8080],
             "protocol": ["http"],
             "uvicorn_kwargs": {"ws_ping_interval": None, "ws_ping_timeout": None},
+            "env": {},
         },
     }
 
