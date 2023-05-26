@@ -36,6 +36,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -925,4 +926,38 @@
 ### 🍹 Other Improvements
 
  - [[```bc881f81```](https://github.com/jina-ai/langchain-serve/commit/bc881f8142613ba6b943bfe2d9e2aa667a43f0f6)] __-__ __version__: the next version will be 0.0.36 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-37></a>
+## Release Note (`0.0.37`)
+
+> Release time: 2023-05-23 06:32:15
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  Deepankar Mahapatro,  🙇
+
+
+### 🆕 New Features
+
+ - [[```311ee29d```](https://github.com/jina-ai/langchain-serve/commit/311ee29d002d493c890b6b81776cd162be9ee86a)] __-__ logging middleware (*Zac Li*)
+ - [[```d3a0869c```](https://github.com/jina-ai/langchain-serve/commit/d3a0869c1b041d646b7dfe5919d0329c85db525e)] __-__ unified duration and add counter (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```a30d8a3e```](https://github.com/jina-ai/langchain-serve/commit/a30d8a3e6ebdc48575fb2cc53fa1c4c5da6f15c1)] __-__ take first ip (*Zac Li*)
+ - [[```9c69055b```](https://github.com/jina-ai/langchain-serve/commit/9c69055b04dcba9b9498ac3ad20b302f7ba5fa6a)] __-__ undo connection client print (*Zac Li*)
+ - [[```4e25f9e6```](https://github.com/jina-ai/langchain-serve/commit/4e25f9e6d8883333c0896f553162e63e45f5d721)] __-__ add protocol metadata (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```74c10657```](https://github.com/jina-ai/langchain-serve/commit/74c10657f41c6b2bfe89714742cd867498f3a7b2)] __-__ fix (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```85a313dc```](https://github.com/jina-ai/langchain-serve/commit/85a313dc00ea8a12d617e7b23e3f971d9e143b75)] __-__ revert py upgrade and pin problematic libs (*Zac Li*)
+ - [[```d32f0a11```](https://github.com/jina-ai/langchain-serve/commit/d32f0a11958188fd36b5dc475e6c0e171af7adbe)] __-__ upgrade python version to workaround langchain issue (*Zac Li*)
+ - [[```af32e2c7```](https://github.com/jina-ai/langchain-serve/commit/af32e2c75d886a487a7b4d50cc69d3b6641a496e)] __-__ __version__: the next version will be 0.0.37 (*Jina Dev Bot*)
+ - [[```bc881f81```](https://github.com/jina-ai/langchain-serve/commit/bc881f8142613ba6b943bfe2d9e2aa667a43f0f6)] __-__ __version__: the next version will be 0.0.36 (*Jina Dev Bot*)
+ - [[```df17eb0d```](https://github.com/jina-ai/langchain-serve/commit/df17eb0d7cafeebabe7dcf667aa189819ab0caab)] __-__ Merge pull request #84 from jina-ai/feat-metrics-middleware (*Deepankar Mahapatro*)
 
