@@ -37,6 +37,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -960,4 +961,39 @@
  - [[```af32e2c7```](https://github.com/jina-ai/langchain-serve/commit/af32e2c75d886a487a7b4d50cc69d3b6641a496e)] __-__ __version__: the next version will be 0.0.37 (*Jina Dev Bot*)
  - [[```bc881f81```](https://github.com/jina-ai/langchain-serve/commit/bc881f8142613ba6b943bfe2d9e2aa667a43f0f6)] __-__ __version__: the next version will be 0.0.36 (*Jina Dev Bot*)
  - [[```df17eb0d```](https://github.com/jina-ai/langchain-serve/commit/df17eb0d7cafeebabe7dcf667aa189819ab0caab)] __-__ Merge pull request #84 from jina-ai/feat-metrics-middleware (*Deepankar Mahapatro*)
+
+<a name=release-note-0-0-38></a>
+## Release Note (`0.0.38`)
+
+> Release time: 2023-05-26 12:06:54
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```21d87810```](https://github.com/jina-ai/langchain-serve/commit/21d878103adf456d06ee6e46c5b776193968824f)] __-__ pass envs during deployment (*Deepankar Mahapatro*)
+
+### 🐞 Bug fixes
+
+ - [[```de455dfb```](https://github.com/jina-ai/langchain-serve/commit/de455dfb3ba8a760881ed71ed152a620f5457a1c)] __-__ add entrypoint if not added (*Deepankar Mahapatro*)
+ - [[```cc00b3e3```](https://github.com/jina-ai/langchain-serve/commit/cc00b3e357b787a9574fb944a431b01bc55e8420)] __-__ pass token to fetch executor info (*Deepankar Mahapatro*)
+ - [[```fa41d559```](https://github.com/jina-ai/langchain-serve/commit/fa41d5597fa874ce6eba9aa4c24af86d5cc5493f)] __-__ support disabling efs (*Zac Li*)
+
+### 📗 Documentation
+
+ - [[```ca78fcf4```](https://github.com/jina-ai/langchain-serve/commit/ca78fcf42dd38db956f6039e4ee7f3878da7d924)] __-__ storage update (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```3ef8af6f```](https://github.com/jina-ai/langchain-serve/commit/3ef8af6f94de6ca7baf66077832fc43953386393)] __-__ update langflow-push.yml (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```346f0118```](https://github.com/jina-ai/langchain-serve/commit/346f01189e47401a8089b109873e76bd2ca3122f)] __-__ __version__: the next version will be 0.0.38 (*Jina Dev Bot*)
+ - [[```af32e2c7```](https://github.com/jina-ai/langchain-serve/commit/af32e2c75d886a487a7b4d50cc69d3b6641a496e)] __-__ __version__: the next version will be 0.0.37 (*Jina Dev Bot*)
+ - [[```9bd1aafe```](https://github.com/jina-ai/langchain-serve/commit/9bd1aafe090bcb3b1b4f4be6d26a7fd73f2a2627)] __-__ Merge pull request #88 from jina-ai/feat-storage (*Deepankar Mahapatro*)
 
