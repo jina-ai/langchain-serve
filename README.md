@@ -770,6 +770,7 @@ Total credits per hour = 10 + 3.33 = 13.33
 # ❓ Frequently Asked Questions
 
 - [My client that connects to the JCloud hosted App gets timed-out, what should I do?](#my-client-that-connects-to-the-jcloud-hosted-app-gets-timed-out-what-should-I-do)
+- [How to pass environment variables to the app?](#how-to-pass-environment-variables-to-the-app)
 - [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
 - [Debug babyagi playground request/response for external integration](#debug-babyagi-playground-requestresponse-for-external-integration)
 
@@ -780,6 +781,23 @@ If you make long HTTP/ WebSocket requests, the default timeout value (2 minutes)
 Additionally, for HTTP, you may also experience timeouts due to limitations in the OSS we used in `langchain-serve`. While we are working to permanently address this issue, we recommend using HTTP/1.1 in your client as a temporary workaround.
 
 For WebSocket, please note that the connection will be closed if idle for more than 5 minutes.
+
+### How to pass environment variables to the app?
+
+We provide 2 options to pass environment variables:
+
+1. Use `--env` during app deployment to load env variables from a `.env` file. For example, `lc-serve deploy jcloud app --env some.env` will load all env variables from `some.env` file and pass them to the app. These env variables will be available in the app as `os.environ['ENV_VAR_NAME']`.
+
+2. You can also pass env variables while sending requests to the app both in HTTP and WebSocket. `envs` field in the request body is used to pass env variables. For example, in HTTP, you can pass env variables as follows:
+  
+    ```json
+    {
+        "question": "What is the meaning of life?",
+        "envs": {
+            "ENV_VAR_NAME": "ENV_VAR_VALUE"
+        }
+    }
+    ```
 
 ### JCloud deployment failed at pushing image to Jina Hubble, what should I do?
 
