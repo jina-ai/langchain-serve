@@ -788,7 +788,7 @@ We provide 2 options to pass environment variables:
 
 1. Use `--env` during app deployment to load env variables from a `.env` file. For example, `lc-serve deploy jcloud app --env some.env` will load all env variables from `some.env` file and pass them to the app. These env variables will be available in the app as `os.environ['ENV_VAR_NAME']`.
 
-2. You can also pass env variables while sending requests to the app both in HTTP and WebSocket. `envs` field in the request body is used to pass env variables. For example, in HTTP, you can pass env variables as follows:
+2. You can also pass env variables while sending requests to the app both in HTTP and WebSocket. `envs` field in the request body is used to pass env variables. For example
   
     ```json
     {
