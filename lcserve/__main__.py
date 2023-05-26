@@ -33,6 +33,7 @@ def serve_locally(
     module_str: str = None,
     fastapi_app_str: str = None,
     port: int = 8080,
+    env: str = None,
 ):
     sys.path.append(os.getcwd())
     f_yaml = get_flow_yaml(
@@ -40,6 +41,7 @@ def serve_locally(
         fastapi_app_str=fastapi_app_str,
         jcloud=False,
         port=port,
+        env=env,
     )
     with Flow.load_config(f_yaml) as f:
         # TODO: add local description
@@ -58,8 +60,9 @@ async def serve_on_jcloud(
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     config: str = None,
-    verbose: bool = False,
     cors: bool = True,
+    env: str = None,
+    verbose: bool = False,
     lcserve_app: bool = False,
 ) -> str:
     from .flow import push_app_to_hubble
@@ -98,6 +101,7 @@ async def serve_on_jcloud(
             is_websocket=is_websocket,
             jcloud_config_path=config,
             cors=cors,
+            env=env,
             lcserve_app=lcserve_app,
         ),
         app_id=app_id,
@@ -115,8 +119,9 @@ async def serve_babyagi_on_jcloud(
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     config: str = None,
-    verbose: bool = False,
     cors: bool = True,
+    env: str = None,
+    verbose: bool = False,
 ):
     requirements = requirements or []
     update_requirements(
@@ -135,8 +140,9 @@ async def serve_babyagi_on_jcloud(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
         cors=cors,
+        env=env,
+        verbose=verbose,
         lcserve_app=True,
     )
 
@@ -149,8 +155,9 @@ async def serve_autogpt_on_jcloud(
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     config: str = None,
-    verbose: bool = False,
     cors: bool = True,
+    env: str = None,
+    verbose: bool = False,
 ):
     requirements = requirements or []
     update_requirements(
@@ -169,8 +176,9 @@ async def serve_autogpt_on_jcloud(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
+        env=env,
         cors=cors,
+        verbose=verbose,
         lcserve_app=True,
     )
 
@@ -183,8 +191,9 @@ async def serve_pdf_qna_on_jcloud(
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     config: str = None,
-    verbose: bool = False,
     cors: bool = True,
+    env: str = None,
+    verbose: bool = False,
 ):
     await serve_on_jcloud(
         module_str='lcserve.apps.pdf_qna.app',
@@ -196,8 +205,9 @@ async def serve_pdf_qna_on_jcloud(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
         cors=cors,
+        env=env,
+        verbose=verbose,
         lcserve_app=True,
     )
 
@@ -210,8 +220,9 @@ async def serve_pandas_ai_on_jcloud(
     timeout: int = DEFAULT_TIMEOUT,
     platform: str = None,
     config: str = None,
-    verbose: bool = False,
     cors: bool = True,
+    env: str = None,
+    verbose: bool = False,
 ):
     await serve_on_jcloud(
         module_str='lcserve.apps.pandas_ai.api',
@@ -223,8 +234,9 @@ async def serve_pandas_ai_on_jcloud(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
         cors=cors,
+        env=env,
+        verbose=verbose,
         lcserve_app=True,
     )
 
@@ -329,6 +341,12 @@ _jcloud_shared_options = [
         type=click.Path(exists=True),
         help='Path to the config file',
         callback=validate_jcloud_config_callback,
+        show_default=False,
+    ),
+    click.option(
+        '--env',
+        type=click.Path(exists=True),
+        help='Path to the environment file',
         show_default=False,
     ),
     click.option(
@@ -443,9 +461,15 @@ def deploy():
     default=8080,
     help='Port to run the server on.',
 )
+@click.option(
+    '--env',
+    type=click.Path(exists=True),
+    help='Path to the environment file',
+    show_default=False,
+)
 @click.help_option('-h', '--help')
-def local(module_str, app, port):
-    serve_locally(module_str=module_str, fastapi_app_str=app, port=port)
+def local(module_str, app, port, env):
+    serve_locally(module_str=module_str, fastapi_app_str=app, port=port, env=env)
 
 
 @deploy.command(help='Deploy the app on JCloud.')
@@ -495,6 +519,7 @@ async def jcloud(
     platform,
     config,
     cors,
+    env,
     verbose,
 ):
     await serve_on_jcloud(
@@ -509,8 +534,9 @@ async def jcloud(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
+        env=env,
         cors=cors,
+        verbose=verbose,
     )
 
 
@@ -534,6 +560,7 @@ async def babyagi(
     platform,
     config,
     cors,
+    env,
     verbose,
 ):
     await serve_babyagi_on_jcloud(
@@ -544,8 +571,9 @@ async def babyagi(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
         cors=cors,
+        env=env,
+        verbose=verbose,
     )
 
 
@@ -569,6 +597,7 @@ async def pdf_qna(
     platform,
     config,
     cors,
+    env,
     verbose,
 ):
     await serve_pdf_qna_on_jcloud(
@@ -579,8 +608,9 @@ async def pdf_qna(
         timeout=timeout,
         config=config,
         platform=platform,
-        verbose=verbose,
         cors=cors,
+        env=env,
+        verbose=verbose,
     )
 
 
@@ -604,6 +634,7 @@ async def autogpt(
     platform,
     config,
     cors,
+    env,
     verbose,
 ):
     await serve_autogpt_on_jcloud(
@@ -614,8 +645,9 @@ async def autogpt(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
         cors=cors,
+        env=env,
+        verbose=verbose,
     )
 
 
@@ -639,6 +671,7 @@ async def pandas_ai(
     platform,
     config,
     cors,
+    env,
     verbose,
 ):
     await serve_pandas_ai_on_jcloud(
@@ -649,8 +682,9 @@ async def pandas_ai(
         timeout=timeout,
         platform=platform,
         config=config,
-        verbose=verbose,
         cors=cors,
+        env=env,
+        verbose=verbose,
     )
 
 
