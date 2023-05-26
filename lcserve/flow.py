@@ -371,6 +371,12 @@ def _handle_dockerfile(tmpdir: str, version: str):
             f'jinawolf/serving-gateway:{version}',
         )
 
+        if 'ENTRYPOINT' not in dockerfile:
+            dockerfile = (
+                dockerfile
+                + '\nENTRYPOINT [ "jina", "gateway", "--uses", "config.yml" ]'
+            )
+
         with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
             f.write(dockerfile)
 
