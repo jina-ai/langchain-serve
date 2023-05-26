@@ -226,9 +226,16 @@ def _any_websocket_router_in_module(module: ModuleType) -> bool:
 
 def get_uri(id: str, tag: str):
     import requests
+    from hubble import Auth
 
-    r = requests.get(f"https://apihubble.jina.ai/v2/executor/getMeta?id={id}&tag={tag}")
+    r = requests.get(
+        f"https://apihubble.jina.ai/v2/executor/getMeta?id={id}&tag={tag}",
+        headers={"Authorization": f"token {Auth.get_auth_token()}"},
+    )
     _json = r.json()
+    if _json is None:
+        print(f'Could not find image with id {id} and tag {tag}')
+        return
     _image_name = _json['data']['name']
     _user_name = _json['meta']['owner']['name']
     return f'jinaai+docker://{_user_name}/{_image_name}:{tag}'
@@ -363,6 +370,12 @@ def _handle_dockerfile(tmpdir: str, version: str):
             'jinawolf/serving-gateway:${version}',
             f'jinawolf/serving-gateway:{version}',
         )
+
+        if 'ENTRYPOINT' not in dockerfile:
+            dockerfile = (
+                dockerfile
+                + '\nENTRYPOINT [ "jina", "gateway", "--uses", "config.yml" ]'
+            )
 
         with open(os.path.join(tmpdir, 'Dockerfile'), 'w') as f:
             f.write(dockerfile)
@@ -519,11 +532,12 @@ def get_uvicorn_args() -> Dict:
     }
 
 
-def get_with_args_for_jcloud(cors: bool = True) -> Dict:
+def get_with_args_for_jcloud(cors: bool = True, envs: Dict = {}) -> Dict:
     return {
         'with': {
             'cors': cors,
             'extra_search_paths': ['/workdir/lcserve'],
+            'env': envs or {},
             **get_uvicorn_args(),
         }
     }
@@ -541,6 +555,7 @@ def get_flow_dict(
     is_websocket: bool = False,
     jcloud_config_path: str = None,
     cors: bool = True,
+    env: str = None,
     lcserve_app: bool = False,
 ) -> Dict:
     if jcloud:
@@ -548,10 +563,17 @@ def get_flow_dict(
             config_path=jcloud_config_path, timeout=timeout, is_websocket=is_websocket
         )
 
+    _envs = {}
+    if env is not None:
+        # read env file and load to _envs dict
+        from dotenv import dotenv_values
+
+        _envs = dict(dotenv_values(env))
+
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
     flow_dict = {
         'jtype': 'Flow',
-        **(get_with_args_for_jcloud(cors) if jcloud else {}),
+        **(get_with_args_for_jcloud(cors, _envs) if jcloud else {}),
         'gateway': {
             'uses': uses,
             'uses_with': {
@@ -561,6 +583,7 @@ def get_flow_dict(
             },
             'port': [port],
             'protocol': ['websocket'] if is_websocket else ['http'],
+            'env': _envs if _envs else {},
             **get_uvicorn_args(),
             **(jcloud_config.to_dict() if jcloud else {}),
         },
@@ -589,6 +612,7 @@ def get_flow_yaml(
     is_websocket: bool = False,
     cors: bool = True,
     jcloud_config_path: str = None,
+    env: str = None,
     lcserve_app: bool = False,
 ) -> str:
     return yaml.safe_dump(
@@ -601,6 +625,7 @@ def get_flow_yaml(
             cors=cors,
             jcloud=jcloud,
             jcloud_config_path=jcloud_config_path,
+            env=env,
             lcserve_app=lcserve_app,
         ),
         sort_keys=False,
