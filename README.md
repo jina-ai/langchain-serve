@@ -774,11 +774,17 @@ Total credits per hour = 10.104 + 3.33 = 13.434
 
 # ❓ Frequently Asked Questions
 
+- [`lc-serve` command not found](#lc-serve-command-not-found)
 - [My client that connects to the JCloud hosted App gets timed-out, what should I do?](#my-client-that-connects-to-the-jcloud-hosted-app-gets-timed-out-what-should-I-do)
 - [How to pass environment variables to the app?](#how-to-pass-environment-variables-to-the-app)
 - [JCloud deployment failed at pushing image to Jina Hubble, what should I do?](#jcloud-deployment-failed-at-pushing-image-to-jina-hubble-what-should-i-di)
 - [Debug babyagi playground request/response for external integration](#debug-babyagi-playground-requestresponse-for-external-integration)
 
+### `lc-serve` command not found
+
+`lc-serve` command is registered during `langchain-serve` installation. If you get `command not found: lc-serve` error, please replace `lc-serve` command with `python -m lcserve` & retry.
+  
+  
 ### My client that connects to the JCloud hosted App gets timed-out, what should I do?
 
 If you make long HTTP/ WebSocket requests, the default timeout value (2 minutes) might not be suitable for your use case. You can provide a custom timeout value during JCloud deployment by using the `--timeout` argument.
