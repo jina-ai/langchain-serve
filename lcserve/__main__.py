@@ -7,6 +7,7 @@ from jcloud.constants import Phase
 from jina import Flow
 
 from . import __version__
+from .config import resolve_jcloud_config, validate_jcloud_config_callback
 from .flow import (
     APP_NAME,
     AUTOGPT_APP_NAME,
@@ -19,14 +20,13 @@ from .flow import (
     get_flow_dict,
     get_flow_yaml,
     get_module_dir,
+    get_uri,
     list_apps_on_jcloud,
     load_local_df,
     remove_app_on_jcloud,
     syncify,
     update_requirements,
-    get_uri,
 )
-from .config import validate_jcloud_config_callback, resolve_jcloud_config
 
 
 def serve_locally(
@@ -63,10 +63,11 @@ async def serve_on_jcloud(
     cors: bool = True,
     env: str = None,
     verbose: bool = False,
+    public: bool = False,
     lcserve_app: bool = False,
 ) -> str:
-    from .flow import push_app_to_hubble
     from .backend.playground.utils.helper import get_random_tag
+    from .flow import push_app_to_hubble
 
     module_dir, is_websocket = get_module_dir(
         module_str=module_str,
@@ -86,6 +87,7 @@ async def serve_on_jcloud(
             version=version,
             platform=platform,
             verbose=verbose,
+            public=public,
         )
 
     app_id, _ = await deploy_app_on_jcloud(
@@ -122,6 +124,7 @@ async def serve_babyagi_on_jcloud(
     cors: bool = True,
     env: str = None,
     verbose: bool = False,
+    public: bool = False,
 ):
     requirements = requirements or []
     update_requirements(
@@ -143,6 +146,7 @@ async def serve_babyagi_on_jcloud(
         cors=cors,
         env=env,
         verbose=verbose,
+        public=public,
         lcserve_app=True,
     )
 
@@ -158,6 +162,7 @@ async def serve_autogpt_on_jcloud(
     cors: bool = True,
     env: str = None,
     verbose: bool = False,
+    public: bool = False,
 ):
     requirements = requirements or []
     update_requirements(
@@ -179,6 +184,7 @@ async def serve_autogpt_on_jcloud(
         env=env,
         cors=cors,
         verbose=verbose,
+        public=public,
         lcserve_app=True,
     )
 
@@ -194,6 +200,7 @@ async def serve_pdf_qna_on_jcloud(
     cors: bool = True,
     env: str = None,
     verbose: bool = False,
+    public: bool = False,
 ):
     await serve_on_jcloud(
         module_str='lcserve.apps.pdf_qna.app',
@@ -208,6 +215,7 @@ async def serve_pdf_qna_on_jcloud(
         cors=cors,
         env=env,
         verbose=verbose,
+        public=public,
         lcserve_app=True,
     )
 
@@ -223,6 +231,7 @@ async def serve_pandas_ai_on_jcloud(
     cors: bool = True,
     env: str = None,
     verbose: bool = False,
+    public: bool = False,
 ):
     await serve_on_jcloud(
         module_str='lcserve.apps.pandas_ai.api',
@@ -237,6 +246,7 @@ async def serve_pandas_ai_on_jcloud(
         cors=cors,
         env=env,
         verbose=verbose,
+        public=public,
         lcserve_app=True,
     )
 
@@ -360,6 +370,13 @@ _jcloud_shared_options = [
         '--verbose',
         is_flag=True,
         help='Verbose mode.',
+        show_default=True,
+    ),
+    click.option(
+        '--public',
+        is_flag=True,
+        help='Push the image publicly.',
+        default=False,
         show_default=True,
     ),
 ]
@@ -521,6 +538,7 @@ async def jcloud(
     cors,
     env,
     verbose,
+    public,
 ):
     await serve_on_jcloud(
         module_str=module_str,
@@ -537,6 +555,7 @@ async def jcloud(
         env=env,
         cors=cors,
         verbose=verbose,
+        public=public,
     )
 
 
@@ -562,6 +581,7 @@ async def babyagi(
     cors,
     env,
     verbose,
+    public,
 ):
     await serve_babyagi_on_jcloud(
         name=name,
@@ -574,6 +594,7 @@ async def babyagi(
         cors=cors,
         env=env,
         verbose=verbose,
+        public=public,
     )
 
 
@@ -599,6 +620,7 @@ async def pdf_qna(
     cors,
     env,
     verbose,
+    public,
 ):
     await serve_pdf_qna_on_jcloud(
         name=name,
@@ -611,6 +633,7 @@ async def pdf_qna(
         cors=cors,
         env=env,
         verbose=verbose,
+        public=public,
     )
 
 
@@ -636,6 +659,7 @@ async def autogpt(
     cors,
     env,
     verbose,
+    public,
 ):
     await serve_autogpt_on_jcloud(
         name=name,
@@ -648,6 +672,7 @@ async def autogpt(
         cors=cors,
         env=env,
         verbose=verbose,
+        public=public,
     )
 
 
@@ -673,6 +698,7 @@ async def pandas_ai(
     cors,
     env,
     verbose,
+    public,
 ):
     await serve_pandas_ai_on_jcloud(
         name=name,
@@ -685,6 +711,7 @@ async def pandas_ai(
         cors=cors,
         env=env,
         verbose=verbose,
+        public=public,
     )
 
 

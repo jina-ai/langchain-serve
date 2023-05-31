@@ -19,7 +19,7 @@ import yaml
 from docarray import Document, DocumentArray
 from jina import Flow
 
-from .config import get_jcloud_config, DEFAULT_TIMEOUT
+from .config import DEFAULT_TIMEOUT, get_jcloud_config
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -406,7 +406,7 @@ def _handle_config_yaml(tmpdir: str, name: str):
 
 
 def _push_to_hubble(
-    tmpdir: str, name: str, tag: str, platform: str, verbose: bool
+    tmpdir: str, name: str, tag: str, platform: str, verbose: bool, public: bool
 ) -> str:
     from hubble.executor.hubio import HubIO
     from hubble.executor.parsers import set_hub_push_parser
@@ -418,15 +418,16 @@ def _push_to_hubble(
         tmpdir,
         '--tag',
         tag,
-        '--secret',
-        secret,
-        '--private',
         '--no-usage',
         '--no-cache',
     ]
     if verbose:
         args_list.remove('--no-usage')
         args_list.append('--verbose')
+    if not public:
+        args_list.append('--secret')
+        args_list.append(secret)
+        args_list.append('--private')
 
     args = set_hub_push_parser().parse_args(args_list)
 
@@ -452,6 +453,7 @@ def push_app_to_hubble(
     version: str = 'latest',
     platform: str = None,
     verbose: Optional[bool] = False,
+    public: Optional[bool] = False,
 ) -> str:
     from .backend.playground.utils.helper import get_random_name
 
@@ -469,7 +471,7 @@ def push_app_to_hubble(
     _handle_dependencies(requirements, tmpdir)
     _handle_dockerfile(tmpdir, version)
     _handle_config_yaml(tmpdir, image_name)
-    return _push_to_hubble(tmpdir, image_name, tag, platform, verbose)
+    return _push_to_hubble(tmpdir, image_name, tag, platform, verbose, public)
 
 
 def get_gateway_config_yaml_path() -> str:
