@@ -38,6 +38,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -996,4 +997,27 @@
  - [[```346f0118```](https://github.com/jina-ai/langchain-serve/commit/346f01189e47401a8089b109873e76bd2ca3122f)] __-__ __version__: the next version will be 0.0.38 (*Jina Dev Bot*)
  - [[```af32e2c7```](https://github.com/jina-ai/langchain-serve/commit/af32e2c75d886a487a7b4d50cc69d3b6641a496e)] __-__ __version__: the next version will be 0.0.37 (*Jina Dev Bot*)
  - [[```9bd1aafe```](https://github.com/jina-ai/langchain-serve/commit/9bd1aafe090bcb3b1b4f4be6d26a7fd73f2a2627)] __-__ Merge pull request #88 from jina-ai/feat-storage (*Deepankar Mahapatro*)
+
+<a name=release-note-0-0-39></a>
+## Release Note (`0.0.39`)
+
+> Release time: 2023-05-31 13:26:41
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```decef937```](https://github.com/jina-ai/langchain-serve/commit/decef937e44e3b2590b6abd1173dbf3d8865b062)] __-__ support pushing image publicly (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```94a9ecee```](https://github.com/jina-ai/langchain-serve/commit/94a9ecee23bbfc484210d8929828151554c37a78)] __-__ update readme (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```3f72b6c4```](https://github.com/jina-ai/langchain-serve/commit/3f72b6c481427d36da096ca1048f9b6c5ece4226)] __-__ __version__: the next version will be 0.0.39 (*Jina Dev Bot*)
 
