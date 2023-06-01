@@ -22,7 +22,6 @@ from typing import (
     Union,
 )
 
-from docarray import Document, DocumentArray
 from jina import Gateway
 from jina.enums import ProtocolType as GatewayProtocolType
 from jina.logging.logger import JinaLogger
@@ -110,6 +109,7 @@ class LangchainFastAPIGateway(FastAPIBaseGateway):
     @property
     def app(self):
         from fastapi import Body, FastAPI
+        from docarray import Document, DocumentArray
 
         app = FastAPI()
 

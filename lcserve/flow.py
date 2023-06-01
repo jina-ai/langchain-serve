@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import requests
 import yaml
-from docarray import Document, DocumentArray
 from jina import Flow
 
 from .config import DEFAULT_TIMEOUT, get_jcloud_config
@@ -87,6 +86,7 @@ def ServeWebSocket(uses, uses_with: Dict = None, port=12345):
 
 def Interact(host, inputs: Union[str, Dict], output_key='text'):
     from jina import Client
+    from docarray import Document, DocumentArray
 
     from .backend.playground.utils.helper import DEFAULT_KEY, RESULT
 
@@ -114,6 +114,7 @@ def InteractWithAgent(
     host: str, inputs: str, parameters: Dict, envs: Dict = {}
 ) -> Union[str, Tuple[str, str]]:
     from jina import Client
+    from docarray import Document, DocumentArray
 
     from .backend.playground.utils.helper import (
         AGENT_OUTPUT,
