@@ -39,6 +39,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1020,4 +1021,27 @@
 ### 🍹 Other Improvements
 
  - [[```3f72b6c4```](https://github.com/jina-ai/langchain-serve/commit/3f72b6c481427d36da096ca1048f9b6c5ece4226)] __-__ __version__: the next version will be 0.0.39 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-40></a>
+## Release Note (`0.0.40`)
+
+> Release time: 2023-06-01 05:14:03
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```acdde6be```](https://github.com/jina-ai/langchain-serve/commit/acdde6bec1fe465f305b7d77877a7841d937371c)] __-__ add public to push (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```f681fb1f```](https://github.com/jina-ai/langchain-serve/commit/f681fb1f9efed5690a2643cb9f0184166ca2c65a)] __-__ update langflow-push.yml (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```9e1de166```](https://github.com/jina-ai/langchain-serve/commit/9e1de1666ad196220e33513610d0b476723f54f9)] __-__ __version__: the next version will be 0.0.40 (*Jina Dev Bot*)
 
