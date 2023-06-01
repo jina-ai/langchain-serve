@@ -431,6 +431,7 @@ def push(
     requirements,
     version,
     verbose,
+    public,
 ):
     from .flow import push_app_to_hubble
 
@@ -447,6 +448,7 @@ def push(
         requirements=requirements,
         version=version,
         verbose=verbose,
+        public=public,
     )
     id, tag = gateway_id.split(':')
     click.echo(
