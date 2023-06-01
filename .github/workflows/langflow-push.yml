@@ -50,9 +50,9 @@ jobs:
 
       - name: Build and push to Hubble
         run: |
-          # pip install -U langchain-serve
           # poetry install --extras "production"
           pip install -e ".[deploy]"
+          pip install -U langchain-serve
           make install_frontend
           make lcserve_push
         env:
