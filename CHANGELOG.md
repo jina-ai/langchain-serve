@@ -40,6 +40,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1044,4 +1045,24 @@
 ### 🍹 Other Improvements
 
  - [[```9e1de166```](https://github.com/jina-ai/langchain-serve/commit/9e1de1666ad196220e33513610d0b476723f54f9)] __-__ __version__: the next version will be 0.0.40 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-41></a>
+## Release Note (`0.0.41`)
+
+> Release time: 2023-06-01 10:19:52
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🏁 Unit Test and CICD
+
+ - [[```8ed3adaa```](https://github.com/jina-ai/langchain-serve/commit/8ed3adaaa7f10442df1dc9de2e988230af38e2ab)] __-__ update test-push.yml (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```619d8e61```](https://github.com/jina-ai/langchain-serve/commit/619d8e61d1ebce5033dab6156203cb4aaa3c37f8)] __-__ remove docarray imports (*Deepankar Mahapatro*)
+ - [[```eab0cca8```](https://github.com/jina-ai/langchain-serve/commit/eab0cca8cf45deea7513333051dcebaa9f79dd53)] __-__ __version__: the next version will be 0.0.41 (*Jina Dev Bot*)
 
