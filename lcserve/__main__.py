@@ -304,6 +304,13 @@ _hubble_push_options = [
         help='Verbose mode.',
         show_default=True,
     ),
+    click.option(
+        '--public',
+        is_flag=True,
+        help='Push the image publicly.',
+        default=False,
+        show_default=True,
+    ),
 ]
 
 
