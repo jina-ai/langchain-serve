@@ -1,12 +1,14 @@
 import threading
 from contextlib import nullcontext
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, TYPE_CHECKING
 
-from docarray import Document, DocumentArray
 from jina import Executor, requests
 from langchain.agents import AgentExecutor, initialize_agent, load_tools
 from langchain.chains.loading import load_chain_from_config
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from docarray import Document, DocumentArray
 
 from .playground.utils.helper import (
     AGENT_OUTPUT,
@@ -122,8 +124,10 @@ class ChainExecutor(Executor):
         )
         super().__init__(*args, **kwargs)
 
-    def _handle_merge(self, docs_map: Dict[str, DocumentArray]) -> DocumentArray:
+    def _handle_merge(self, docs_map: Dict[str, 'DocumentArray']) -> 'DocumentArray':
         # Merge Documnets with same ID into one Document and create the DocumentArray
+        from docarray import DocumentArray
+
         da = DocumentArray()
         for k, v in docs_map.items():
             for doc in v:
@@ -136,10 +140,10 @@ class ChainExecutor(Executor):
     @requests(on='/run')
     def __run_endpoint(
         self,
-        docs: DocumentArray,
-        docs_map: Optional[Dict[str, DocumentArray]],
+        docs: 'DocumentArray',
+        docs_map: Optional[Dict[str, 'DocumentArray']],
         **kwargs,
-    ) -> DocumentArray:
+    ) -> 'DocumentArray':
         if len(docs_map) > 1:
             docs = self._handle_merge(docs_map)
 
@@ -155,10 +159,10 @@ class ChainExecutor(Executor):
     @requests(on='/arun')
     async def __arun_endpoint(
         self,
-        docs: DocumentArray,
-        docs_map: Optional[Dict[str, DocumentArray]],
+        docs: 'DocumentArray',
+        docs_map: Optional[Dict[str, 'DocumentArray']],
         **kwargs,
-    ) -> DocumentArray:
+    ) -> 'DocumentArray':
         if len(docs_map) > 1:
             docs = self._handle_merge(docs_map)
 
@@ -178,7 +182,7 @@ class LangchainAgentExecutor(Executor):
         self._capture_lock = threading.Lock()
 
     @staticmethod
-    def run_input(doc: Document) -> Dict:
+    def run_input(doc: 'Document') -> Dict:
         return doc.tags if DEFAULT_KEY not in doc.tags else doc.tags[DEFAULT_KEY]
 
     def get_capture_ctx(self) -> Capturing:
@@ -191,7 +195,7 @@ class LangchainAgentExecutor(Executor):
     def update_agent_output(
         self,
         cap: Union[Capturing, nullcontext],
-        doc: Document,
+        doc: 'Document',
         html: bool = False,
     ):
         from ansi2html import Ansi2HTMLConverter
@@ -207,8 +211,8 @@ class LangchainAgentExecutor(Executor):
 
     @requests(on='/load_and_run')
     def __load_and_run_endpoint(
-        self, docs: DocumentArray, parameters, **kwargs
-    ) -> DocumentArray:
+        self, docs: 'DocumentArray', parameters, **kwargs
+    ) -> 'DocumentArray':
         self.logger.info(f'loading agent with {parameters} and docs {docs}')
         with EnvironmentVarCtxtManager(
             parameters['env'] if 'env' in parameters else {}
@@ -231,8 +235,8 @@ class LangchainAgentExecutor(Executor):
 
     @requests(on='/aload_and_run')
     async def __aload_and_run_endpoint(
-        self, docs: DocumentArray, parameters, **kwargs
-    ) -> DocumentArray:
+        self, docs: 'DocumentArray', parameters, **kwargs
+    ) -> 'DocumentArray':
         self.logger.info(f'loading agent with {parameters} and docs {docs}')
         with EnvironmentVarCtxtManager(
             parameters['env'] if 'env' in parameters else {}
