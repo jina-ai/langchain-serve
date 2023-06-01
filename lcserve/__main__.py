@@ -304,6 +304,13 @@ _hubble_push_options = [
         help='Verbose mode.',
         show_default=True,
     ),
+    click.option(
+        '--public',
+        is_flag=True,
+        help='Push the image publicly.',
+        default=False,
+        show_default=True,
+    ),
 ]
 
 
@@ -431,6 +438,7 @@ def push(
     requirements,
     version,
     verbose,
+    public,
 ):
     from .flow import push_app_to_hubble
 
@@ -447,6 +455,7 @@ def push(
         requirements=requirements,
         version=version,
         verbose=verbose,
+        public=public,
     )
     id, tag = gateway_id.split(':')
     click.echo(
