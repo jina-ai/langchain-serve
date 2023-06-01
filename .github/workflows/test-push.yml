@@ -2,6 +2,10 @@ name: test-push
 
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: Pass langflow branch/tag
+        default: dev
 
 jobs:
   trigger-image-push-lc-serve:
@@ -14,6 +18,6 @@ jobs:
         with:
           repository: jina-ai/langchain-serve
           event-type: langflow-push
-          client-payload: '{"push_token": "${{ env.LANGFLOW_PUSH_TOKEN }}", "branch": "dev"}'
+          client-payload: '{"push_token": "${{ env.LANGFLOW_PUSH_TOKEN }}", "branch": "${{ github.event.inputs.branch }}"}'
         env:
           LANGFLOW_PUSH_TOKEN: ${{ secrets.LANGFLOW_PUSH_TOKEN }}
