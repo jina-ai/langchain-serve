@@ -139,6 +139,24 @@ class EnvironmentVarCtxtManager:
             os.unsetenv(key)
 
 
+class ChangeDirCtxtManager:
+    """a class to wrap change dir"""
+
+    def __init__(self, path: str):
+        """
+        :param path: a path to change
+        """
+        self._path = path
+        self._old_path = None
+
+    def __enter__(self):
+        self._old_path = os.getcwd()
+        os.chdir(self._path)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        os.chdir(self._old_path)
+
+
 def run_cmd(command, std_output=False, wait=True):
     if isinstance(command, str):
         command = command.split()
