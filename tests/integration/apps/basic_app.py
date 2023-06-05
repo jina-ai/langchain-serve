@@ -145,6 +145,6 @@ def readfile() -> str:
 
 
 @serving(websocket=True)
-def readfile_ws() -> str:
+def readfile_ws(**kwargs) -> str:
     with open('a.txt', 'r') as f:  # a.txt is in the root of the project
         return f.read()
