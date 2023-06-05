@@ -41,6 +41,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1065,4 +1066,23 @@
 
  - [[```619d8e61```](https://github.com/jina-ai/langchain-serve/commit/619d8e61d1ebce5033dab6156203cb4aaa3c37f8)] __-__ remove docarray imports (*Deepankar Mahapatro*)
  - [[```eab0cca8```](https://github.com/jina-ai/langchain-serve/commit/eab0cca8cf45deea7513333051dcebaa9f79dd53)] __-__ __version__: the next version will be 0.0.41 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-42></a>
+## Release Note (`0.0.42`)
+
+> Release time: 2023-06-05 05:59:53
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```1d5bdde7```](https://github.com/jina-ai/langchain-serve/commit/1d5bdde76757d761451b1aafb80285f66c9f8d8c)] __-__ change cwd before running serving function (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```a9bdb383```](https://github.com/jina-ai/langchain-serve/commit/a9bdb3830607b1531556e7feab58c80ff45a6b97)] __-__ __version__: the next version will be 0.0.42 (*Jina Dev Bot*)
 
