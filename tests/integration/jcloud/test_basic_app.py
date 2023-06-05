@@ -76,7 +76,7 @@ async def _test_local_file_access(app_id: str):
     ws_url = f"wss://{app_id}.wolf.jina.ai/readfile_ws"
 
     # read local file using HTTP
-    response = requests.post(http_url)
+    response = requests.post(http_url, data=json.dumps({}))
     assert response.status_code == 200
     assert response.json()["result"] == "abc"
 
@@ -85,6 +85,6 @@ async def _test_local_file_access(app_id: str):
         async with websockets.connect(ws_url) as websocket:
             await websocket.send(json.dumps({}))
             message = await websocket.recv()
-            assert message == "abc"
+            assert json.loads(message)["result"] == "abc"
     except ConnectionClosedOK:
         pass
