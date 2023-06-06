@@ -206,7 +206,8 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 ### 🏠 Self-host LLM Apps with Docker Compose or Kubernetes
 
-  - 🚀 Export your apps as Kubernetes or Docker Compose YAMLs with 👉 `lc-serve export app --kind kubernetes/docker-compose --path .`
+  - 🚀 Export your apps as Kubernetes or Docker Compose YAMLs with single command.
+  - 👉 `lc-serve export app --kind <kubernetes/docker-compose> --path .`
   - 📦 Deploy your app on your own internal infrastructure with your own security policies.
   - 📞 [Talk to us if you need all the features of Jina AI Cloud on your own infrastructure.](#-reach-out-to-us)
 
@@ -678,6 +679,8 @@ lc-serve deploy jcloud --app endpoints:app
 | Description | Command | 
 | --- | ---: |
 | Deploy your app locally | `lc-serve deploy local app` |
+| Export your app as Kubernetes YAML | `lc-serve export app --kind kubernetes --path .` |
+| Export your app as Docker Compose YAML | `lc-serve export app --kind docker-compose --path .` |
 | Deploy your app on JCloud | `lc-serve deploy jcloud app` |
 | Deploy FastAPI app on JCloud | `lc-serve deploy jcloud --app <app-name>:<app-object>` |
 | Update existing app on JCloud | `lc-serve deploy jcloud app --app-id <app-id>` |
