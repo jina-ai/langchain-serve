@@ -26,6 +26,7 @@ from .flow import (
     remove_app_on_jcloud,
     syncify,
     update_requirements,
+    ExportKind,
 )
 
 
@@ -271,6 +272,7 @@ _hubble_push_options = [
     click.option(
         '--image-tag',
         type=str,
+        default='latest',
         required=False,
         help='Tag of the image to be pushed.',
     ),
@@ -460,6 +462,98 @@ def push(
     id, tag = gateway_id.split(':')
     click.echo(
         f'Pushed to Hubble. Use {click.style(get_uri(id, tag), fg="green")} to deploy.'
+    )
+
+
+@serve.command(help='Export the app for self-hosted deployment.')
+@click.argument(
+    'module_str',
+    type=str,
+    required=False,
+)
+@click.option(
+    '--app',
+    type=str,
+    required=False,
+    help='FastAPI application to run, in the format "<module>:<attribute>"',
+)
+@click.option(
+    '--app-dir',
+    type=str,
+    required=False,
+    help='Base directory to be used for the FastAPI app.',
+)
+@click.option(
+    '--kind',
+    type=click.Choice([e.value for e in ExportKind]),
+    default=ExportKind.KUBERNETES.value,
+    help='Export to Kubernetes or Docker Compose.',
+    show_default=True,
+)
+@click.option(
+    '--path',
+    type=str,
+    default='.',
+    help='Path to the directory where the export should be saved.',
+    show_default=True,
+)
+@click.option(
+    '--name',
+    type=str,
+    default=APP_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+@click.option(
+    '--timeout',
+    type=int,
+    default=DEFAULT_TIMEOUT,
+    help='Total request timeout in seconds.',
+    show_default=True,
+)
+@click.option(
+    '--env',
+    type=click.Path(exists=True),
+    help='Path to the environment file',
+    show_default=False,
+)
+@hubble_push_options
+@click.help_option('-h', '--help')
+def export(
+    module_str,
+    app,
+    app_dir,
+    kind,
+    path,
+    name,
+    timeout,
+    env,
+    image_name,
+    image_tag,
+    platform,
+    requirements,
+    version,
+    verbose,
+    public,
+):
+    from .flow import export_app
+
+    export_app(
+        module_str=module_str,
+        fastapi_app_str=app,
+        app_dir=app_dir,
+        kind=kind,
+        path=path,
+        image_name=image_name,
+        tag=image_tag,
+        platform=platform,
+        requirements=requirements,
+        version=version,
+        verbose=verbose,
+        public=public,
+        name=name,
+        timeout=timeout,
+        env=env,
     )
 
 
