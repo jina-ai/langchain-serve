@@ -208,7 +208,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
   - 🚀 Export your LLM apps as Kubernetes or docker-compose YAMLs with one command.
   - 📦 Deploy your app on your own internal infrastructure with your own security policies.
-  - 📞 [Talk to us if you need all the features of Jina AI Cloud on your own infrastructure.](#reach-out-to-us)
+  - 📞 [Talk to us if you need all the features of Jina AI Cloud on your own infrastructure.](#-reach-out-to-us)
 
 # 🧰 Usage
 
