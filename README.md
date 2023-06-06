@@ -12,7 +12,7 @@
 
 [Jina](https://github.com/jina-ai/jina) is an open-source framework for building scalable multi modal AI apps on Production. [LangChain](https://python.langchain.com/en/latest/index.html) is another open-source framework for building applications powered by LLMs.
 
-**langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development.
+**langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development. OR you can also deploy your LangChain apps on your own infrastructure making sure your data remains private.
 
 > Give us a :star: and tell us what more you'd like to see! 
 
@@ -204,8 +204,11 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
 
 
-If you have any feature requests or faced any issue, please [let us know](https://github.com/jina-ai/langchain-serve/issues/new)!
+### 🏠 Self-host LLM Apps with Docker Compose or Kubernetes
 
+  - 🚀 Export your LLM apps as Kubernetes or docker-compose YAMLs with one command.
+  - 📦 Deploy your app on your own internal infrastructure with your own security policies.
+  - 📞 [Talk to us if you need all the features of Jina AI Cloud on your own infrastructure.](#reach-out-to-us)
 
 # 🧰 Usage
 
@@ -828,10 +831,6 @@ Please use `--verbose` and retry to get more information. If you are operating o
     lc-serve playground babyagi --verbose
     ```
 
-# 📞 Reach out to us
+# 📣 Reach out to us
 
-- Serverless is not your thing?
-- Do you want larger instances for your API?
-- Looking for file uploads, or other data-in, data-out features?
-
-📣 Got your attention? [Join us on Discord](https://discord.jina.ai) and we'd be happy to help you out.
+Want to deploy your apps on your own infrastructure with all capabilities of Jina AI Cloud - Serverless, Autoscaling, TLS certs, LLM observability, etc? [Join us on Discord](https://discord.jina.ai) and we'd be happy to hear more about your use case.
