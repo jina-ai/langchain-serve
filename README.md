@@ -206,7 +206,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 ### 🏠 Self-host LLM Apps with Docker Compose or Kubernetes
 
-  - 🚀 Export your LLM apps as Kubernetes or docker-compose YAMLs with one command.
+  - 🚀 Export your apps as Kubernetes or Docker Compose YAMLs with 👉 `lc-serve export app --kind kubernetes/docker-compose --path .`
   - 📦 Deploy your app on your own internal infrastructure with your own security policies.
   - 📞 [Talk to us if you need all the features of Jina AI Cloud on your own infrastructure.](#-reach-out-to-us)
 
@@ -833,4 +833,13 @@ Please use `--verbose` and retry to get more information. If you are operating o
 
 # 📣 Reach out to us
 
-Want to deploy your apps on your own infrastructure with all capabilities of Jina AI Cloud - Serverless, Autoscaling, TLS certs, LLM observability, etc? [Join us on Discord](https://discord.jina.ai) and we'd be happy to hear more about your use case.
+Want to deploy your LLM apps on your own infrastructure with all capabilities of Jina AI Cloud? 
+
+  - Serverless
+  - Autoscaling
+  - TLS certs
+  - Persistent storage
+  - End to end LLM observability
+  - and more on auto-pilot!
+
+[Join us on Discord](https://discord.jina.ai) and we'd be happy to hear more about your use case.
