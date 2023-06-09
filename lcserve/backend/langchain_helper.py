@@ -9,11 +9,9 @@ from langchain.schema import LLMResult
 from opentelemetry.trace import Span, Tracer, set_span_in_context
 from pydantic import BaseModel, ValidationError
 
-_span_map = {}
-
 
 class TracingCallbackHandler(BaseCallbackHandler):
-    def __init__(self, tracer: "Tracer", parent_span: "Span"):
+    def __init__(self, tracer: Tracer, parent_span: Span):
         super().__init__()
         self.tracer = tracer
         self.parent_span = parent_span

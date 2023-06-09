@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import time
+import uuid
 from enum import Enum
 from functools import cached_property
 from importlib import import_module
@@ -1098,7 +1099,6 @@ class MetricsMiddleware:
         self.app = app
         self.duration_counter = duration_counter
         self.request_counter = request_counter
-
         # TODO: figure out solution for static assets
         self.skip_routes = [
             '/docs',
