@@ -1,20 +1,21 @@
 import asyncio
 import time
-from typing import List, Dict, Any
-from lcserve import serving
+from typing import Dict, List
 
 import aiofiles
-from fastapi import WebSocket, UploadFile
+from fastapi import UploadFile, WebSocket
+
+from lcserve import serving
 
 
 @serving
-def sync_http(interval: int) -> str:
+def sync_http(interval: int, **kwargs) -> str:
     time.sleep(interval)
     return "Hello, world!"
 
 
 @serving
-async def async_http(interval: int) -> str:
+async def async_http(interval: int, **kwargs) -> str:
     await asyncio.sleep(interval)
     return "Hello, world!"
 
@@ -48,7 +49,7 @@ def authorizer(token: str) -> str:
 
 
 @serving(auth=authorizer)
-def sync_auth_http(interval: int) -> str:
+def sync_auth_http(interval: int, **kwargs) -> str:
     time.sleep(interval)
     return "Hello, world!"
 
@@ -84,13 +85,13 @@ async def sync_auth_ws_auth_response(interval: int, **kwargs) -> str:
 
 
 @serving
-def single_file_upload(file: UploadFile) -> str:
+def single_file_upload(file: UploadFile, **kwargs) -> str:
     return file.filename
 
 
 @serving
 def single_file_upload_with_extra_arg(
-    file: UploadFile, question: str, someint: int
+    file: UploadFile, question: str, someint: int, **kwargs
 ) -> Dict[str, str]:
     return {
         "file": file.filename,
@@ -100,13 +101,13 @@ def single_file_upload_with_extra_arg(
 
 
 @serving
-def multiple_file_uploads(f1: UploadFile, f2: UploadFile) -> List[str]:
+def multiple_file_uploads(f1: UploadFile, f2: UploadFile, **kwargs) -> List[str]:
     return [f1.filename, f2.filename]
 
 
 @serving
 def multiple_file_uploads_with_extra_arg(
-    f1: UploadFile, f2: UploadFile, question: str, someint: int
+    f1: UploadFile, f2: UploadFile, question: str, someint: int, **kwargs
 ) -> Dict[str, str]:
     return {
         "f1": f1.filename,
@@ -139,7 +140,7 @@ async def stream(**kwargs):
 
 
 @serving
-def readfile() -> str:
+def readfile(**kwargs) -> str:
     with open('a.txt', 'r') as f:  # a.txt is in the root of the project
         return f.read()
 
