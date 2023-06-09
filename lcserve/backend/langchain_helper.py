@@ -25,6 +25,9 @@ class TracingCallbackHandler(BaseCallbackHandler):
         parent_run_id: Optional[UUID] = None,
         **kwargs: Any
     ) -> None:
+        if not self.tracer:
+            return
+
         prompts_len = 0
         operation = "langchain.on_llm_start"
 
@@ -36,8 +39,12 @@ class TracingCallbackHandler(BaseCallbackHandler):
             span.set_attribute("prompts_len", prompts_len)
 
     def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
+        if not self.tracer:
+            return
+
         operation = "langchain.on_llm_end"
         token_usage = response.llm_output["token_usage"]
+
         context = set_span_in_context(self.parent_span)
         with self.tracer.start_as_current_span("llm end", context=context) as span:
             span.set_attribute("otel.operation.name", operation)

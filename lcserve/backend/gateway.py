@@ -907,6 +907,7 @@ def create_websocket_route(
                             tracer=tracer, parent_span=get_current_span()
                         )
                     }
+
                     # If the function is a streaming response, we pass the websocket callback handler,
                     # so that stream data can be sent back to the client.
                     if include_ws_callback_handlers:
