@@ -31,6 +31,12 @@ from pydantic import BaseModel, Field, ValidationError, create_model
 from starlette.types import ASGIApp, Receive, Scope, Send
 from websockets.exceptions import ConnectionClosed
 
+from .langchain_helper import (
+    AsyncStreamingWebsocketCallbackHandler,
+    BuiltinsWrapper,
+    StreamingWebsocketCallbackHandler,
+    TracingCallbackHandler,
+)
 from .playground.utils.helper import (
     AGENT_OUTPUT,
     APPDIR,
@@ -46,15 +52,13 @@ from .playground.utils.helper import (
     run_cmd,
     run_function,
 )
-from .playground.utils.langchain_helper import (
-    AsyncStreamingWebsocketCallbackHandler,
-    BuiltinsWrapper,
-    StreamingWebsocketCallbackHandler,
-)
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
     from opentelemetry.sdk.metrics import Counter
+    from opentelemetry.trace import Tracer
+
+from opentelemetry.trace import get_current_span
 
 cur_dir = os.path.dirname(__file__)
 
@@ -108,8 +112,8 @@ class PlaygroundGateway(Gateway):
 class LangchainFastAPIGateway(FastAPIBaseGateway):
     @property
     def app(self):
-        from fastapi import Body, FastAPI
         from docarray import Document, DocumentArray
+        from fastapi import Body, FastAPI
 
         app = FastAPI()
 
@@ -360,6 +364,7 @@ class ServingGateway(FastAPIBaseGateway):
         FastAPIInstrumentor.instrument_app(
             self._app,
             meter_provider=self.meter_provider,
+            tracer_provider=self.tracer_provider,
         )
 
         self.duration_counter = self.meter.create_counter(
@@ -535,6 +540,7 @@ class ServingGateway(FastAPIBaseGateway):
                 },
                 workspace=self.workspace,
                 logger=self.logger,
+                tracer=self.tracer,
             )
 
         elif route_type == RouteType.WEBSOCKET:
@@ -554,6 +560,7 @@ class ServingGateway(FastAPIBaseGateway):
                 include_callback_handlers=include_callback_handlers,
                 workspace=self.workspace,
                 logger=self.logger,
+                tracer=self.tracer,
             )
 
 
@@ -644,6 +651,7 @@ def create_http_route(
     post_kwargs: Dict,
     workspace: str,
     logger: JinaLogger,
+    tracer: 'Tracer',
 ):
     from fastapi import Depends, Form, HTTPException, Security, UploadFile, status
     from fastapi.encoders import jsonable_encoder
@@ -682,6 +690,11 @@ def create_http_route(
             auth_response=auth_response,
             workspace=workspace,
         )
+
+        _func_data["tracing_handler"] = TracingCallbackHandler(
+            tracer=tracer, parent_span=get_current_span()
+        )
+
         with EnvironmentVarCtxtManager(_envs):
             with Capturing() as stdout:
                 try:
@@ -788,6 +801,7 @@ def create_websocket_route(
     ws_kwargs: Dict,
     workspace: str,
     logger: JinaLogger,
+    tracer: 'Tracer',
 ):
     from fastapi import (
         Depends,
@@ -894,6 +908,11 @@ def create_websocket_route(
                         # If the function is a streaming response, we pass the callback handler,
                         # so that stream data can be sent back to the client.
                     )
+
+                    _func_data["tracing_handler"] = TracingCallbackHandler(
+                        tracer=tracer, parent_span=get_current_span()
+                    )
+
                     with EnvironmentVarCtxtManager(_envs):
                         try:
                             _returned_data = await run_function(func, **_func_data)
@@ -1065,6 +1084,7 @@ class MetricsMiddleware:
         self.app = app
         self.duration_counter = duration_counter
         self.request_counter = request_counter
+
         # TODO: figure out solution for static assets
         self.skip_routes = [
             '/docs',

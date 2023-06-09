@@ -85,8 +85,8 @@ def ServeWebSocket(uses, uses_with: Dict = None, port=12345):
 
 
 def Interact(host, inputs: Union[str, Dict], output_key='text'):
-    from jina import Client
     from docarray import Document, DocumentArray
+    from jina import Client
 
     from .backend.playground.utils.helper import DEFAULT_KEY, RESULT
 
@@ -113,8 +113,8 @@ def Interact(host, inputs: Union[str, Dict], output_key='text'):
 def InteractWithAgent(
     host: str, inputs: str, parameters: Dict, envs: Dict = {}
 ) -> Union[str, Tuple[str, str]]:
-    from jina import Client
     from docarray import Document, DocumentArray
+    from jina import Client
 
     from .backend.playground.utils.helper import (
         AGENT_OUTPUT,
@@ -601,6 +601,9 @@ def get_flow_dict(
                 'metrics': True,
                 'metrics_exporter_host': 'http://localhost',
                 'metrics_exporter_port': 4317,
+                'tracing': True,
+                'traces_exporter_host': 'http://localhost',
+                'traces_exporter_port': 4317,
             }
         )
     return flow_dict
