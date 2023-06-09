@@ -1,5 +1,5 @@
-from functools import wraps
 import inspect
+from functools import wraps
 from typing import Callable
 
 
@@ -22,7 +22,7 @@ def serving(_func=None, *, websocket: bool = False, auth: Callable = None):
             'name': func.__name__,
             'doc': func.__doc__,
             'params': {
-                'include_callback_handlers': websocket,
+                'include_ws_callback_handlers': websocket,
                 # If websocket is True, pass the callback handlers to the client.
                 'auth': auth,
             },

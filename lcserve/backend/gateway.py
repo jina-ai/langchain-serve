@@ -463,8 +463,8 @@ class ServingGateway(FastAPIBaseGateway):
                 func,
                 dirname=dirname,
                 auth=_decorator_params.get('auth', None),
-                include_callback_handlers=_decorator_params.get(
-                    'include_callback_handlers', False
+                include_ws_callback_handlers=_decorator_params.get(
+                    'include_ws_callback_handlers', False
                 ),
             )
 
@@ -484,7 +484,7 @@ class ServingGateway(FastAPIBaseGateway):
         func: Callable,
         dirname: str = None,
         auth: Callable = None,
-        include_callback_handlers: bool = False,
+        include_ws_callback_handlers: bool = False,
         **kwargs,
     ):
         return self._register_route(
@@ -492,7 +492,7 @@ class ServingGateway(FastAPIBaseGateway):
             dirname=dirname,
             auth=auth,
             route_type=RouteType.WEBSOCKET,
-            include_callback_handlers=include_callback_handlers,
+            include_ws_callback_handlers=include_ws_callback_handlers,
             **kwargs,
         )
 
@@ -502,7 +502,7 @@ class ServingGateway(FastAPIBaseGateway):
         dirname: str = None,
         auth: Callable = None,
         route_type: RouteType = RouteType.HTTP,
-        include_callback_handlers: bool = False,
+        include_ws_callback_handlers: bool = False,
         **kwargs,
     ):
         _name = func.__name__.title().replace('_', '')
@@ -568,7 +568,7 @@ class ServingGateway(FastAPIBaseGateway):
                     'path': f'/{func.__name__}',
                     'name': _name,
                 },
-                include_callback_handlers=include_callback_handlers,
+                include_ws_callback_handlers=include_ws_callback_handlers,
                 workspace=self.workspace,
                 logger=self.logger,
                 tracer=self.tracer,
@@ -593,7 +593,7 @@ def _get_func_data(
     files_data: Dict,
     auth_response: Any = None,
     workspace: str = None,
-    include_if_kwargs_exist: Dict = {},
+    to_support_in_kwargs: Dict = {},
 ) -> Tuple[Dict[str, Any], Dict[str, str]]:
     import json
 
@@ -616,13 +616,15 @@ def _get_func_data(
     elif 'kwargs' in _func_params_names:
         _func_data.update({'auth_response': auth_response})
 
+    # Workspace handle
     if 'workspace' in _func_params_names:
         _func_data['workspace'] = workspace
     elif 'kwargs' in _func_params_names:
         _func_data.update({'workspace': workspace})
 
-    if include_if_kwargs_exist:
-        _func_data.update(include_if_kwargs_exist)
+    # Populate extra kwargs
+    if to_support_in_kwargs and 'kwargs' in _func_params_names:
+        _func_data.update(to_support_in_kwargs)
 
     return _func_data, _envs
 
@@ -695,18 +697,20 @@ def create_http_route(
         auth_response: Any = None,
     ) -> output_model:
         _output, _error = '', ''
+        # Tracing handler provided if kwargs is present
+        to_support_in_kwargs = {
+            'tracing_handler': TracingCallbackHandler(
+                tracer=tracer, parent_span=get_current_span()
+            )
+        }
         _func_data, _envs = _get_func_data(
             func=func,
             input_data=input_data,
             files_data=files_data,
             auth_response=auth_response,
             workspace=workspace,
+            to_support_in_kwargs=to_support_in_kwargs,
         )
-
-        _func_data["tracing_handler"] = TracingCallbackHandler(
-            tracer=tracer, parent_span=get_current_span()
-        )
-
         with EnvironmentVarCtxtManager(_envs), ChangeDirCtxtManager(dirname):
             with Capturing() as stdout:
                 try:
@@ -810,7 +814,7 @@ def create_websocket_route(
     auth: Callable,
     input_model: BaseModel,
     output_model: BaseModel,
-    include_callback_handlers: bool,
+    include_ws_callback_handlers: bool,
     ws_kwargs: Dict,
     workspace: str,
     logger: JinaLogger,
@@ -897,6 +901,28 @@ def create_websocket_route(
                         await websocket.send_text(_data.json())
                         continue
 
+                    # Tracing handler provided if kwargs is present
+                    to_support_in_kwargs = {
+                        'tracing_handler': TracingCallbackHandler(
+                            tracer=tracer, parent_span=get_current_span()
+                        )
+                    }
+                    # If the function is a streaming response, we pass the websocket callback handler,
+                    # so that stream data can be sent back to the client.
+                    if include_ws_callback_handlers:
+                        to_support_in_kwargs.update(
+                            {
+                                'websocket': websocket,
+                                'streaming_handler': StreamingWebsocketCallbackHandler(
+                                    websocket=websocket,
+                                    output_model=output_model,
+                                ),
+                                'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
+                                    websocket=websocket,
+                                    output_model=output_model,
+                                ),
+                            }
+                        )
                     _returned_data, _ws_serving_error = '', ''
                     # TODO: add support for file upload
                     _func_data, _envs = _get_func_data(
@@ -905,27 +931,8 @@ def create_websocket_route(
                         files_data={},
                         auth_response=auth_response,
                         workspace=workspace,
-                        include_if_kwargs_exist={
-                            'websocket': websocket,
-                            'streaming_handler': StreamingWebsocketCallbackHandler(
-                                websocket=websocket,
-                                output_model=output_model,
-                            ),
-                            'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
-                                websocket=websocket,
-                                output_model=output_model,
-                            ),
-                        }
-                        if include_callback_handlers
-                        else {},
-                        # If the function is a streaming response, we pass the callback handler,
-                        # so that stream data can be sent back to the client.
+                        to_support_in_kwargs=to_support_in_kwargs,
                     )
-
-                    _func_data["tracing_handler"] = TracingCallbackHandler(
-                        tracer=tracer, parent_span=get_current_span()
-                    )
-
                     with EnvironmentVarCtxtManager(_envs), ChangeDirCtxtManager(
                         dirname
                     ):
