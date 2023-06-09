@@ -136,3 +136,15 @@ async def stream(**kwargs):
         async for line in f:
             await websocket.send_text(line)
     return 'OK'
+
+
+@serving
+def readfile() -> str:
+    with open('a.txt', 'r') as f:  # a.txt is in the root of the project
+        return f.read()
+
+
+@serving(websocket=True)
+def readfile_ws(**kwargs) -> str:
+    with open('a.txt', 'r') as f:  # a.txt is in the root of the project
+        return f.read()

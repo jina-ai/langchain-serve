@@ -5,10 +5,11 @@ import secrets
 import shutil
 import sys
 import tempfile
-from contextlib import contextmanager
+from enum import Enum
 from functools import wraps
 from http import HTTPStatus
 from importlib import import_module
+from pathlib import Path
 from shutil import copytree
 from tempfile import mkdtemp
 from types import ModuleType
@@ -39,114 +40,6 @@ def syncify(f):
         return asyncio.run(f(*args, **kwargs))
 
     return wrapper
-
-
-@contextmanager
-def StartFlow(protocol, uses, uses_with: Dict = None, port=12345):
-    from .backend.playground.utils.helper import parse_uses_with
-
-    with Flow(port=port, protocol=protocol).add(
-        uses=uses,
-        uses_with=parse_uses_with(uses_with) if uses_with else None,
-        env={'JINA_LOG_LEVEL': 'INFO'},
-        allow_concurrent=True,
-    ) as f:
-        yield str(f.protocol).lower() + '://' + f.host + ':' + str(f.port)
-
-
-@contextmanager
-def StartFlowWithPlayground(protocol, uses, uses_with: Dict = None, port=12345):
-    from .backend.gateway import PlaygroundGateway
-    from .backend.playground.utils.helper import parse_uses_with
-
-    with (
-        Flow(port=port)
-        .config_gateway(uses=PlaygroundGateway, protocol=protocol)
-        .add(
-            uses=uses,
-            uses_with=parse_uses_with(uses_with) if uses_with else None,
-            env={'JINA_LOG_LEVEL': 'INFO'},
-            allow_concurrent=True,
-        )
-    ) as f:
-        yield str(f.protocol).lower() + '://' + f.host + ':' + str(f.port)
-
-
-def ServeGRPC(uses, uses_with: Dict = None, port=12345):
-    return StartFlow('grpc', uses, uses_with, port)
-
-
-def ServeHTTP(uses, uses_with: Dict = None, port=12345):
-    return StartFlow('http', uses, uses_with, port)
-
-
-def ServeWebSocket(uses, uses_with: Dict = None, port=12345):
-    return StartFlow('websocket', uses, uses_with, port)
-
-
-def Interact(host, inputs: Union[str, Dict], output_key='text'):
-    from docarray import Document, DocumentArray
-    from jina import Client
-
-    from .backend.playground.utils.helper import DEFAULT_KEY, RESULT
-
-    if isinstance(inputs, str):
-        inputs = {DEFAULT_KEY: inputs}
-
-    # create a document array from inputs as tag
-    r = Client(host=host).post(
-        on='/run', inputs=DocumentArray([Document(tags=inputs)]), return_responses=True
-    )
-    if r:
-        if len(r) == 1:
-            tags = r[0].docs[0].tags
-            if output_key in tags:
-                return tags[output_key]
-            elif RESULT in tags:
-                return tags[RESULT]
-            else:
-                return tags
-        else:
-            return r
-
-
-def InteractWithAgent(
-    host: str, inputs: str, parameters: Dict, envs: Dict = {}
-) -> Union[str, Tuple[str, str]]:
-    from docarray import Document, DocumentArray
-    from jina import Client
-
-    from .backend.playground.utils.helper import (
-        AGENT_OUTPUT,
-        DEFAULT_KEY,
-        RESULT,
-        parse_uses_with,
-    )
-
-    _parameters = parse_uses_with(parameters)
-    if envs and 'env' in _parameters:
-        _parameters['env'].update(envs)
-    elif envs:
-        _parameters['env'] = envs
-
-    # create a document array from inputs as tag
-    r = Client(host=host).post(
-        on='/load_and_run',
-        inputs=DocumentArray([Document(tags={DEFAULT_KEY: inputs})]),
-        parameters=_parameters,
-        return_responses=True,
-    )
-    if r:
-        if len(r) == 1:
-            tags = r[0].docs[0].tags
-            if AGENT_OUTPUT in tags and RESULT in tags:
-                return tags[RESULT], ''.join(tags[AGENT_OUTPUT])
-            elif RESULT in tags:
-                return tags[RESULT]
-            else:
-                return tags
-        else:
-            return r
 
 
 def hubble_exists(name: str, secret: Optional[str] = None) -> bool:
@@ -636,6 +529,75 @@ def get_flow_yaml(
         ),
         sort_keys=False,
     )
+
+
+class ExportKind(str, Enum):
+    KUBERNETES = 'kubernetes'
+    DOCKER_COMPOSE = 'docker-compose'
+
+
+def export_app(
+    module_str: str,
+    fastapi_app_str: str,
+    app_dir: str,
+    path: str,
+    kind: ExportKind,
+    image_name=None,
+    tag: str = 'latest',
+    requirements: Tuple[str] = None,
+    version: str = 'latest',
+    platform: str = None,
+    verbose: Optional[bool] = False,
+    public: Optional[bool] = False,
+    name: str = APP_NAME,
+    timeout: int = DEFAULT_TIMEOUT,
+    env: str = None,
+):
+    module_dir, is_websocket = get_module_dir(
+        module_str=module_str,
+        fastapi_app_str=fastapi_app_str,
+        app_dir=app_dir,
+    )
+
+    gateway_id = push_app_to_hubble(
+        module_dir=module_dir,
+        image_name=image_name,
+        tag=tag,
+        requirements=requirements,
+        version=version,
+        platform=platform,
+        verbose=verbose,
+        public=public,
+    )
+
+    flow_dict = get_flow_dict(
+        module_str=module_str,
+        fastapi_app_str=fastapi_app_str,
+        jcloud=True,
+        port=8080,
+        name=name,
+        timeout=timeout,
+        app_id=None,
+        gateway_id=gateway_id,
+        is_websocket=is_websocket,
+        jcloud_config_path=None,
+        cors=True,
+        env=env,
+        lcserve_app=False,
+    )
+
+    f: Flow = Flow.load_config(flow_dict)
+
+    if kind == ExportKind.KUBERNETES:
+        f.to_kubernetes_yaml(path)
+    elif kind == ExportKind.DOCKER_COMPOSE:
+        _path = Path(path)
+        if _path.is_file() and _path.suffix in ['.yml', '.yaml']:
+            f.to_docker_compose_yaml(path)
+        elif _path.is_dir():
+            f.to_docker_compose_yaml(os.path.join(path, 'docker-compose.yml'))
+        else:
+            raise ValueError('path must be a file or a directory')
 
 
 async def deploy_app_on_jcloud(

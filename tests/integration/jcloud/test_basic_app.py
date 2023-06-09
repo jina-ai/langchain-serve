@@ -14,6 +14,7 @@ async def test_basic_app():
         _test_http_route(app_id)
         await _test_ws_route(app_id)
         await _test_workspace(app_id)
+        await _test_local_file_access(app_id)
 
 
 def _test_http_route(app_id):
@@ -49,11 +50,13 @@ async def _test_workspace(app_id):
     http_url = f"https://{app_id}.wolf.jina.ai/store"
     ws_url = f"wss://{app_id}.wolf.jina.ai/stream"
 
+    # store some data using HTTP
     for i in range(10):
         data = {"text": f"Here's string {i}", "envs": {}}
         response = requests.post(http_url, json=data)
         assert response.status_code == 200
 
+    # retrieve the data using WebSockets
     try:
         async with websockets.connect(ws_url) as websocket:
             await websocket.send(json.dumps({}))
@@ -64,5 +67,24 @@ async def _test_workspace(app_id):
                 received_messages.append(message.strip())
 
             assert received_messages == [f"Here's string {i}" for i in range(10)]
+    except ConnectionClosedOK:
+        pass
+
+
+async def _test_local_file_access(app_id: str):
+    http_url = f"https://{app_id}.wolf.jina.ai/readfile"
+    ws_url = f"wss://{app_id}.wolf.jina.ai/readfile_ws"
+
+    # read local file using HTTP
+    response = requests.post(http_url, data=json.dumps({}))
+    assert response.status_code == 200
+    assert response.json()["result"] == "abc"
+
+    # read local file using WebSockets
+    try:
+        async with websockets.connect(ws_url) as websocket:
+            await websocket.send(json.dumps({}))
+            message = await websocket.recv()
+            assert json.loads(message)["result"] == "abc"
     except ConnectionClosedOK:
         pass

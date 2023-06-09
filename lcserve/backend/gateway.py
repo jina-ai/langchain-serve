@@ -4,7 +4,6 @@ import os
 import shutil
 import sys
 import time
-import uuid
 from enum import Enum
 from functools import cached_property
 from importlib import import_module
@@ -27,6 +26,7 @@ from jina.enums import ProtocolType as GatewayProtocolType
 from jina.logging.logger import JinaLogger
 from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
+from opentelemetry.trace import get_current_span
 from pydantic import BaseModel, Field, ValidationError, create_model
 from starlette.types import ASGIApp, Receive, Scope, Send
 from websockets.exceptions import ConnectionClosed
@@ -46,6 +46,7 @@ from .playground.utils.helper import (
     RESULT,
     SERVING,
     Capturing,
+    ChangeDirCtxtManager,
     EnvironmentVarCtxtManager,
     import_from_string,
     parse_uses_with,
@@ -426,7 +427,7 @@ class ServingGateway(FastAPIBaseGateway):
         try:
             app_module = import_module(mod)
             for _, func in inspect.getmembers(app_module, inspect.isfunction):
-                self._register_func(func)
+                self._register_func(func, dirname=os.path.dirname(app_module.__file__))
         except ModuleNotFoundError as e:
             import traceback
 
@@ -439,11 +440,11 @@ class ServingGateway(FastAPIBaseGateway):
             mod = module_from_spec(spec)
             spec.loader.exec_module(mod)
             for _, func in inspect.getmembers(mod, inspect.isfunction):
-                self._register_func(func)
+                self._register_func(func, dirname=os.path.dirname(file))
         except Exception as e:
             print(f'Unable to import {file}: {e}')
 
-    def _register_func(self, func: Callable):
+    def _register_func(self, func: Callable, dirname: str = None):
         def _get_decorator_params(func):
             if hasattr(func, '__serving__'):
                 return getattr(func, '__serving__').get('params', {})
@@ -453,19 +454,25 @@ class ServingGateway(FastAPIBaseGateway):
 
         _decorator_params = _get_decorator_params(func)
         if hasattr(func, '__serving__'):
-            self._register_http_route(func, auth=_decorator_params.get('auth', None))
+            self._register_http_route(
+                func, dirname=dirname, auth=_decorator_params.get('auth', None)
+            )
         elif hasattr(func, '__ws_serving__'):
             self._register_ws_route(
                 func,
+                dirname=dirname,
                 auth=_decorator_params.get('auth', None),
                 include_callback_handlers=_decorator_params.get(
                     'include_callback_handlers', False
                 ),
             )
 
-    def _register_http_route(self, func: Callable, auth: Callable = None, **kwargs):
+    def _register_http_route(
+        self, func: Callable, dirname: str = None, auth: Callable = None, **kwargs
+    ):
         return self._register_route(
             func,
+            dirname=dirname,
             auth=auth,
             route_type=RouteType.HTTP,
             **kwargs,
@@ -474,12 +481,14 @@ class ServingGateway(FastAPIBaseGateway):
     def _register_ws_route(
         self,
         func: Callable,
+        dirname: str = None,
         auth: Callable = None,
         include_callback_handlers: bool = False,
         **kwargs,
     ):
         return self._register_route(
             func,
+            dirname=dirname,
             auth=auth,
             route_type=RouteType.WEBSOCKET,
             include_callback_handlers=include_callback_handlers,
@@ -489,6 +498,7 @@ class ServingGateway(FastAPIBaseGateway):
     def _register_route(
         self,
         func: Callable,
+        dirname: str = None,
         auth: Callable = None,
         route_type: RouteType = RouteType.HTTP,
         include_callback_handlers: bool = False,
@@ -526,6 +536,7 @@ class ServingGateway(FastAPIBaseGateway):
             create_http_route(
                 app=self.app,
                 func=func,
+                dirname=dirname,
                 auth_func=auth,
                 file_params=file_params,
                 input_model=input_model,
@@ -548,6 +559,7 @@ class ServingGateway(FastAPIBaseGateway):
             create_websocket_route(
                 app=self.app,
                 func=func,
+                dirname=dirname,
                 auth=auth,
                 input_model=input_model,
                 output_model=output_model,
@@ -642,6 +654,7 @@ def _get_updated_signature(
 def create_http_route(
     app: 'FastAPI',
     func: Callable,
+    dirname: str,
     auth_func: Callable,
     file_params: List,
     input_model: BaseModel,
@@ -693,7 +706,7 @@ def create_http_route(
             tracer=tracer, parent_span=get_current_span()
         )
 
-        with EnvironmentVarCtxtManager(_envs):
+        with EnvironmentVarCtxtManager(_envs), ChangeDirCtxtManager(dirname):
             with Capturing() as stdout:
                 try:
                     _output = await run_function(func, **_func_data)
@@ -792,6 +805,7 @@ def create_http_route(
 def create_websocket_route(
     app: 'FastAPI',
     func: Callable,
+    dirname: str,
     auth: Callable,
     input_model: BaseModel,
     output_model: BaseModel,
@@ -911,7 +925,9 @@ def create_websocket_route(
                         tracer=tracer, parent_span=get_current_span()
                     )
 
-                    with EnvironmentVarCtxtManager(_envs):
+                    with EnvironmentVarCtxtManager(_envs), ChangeDirCtxtManager(
+                        dirname
+                    ):
                         try:
                             _returned_data = await run_function(func, **_func_data)
                             if inspect.isgenerator(_returned_data):
