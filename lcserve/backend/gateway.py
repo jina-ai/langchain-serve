@@ -58,8 +58,6 @@ if TYPE_CHECKING:
     from opentelemetry.sdk.metrics import Counter
     from opentelemetry.trace import Tracer
 
-from opentelemetry.trace import get_current_span
-
 cur_dir = os.path.dirname(__file__)
 
 
