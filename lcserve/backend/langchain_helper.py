@@ -215,6 +215,75 @@ class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
         await self.websocket.send_json(data)
 
 
+class AsyncTracingCallbackHandler(TracingCallbackHandler):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+
+    async def on_llm_start(
+        self,
+        serialized: Dict[str, Any],
+        prompts: List[str],
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any
+    ) -> None:
+        super().on_llm_start(
+            serialized, prompts, run_id=run_id, parent_run_id=parent_run_id, **kwargs
+        )
+
+    async def on_llm_end(
+        self, response: LLMResult, *, run_id: UUID, **kwargs: Any
+    ) -> None:
+        super().on_llm_end(response, run_id=run_id, **kwargs)
+
+    async def on_chain_start(
+        self,
+        serialized: Dict[str, Any],
+        inputs: Dict[str, Any],
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any
+    ) -> None:
+        super().on_chain_start(
+            serialized, inputs, run_id=run_id, parent_run_id=parent_run_id, **kwargs
+        )
+
+    async def on_chain_end(
+        self, outputs: Dict[str, Any], *, run_id: UUID, **kwargs: Any
+    ) -> None:
+        super().on_chain_end(outputs, run_id=run_id, **kwargs)
+
+    async def on_agent_action(
+        self,
+        action: AgentAction,
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any
+    ) -> None:
+        super().on_agent_action(
+            action, run_id=run_id, parent_run_id=parent_run_id, **kwargs
+        )
+
+    async def on_tool_start(
+        self,
+        serialized: Dict[str, Any],
+        input_str: str,
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any
+    ) -> None:
+        super().on_tool_start(
+            serialized, input_str, run_id=run_id, parent_run_id=parent_run_id, **kwargs
+        )
+
+    async def on_tool_end(self, output: str, *, run_id: UUID, **kwargs: Any) -> None:
+        super().on_tool_end(output, run_id=run_id, **kwargs)
+
+
 class StreamingWebsocketCallbackHandler(AsyncStreamingWebsocketCallbackHandler):
     @property
     def is_async(self) -> bool:
