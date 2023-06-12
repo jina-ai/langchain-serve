@@ -43,6 +43,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1105,4 +1106,23 @@
 ### 🍹 Other Improvements
 
  - [[```85cf9d9d```](https://github.com/jina-ai/langchain-serve/commit/85cf9d9dcf785baba0dd010f61e11131aa8780be)] __-__ __version__: the next version will be 0.0.43 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-44></a>
+## Release Note (`0.0.44`)
+
+> Release time: 2023-06-12 10:27:12
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```1f75b119```](https://github.com/jina-ai/langchain-serve/commit/1f75b119b979ea1d4f6bb7a6f80deaa15b112c55)] __-__ show cph in status (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```96123ba7```](https://github.com/jina-ai/langchain-serve/commit/96123ba70eda234e618196c45f9c0fe86f587905)] __-__ __version__: the next version will be 0.0.44 (*Jina Dev Bot*)
 
