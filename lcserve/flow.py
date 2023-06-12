@@ -32,6 +32,7 @@ AUTOGPT_APP_NAME = 'autogpt'
 
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
+PRICING_URL = "****{cph}**** ([Read about pricing here](https://github.com/jina-ai/langchain-serve#-pricing))"
 
 
 def syncify(f):
@@ -661,11 +662,11 @@ async def get_app_status_on_jcloud(app_id: str):
 
     console = Console()
     with console.status(f'[bold]Getting app status for [green]{app_id}[/green]'):
-        app_status = await CloudFlow(flow_id=app_id).status
-        if app_status is None:
+        app_details = await CloudFlow(flow_id=app_id).status
+        if app_details is None:
             return
 
-        if 'status' not in app_status:
+        if 'status' not in app_details:
             return
 
         def _get_endpoint(app):
@@ -675,7 +676,8 @@ async def get_app_status_on_jcloud(app_id: str):
         def _replace_wss_with_https(endpoint: str):
             return endpoint.replace('wss://', 'https://')
 
-        status: Dict = app_status['status']
+        status: Dict = app_details['status']
+        total_cph = app_details.get('CPH', {}).get('total', 0)
         endpoint = _get_endpoint(status)
 
         _add_row('App ID', app_id, bold_key=True, bold_value=True)
@@ -684,6 +686,10 @@ async def get_app_status_on_jcloud(app_id: str):
         _add_row(
             'App logs',
             Markdown(APP_LOGS_URL.format(app_id=app_id), justify='center'),
+        )
+        _add_row(
+            'Credits per hour',
+            Markdown(PRICING_URL.format(cph=total_cph), justify='center'),
         )
         _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
         _add_row('OpenAPI JSON', _replace_wss_with_https(f'{endpoint}/openapi.json'))
