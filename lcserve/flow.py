@@ -688,7 +688,7 @@ async def get_app_status_on_jcloud(app_id: str):
             Markdown(APP_LOGS_URL.format(app_id=app_id), justify='center'),
         )
         _add_row(
-            'Credits per hour',
+            'Base credits per hour',
             Markdown(PRICING_URL.format(cph=total_cph), justify='center'),
         )
         _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
