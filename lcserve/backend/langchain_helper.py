@@ -8,10 +8,12 @@ from fastapi import WebSocket
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.schema import AgentAction, LLMResult
-from opentelemetry.trace import Span, Tracer, set_span_in_context
+from opentelemetry.trace import Span, Tracer, get_current_span, set_span_in_context
 from pydantic import BaseModel, ValidationError
 
 logger = logging.getLogger(__name__)
+
+_span_map = {}
 
 
 class TracingCallbackHandler(BaseCallbackHandler):
@@ -19,6 +21,17 @@ class TracingCallbackHandler(BaseCallbackHandler):
         super().__init__()
         self.tracer = tracer
         self.parent_span = parent_span
+
+    def _register_span(self, run_id, span):
+        _span_map[run_id] = span
+
+    def _current_span(self, run_id):
+        return _span_map.get(run_id)
+
+    def _end_span(self, run_id):
+        span = _span_map.pop(run_id, None)
+        if span:
+            span.end()
 
     def on_llm_start(
         self,
@@ -32,42 +45,41 @@ class TracingCallbackHandler(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        prompts_len = 0
-        operation = "langchain.on_llm_start"
+        operation = "langchain.llm"
 
         try:
             context = set_span_in_context(self.parent_span)
             with self.tracer.start_as_current_span(
-                "llm start", context=context
+                "llm", context=context, end_on_exit=False
             ) as span:
                 span.set_attribute("otel.operation.name", operation)
-                prompts_len += sum([len(prompt) for prompt in prompts])
+                prompts_len = sum([len(prompt) for prompt in prompts])
                 span.set_attribute("num_processed_prompts", len(prompts))
                 span.set_attribute("prompts_len", prompts_len)
                 span.add_event("prompts", {"data": prompts})
+                self._register_span(run_id, span)
         except Exception:
-            logger.error('Error in LangChain callback handler', exc_info=True)
+            logger.error('Error in tracing callback handler', exc_info=True)
 
     def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
         if not self.tracer:
             return
 
-        operation = "langchain.on_llm_end"
-        token_usage = response.llm_output["token_usage"]
-
         try:
-            context = set_span_in_context(self.parent_span)
-            with self.tracer.start_as_current_span("llm end", context=context) as span:
-                span.set_attribute("otel.operation.name", operation)
-                for k, v in token_usage.items():
-                    span.set_attribute(k, v)
+            span = self._current_span(run_id)
+            token_usage = response.llm_output["token_usage"]
 
-                texts = "\n".join(
-                    [" ".join([l.text for l in lst]) for lst in response.generations]
-                )
-                span.add_event("outputs", {"data": texts})
+            for k, v in token_usage.items():
+                span.set_attribute(k, v)
+
+            texts = "\n".join(
+                [" ".join([l.text for l in lst]) for lst in response.generations]
+            )
+            span.add_event("outputs", {"data": texts})
         except Exception:
-            logger.error('Error in LangChain callback handler', exc_info=True)
+            logger.error('Error in tracing callback handler', exc_info=True)
+        finally:
+            self._end_span(run_id)
 
     def on_chain_start(
         self,
@@ -81,17 +93,18 @@ class TracingCallbackHandler(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        operation = 'langchain.on_chain_start'
+        operation = 'langchain.chain'
 
         try:
             context = set_span_in_context(self.parent_span)
             with self.tracer.start_as_current_span(
-                "chain start", context=context
+                "chain", context=context, end_on_exit=False
             ) as span:
                 span.set_attribute("otel.operation.name", operation)
                 span.add_event("inputs", {"data": json.dumps(inputs)})
+                self._register_span(run_id, span)
         except Exception:
-            logger.error('Error in LangChain callback handler', exc_info=True)
+            logger.error('Error in tracing callback handler', exc_info=True)
 
     def on_chain_end(
         self,
@@ -104,17 +117,13 @@ class TracingCallbackHandler(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        operation = 'langchain.on_chain_end'
-
         try:
-            context = set_span_in_context(self.parent_span)
-            with self.tracer.start_as_current_span(
-                "chain end", context=context
-            ) as span:
-                span.set_attribute("otel.operation.name", operation)
-                span.add_event("outputs", {"data": json.dumps(outputs)})
+            span = self._current_span(run_id)
+            span.add_event("outputs", {"data": json.dumps(outputs)})
         except Exception:
-            logger.error('Error in LangChain callback handler', exc_info=True)
+            logger.error('Error in tracing callback handler', exc_info=True)
+        finally:
+            self._end_span(run_id)
 
     def on_agent_action(
         self,
@@ -127,24 +136,54 @@ class TracingCallbackHandler(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        operation = 'langchain.on_agent_action'
+        operation = 'langchain.agent'
+
+        try:
+            span = self._current_span(run_id)
+            span.add_event(
+                "agent_action",
+                {
+                    "data": action.tool,
+                    "tool_input": action.tool_input,
+                    "log": action.log,
+                },
+            )
+        except Exception:
+            logger.error('Error in tracing callback handler', exc_info=True)
+
+    def on_tool_start(
+        self,
+        serialized: Dict[str, Any],
+        input_str: str,
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any
+    ) -> None:
+        if not self.tracer:
+            return
+
+        operation = 'langchain.tools'
 
         try:
             context = set_span_in_context(self.parent_span)
             with self.tracer.start_as_current_span(
-                "agent action", context=context
+                "tool", context=context, end_on_exit=False
             ) as span:
                 span.set_attribute("otel.operation.name", operation)
-                span.add_event(
-                    "agent_action",
-                    {
-                        "data": action.tool,
-                        "tool_input": action.tool_input,
-                        "log": action.log,
-                    },
-                )
+                span.add_event("input", {"data": input_str})
+                self._register_span(run_id, span)
         except Exception:
-            logger.error('Error in LangChain callback handler', exc_info=True)
+            logger.error('Error in tracing callback handler', exc_info=True)
+
+    def on_tool_end(self, output: str, *, run_id: UUID, **kwargs: Any) -> None:
+        try:
+            span = self._current_span(run_id)
+            span.add_event("output", {"data": output})
+        except Exception:
+            logger.error('Error in tracing callback handler', exc_info=True)
+        finally:
+            self._end_span(run_id)
 
 
 class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
