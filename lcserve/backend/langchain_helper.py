@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -11,9 +12,32 @@ from langchain.schema import AgentAction, LLMResult
 from opentelemetry.trace import Span, Tracer, get_current_span, set_span_in_context
 from pydantic import BaseModel, ValidationError
 
-logger = logging.getLogger(__name__)
+
+def get_tracing_logger():
+    logger = logging.getLogger("tracing")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+    # Check if the logger already has handlers
+    if not logger.handlers:
+        formatter = logging.Formatter("%(name)s: %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+    return logger
+
 
 _span_map = {}
+
+
+@dataclass
+class TraceInfo:
+    trace: str
+    span: str
+    prompts: Optional[List[str]] = None
+    outputs: str = ""
+    cost: float = 0
 
 
 class TracingCallbackHandler(BaseCallbackHandler):
@@ -21,6 +45,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
         super().__init__()
         self.tracer = tracer
         self.parent_span = parent_span
+        self.logger = get_tracing_logger()
 
     def _register_span(self, run_id, span):
         _span_map[run_id] = span
@@ -57,9 +82,17 @@ class TracingCallbackHandler(BaseCallbackHandler):
                 span.set_attribute("num_processed_prompts", len(prompts))
                 span.set_attribute("prompts_len", prompts_len)
                 span.add_event("prompts", {"data": prompts})
+                span_context = span.get_span_context()
+
+                trace_info = TraceInfo(
+                    trace=span_context.trace_id,
+                    span=span_context.span_id,
+                    prompts=prompts,
+                )
+                self.logger.info(json.dumps(trace_info.__dict__))
                 self._register_span(run_id, span)
         except Exception:
-            logger.error('Error in tracing callback handler', exc_info=True)
+            self.logger.error("Error in tracing callback handler", exc_info=True)
 
     def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
         if not self.tracer:
@@ -75,9 +108,17 @@ class TracingCallbackHandler(BaseCallbackHandler):
             texts = "\n".join(
                 [" ".join([l.text for l in lst]) for lst in response.generations]
             )
+            span_context = span.get_span_context()
+            trace_info = TraceInfo(
+                trace=span_context.trace_id,
+                span=span_context.span_id,
+                outputs=texts,
+                cost=20,
+            )
+            self.logger.info(json.dumps(trace_info.__dict__))
             span.add_event("outputs", {"data": texts})
         except Exception:
-            logger.error('Error in tracing callback handler', exc_info=True)
+            self.logger.error("Error in tracing callback handler", exc_info=True)
         finally:
             self._end_span(run_id)
 
@@ -93,7 +134,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        operation = 'langchain.chain'
+        operation = "langchain.chain"
 
         try:
             context = set_span_in_context(self.parent_span)
@@ -104,7 +145,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
                 span.add_event("inputs", {"data": json.dumps(inputs)})
                 self._register_span(run_id, span)
         except Exception:
-            logger.error('Error in tracing callback handler', exc_info=True)
+            self.logger.error("Error in tracing callback handler", exc_info=True)
 
     def on_chain_end(
         self,
@@ -121,7 +162,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
             span = self._current_span(run_id)
             span.add_event("outputs", {"data": json.dumps(outputs)})
         except Exception:
-            logger.error('Error in tracing callback handler', exc_info=True)
+            self.logger.error("Error in tracing callback handler", exc_info=True)
         finally:
             self._end_span(run_id)
 
@@ -136,7 +177,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        operation = 'langchain.agent'
+        operation = "langchain.agent"
 
         try:
             span = self._current_span(run_id)
@@ -149,7 +190,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
                 },
             )
         except Exception:
-            logger.error('Error in tracing callback handler', exc_info=True)
+            self.logger.error("Error in tracing callback handler", exc_info=True)
 
     def on_tool_start(
         self,
@@ -163,7 +204,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        operation = 'langchain.tools'
+        operation = "langchain.tools"
 
         try:
             context = set_span_in_context(self.parent_span)
@@ -174,14 +215,14 @@ class TracingCallbackHandler(BaseCallbackHandler):
                 span.add_event("input", {"data": input_str})
                 self._register_span(run_id, span)
         except Exception:
-            logger.error('Error in tracing callback handler', exc_info=True)
+            self.logger.error("Error in tracing callback handler", exc_info=True)
 
     def on_tool_end(self, output: str, *, run_id: UUID, **kwargs: Any) -> None:
         try:
             span = self._current_span(run_id)
             span.add_event("output", {"data": output})
         except Exception:
-            logger.error('Error in tracing callback handler', exc_info=True)
+            self.logger.error("Error in tracing callback handler", exc_info=True)
         finally:
             self._end_span(run_id)
 
