@@ -16,6 +16,7 @@ def ingest_docs():
         chunk_overlap=200,
     )
     documents = text_splitter.split_documents(raw_documents)
+    print(documents[0])
     embeddings = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(documents, embeddings)
 
