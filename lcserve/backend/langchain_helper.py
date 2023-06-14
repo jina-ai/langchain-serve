@@ -1,15 +1,16 @@
 import asyncio
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import WebSocket
+from langchain.callbacks import OpenAICallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.schema import AgentAction, LLMResult
-from opentelemetry.trace import Span, Tracer, get_current_span, set_span_in_context
+from opentelemetry.trace import Span, Tracer, set_span_in_context
 from pydantic import BaseModel, ValidationError
 
 
@@ -35,17 +36,19 @@ _span_map = {}
 class TraceInfo:
     trace: str
     span: str
+    action: str
     prompts: Optional[List[str]] = None
     outputs: str = ""
-    cost: float = 0
+    cost: Optional[float] = None
 
 
-class TracingCallbackHandler(BaseCallbackHandler):
+class TracingCallbackHandlerMixin(BaseCallbackHandler):
     def __init__(self, tracer: Tracer, parent_span: Span):
         super().__init__()
         self.tracer = tracer
         self.parent_span = parent_span
         self.logger = get_tracing_logger()
+        self.total_cost = 0
 
     def _register_span(self, run_id, span):
         _span_map[run_id] = span
@@ -87,6 +90,7 @@ class TracingCallbackHandler(BaseCallbackHandler):
                 trace_info = TraceInfo(
                     trace=span_context.trace_id,
                     span=span_context.span_id,
+                    action="on_llm_start",
                     prompts=prompts,
                 )
                 self.logger.info(json.dumps(trace_info.__dict__))
@@ -112,8 +116,9 @@ class TracingCallbackHandler(BaseCallbackHandler):
             trace_info = TraceInfo(
                 trace=span_context.trace_id,
                 span=span_context.span_id,
+                action="on_llm_end",
                 outputs=texts,
-                cost=20,
+                cost=round(self.total_cost, 3) if self.total_cost else None,
             )
             self.logger.info(json.dumps(trace_info.__dict__))
             span.add_event("outputs", {"data": texts})
@@ -225,6 +230,17 @@ class TracingCallbackHandler(BaseCallbackHandler):
             self.logger.error("Error in tracing callback handler", exc_info=True)
         finally:
             self._end_span(run_id)
+
+
+class TracingCallbackHandler(TracingCallbackHandlerMixin):
+    pass
+
+
+class OpenAITracingCallbackHandler(TracingCallbackHandlerMixin, OpenAICallbackHandler):
+    def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
+        # Set the computed total cost first with OpenAICallbackHandler and then handle the tracing
+        OpenAICallbackHandler.on_llm_end(self, response, run_id=run_id, **kwargs)
+        TracingCallbackHandlerMixin.on_llm_end(self, response, run_id=run_id, **kwargs)
 
 
 class AsyncStreamingWebsocketCallbackHandler(StreamingStdOutCallbackHandler):
