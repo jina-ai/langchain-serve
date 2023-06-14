@@ -13,6 +13,7 @@ from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from query_data import get_chain
 from schemas import ChatResponse, DocumentWithEmbedding
 from langchain.vectorstores.docarray import DocArrayInMemorySearch
+from langchain.vectorstores.docarray.base import DocArrayIndex
 from docarray import DocList
 
 import openai
@@ -29,12 +30,13 @@ async def startup_event():
     if not Path("simple-dl.pickle").exists():
         raise ValueError("simple-dl.pkl does not exist, please run ingest.py first")
     global vectorstore
-    dl = DocList[DocumentWithEmbedding].load_binary('simple-dl.pickle', compress=None, protocol='pickle')
+    doc_cls = DocArrayIndex._get_doc_cls()
+    dl = DocList[doc_cls].load_binary('simple-dl.pickle', compress=None, protocol='pickle')
     from docarray.index import InMemoryExactNNIndex
-    index = InMemoryExactNNIndex[DocumentWithEmbedding](dl)
-    logging.info(f'get schema {index._schema}')
+    index = InMemoryExactNNIndex[doc_cls](dl)
     embedding = OpenAIEmbeddings()
     vectorstore = DocArrayInMemorySearch(doc_index=index, embedding=embedding)
+    logging.info(f'vector store: {len(vectorstore.doc_index)}')
 
 
 @app.get("/")

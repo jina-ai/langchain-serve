@@ -1,13 +1,10 @@
 """Load html from files, clean up, split, ingest into Weaviate."""
-import pickle
-
 from langchain.document_loaders import ReadTheDocsLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-# from langchain.vectorstores.faiss import FAISS
 from docarray import DocList
-from schemas import DocumentWithEmbedding
-import numpy as np
+from langchain.vectorstores.docarray.base import DocArrayIndex
+
 
 def ingest_docs():
     """Get documents from web pages."""
@@ -18,19 +15,14 @@ def ingest_docs():
         chunk_overlap=200,
     )
     documents = text_splitter.split_documents(raw_documents)
-    index = DocList[DocumentWithEmbedding](
-        [DocumentWithEmbedding(page_content=d.page_content, embedding=np.random.random(10), metadata=d.metadata)
+    doc_cls = DocArrayIndex._get_doc_cls()
+    index = DocList[doc_cls](
+        [doc_cls(text=d.page_content, metadata=d.metadata)
          for d in documents])
-    print(f'schema is {index._schema}')
-
-    # OpenAIEmbeddings().embed_documents(index.page_content)
+    index.embedding=OpenAIEmbeddings().embed_documents(index.text)
+    # this works by adding global claim at
+    # /lib/python3.8/site-packages/langchain/vectorstores/docarray/base.py::51
     index.save_binary('simple-dl.pickle', compress=None, protocol='pickle')
-
-    # vectorstore = FAISS.from_documents(documents, embeddings)
-    #
-    # # Save vectorstore
-    # with open("vectorstore.pkl", "wb") as f:
-    #     pickle.dump(vectorstore, f)
 
 
 if __name__ == "__main__":
