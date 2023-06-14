@@ -7,10 +7,13 @@ from typing import Optional
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 from langchain.vectorstores import VectorStore
+from langchain.embeddings import OpenAIEmbeddings
 
 from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from query_data import get_chain
-from schemas import ChatResponse
+from schemas import ChatResponse, DocumentWithEmbedding
+from langchain.vectorstores.docarray import DocArrayInMemorySearch
+from docarray import DocList
 
 import openai
 openai.proxy = {'https': 'http://127.0.0.1:7890', 'http': 'http://127.0.0.1:7890'}
@@ -23,11 +26,15 @@ vectorstore: Optional[VectorStore] = None
 @app.on_event("startup")
 async def startup_event():
     logging.info("loading vectorstore")
-    if not Path("vectorstore.pkl").exists():
-        raise ValueError("vectorstore.pkl does not exist, please run ingest.py first")
-    with open("vectorstore.pkl", "rb") as f:
-        global vectorstore
-        vectorstore = pickle.load(f)
+    if not Path("simple-dl.pickle").exists():
+        raise ValueError("simple-dl.pkl does not exist, please run ingest.py first")
+    global vectorstore
+    dl = DocList[DocumentWithEmbedding].load_binary('simple-dl.pickle', compress=None, protocol='pickle')
+    from docarray.index import InMemoryExactNNIndex
+    index = InMemoryExactNNIndex[DocumentWithEmbedding](dl)
+    logging.info(f'get schema {index._schema}')
+    embedding = OpenAIEmbeddings()
+    vectorstore = DocArrayInMemorySearch(doc_index=index, embedding=embedding)
 
 
 @app.get("/")

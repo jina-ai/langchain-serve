@@ -1,6 +1,9 @@
 """Schemas for the chat app."""
 from pydantic import BaseModel, validator
 
+from docarray import BaseDoc
+from docarray.typing import AnyEmbedding
+from typing import Optional
 
 class ChatResponse(BaseModel):
     """Chat response schema."""
@@ -20,3 +23,9 @@ class ChatResponse(BaseModel):
         if v not in ["start", "stream", "end", "error", "info"]:
             raise ValueError("type must be start, stream or end")
         return v
+
+
+class DocumentWithEmbedding(BaseDoc):
+    metadata: dict
+    page_content: str
+    embedding: Optional[AnyEmbedding]
