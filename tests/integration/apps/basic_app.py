@@ -1,10 +1,15 @@
 import asyncio
 import time
-from typing import List, Dict, Any
-from lcserve import serving
+from typing import Dict, List
 
 import aiofiles
-from fastapi import WebSocket, UploadFile
+from fastapi import UploadFile, WebSocket
+from langchain.agents import initialize_agent, load_tools
+from langchain.agents.agent_types import AgentType
+from langchain.callbacks.manager import CallbackManager
+from langchain.llms.fake import FakeListLLM
+
+from lcserve import serving
 
 
 @serving
@@ -148,3 +153,48 @@ def readfile() -> str:
 def readfile_ws(**kwargs) -> str:
     with open('a.txt', 'r') as f:  # a.txt is in the root of the project
         return f.read()
+
+
+@serving
+def tracing(dummy: str, **kwargs):
+    tracing_handler = kwargs.get('tracing_handler')
+
+    responses = ["Action: Python REPL\nAction Input: print(2 + 2)", "Final Answer: 4"]
+    llm = FakeListLLM(
+        responses=responses, callback_manager=CallbackManager([tracing_handler])
+    )
+    tools = load_tools(["python_repl"])
+    agent = initialize_agent(
+        tools,
+        llm,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        callback_manager=CallbackManager([tracing_handler]),
+        verbose=True,
+    )
+
+    agent.run(dummy)
+
+    return 'ok'
+
+
+@serving(openai_tracing=True, websocket=True)
+def tracing_ws(dummy: str, **kwargs):
+    tracing_handler = kwargs.get('tracing_handler')
+    streaming_handler = kwargs.get('streaming_handler')
+
+    responses = ["Action: Python REPL\nAction Input: print(2 + 2)", "Final Answer: 4"]
+    llm = FakeListLLM(
+        responses=responses, callback_manager=CallbackManager([tracing_handler])
+    )
+    tools = load_tools(["python_repl"])
+    agent = initialize_agent(
+        tools,
+        llm,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        callback_manager=CallbackManager([tracing_handler, streaming_handler]),
+        verbose=True,
+    )
+
+    agent.run(dummy)
+
+    return 'ok'

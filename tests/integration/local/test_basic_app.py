@@ -7,6 +7,7 @@ import requests
 import websockets
 
 from ..helper import (
+    assert_jaeger_tracing_data,
     examine_request_count_with_retry,
     examine_request_duration_with_retry,
     run_test_app_locally,
@@ -327,3 +328,35 @@ async def test_workspace(run_test_app_locally):
             received_messages.append(message.strip())
 
         assert received_messages == [f"Here's string {i}" for i in range(10)]
+
+
+@pytest.mark.parametrize(
+    "run_test_app_locally, route",
+    [("basic_app", "tracing")],
+    indirect=["run_test_app_locally"],
+)
+def test_tracing_http(run_test_app_locally, route):
+    url = os.path.join(HTTP_HOST, route)
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    data = {"dummy": "dummy string", "envs": {}}
+    response = requests.post(url, headers=headers, json=data)
+    assert response.status_code == 200
+    assert_jaeger_tracing_data("gateway/rep-0", "dummy string")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "run_test_app_locally, route",
+    [("basic_app", "tracing_ws")],
+    indirect=["run_test_app_locally"],
+)
+async def test_tracing_ws(run_test_app_locally, route):
+    async with websockets.connect(os.path.join(WS_HOST, route)) as websocket:
+        await websocket.send(json.dumps({"dummy": "dummy string ws"}))
+        message = await websocket.recv()
+
+    assert "dummy string ws" in message
+    assert_jaeger_tracing_data("gateway/rep-0", "dummy string ws")

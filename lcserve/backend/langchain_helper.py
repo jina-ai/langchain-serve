@@ -114,24 +114,27 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
 
         try:
             span = self._current_span(run_id)
-            token_usage = response.llm_output["token_usage"]
 
-            for k, v in token_usage.items():
-                span.set_attribute(k, v)
+            tokens_per_llm_op = 0
+            if response.llm_output:
+                token_usage = response.llm_output["token_usage"]
+
+                for k, v in token_usage.items():
+                    span.set_attribute(k, v)
+
+                # total_tokens in token_usage is the total tokens (prompt + completion) for a single llm op
+                tokens_per_llm_op = token_usage.get("total_tokens", 0)
 
             texts = "\n".join(
                 [" ".join([l.text for l in lst]) for lst in response.generations]
             )
-
-            # total_tokens in token_usage is the total tokens (prompt + completion) for a single llm op
-            cost_per_llm_op = token_usage.get("total_tokens", 0)
 
             trace_info = TraceInfo(
                 trace=format_trace_id(span.context.trace_id),
                 span=format_span_id(span.context.span_id),
                 action="on_llm_end",
                 outputs=texts,
-                tokens=cost_per_llm_op,
+                tokens=tokens_per_llm_op,
                 cost=round(self.cost_per_llm_op, 3),
                 total_tokens=round(self.total_tokens, 3),
                 total_cost=round(self.total_cost, 3),
