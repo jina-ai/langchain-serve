@@ -2,14 +2,14 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import WebSocket
 from langchain.callbacks import OpenAICallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.schema import AgentAction, LLMResult
+from langchain.schema import AgentAction, AgentFinish, LLMResult
 from opentelemetry.trace import Span, Tracer, set_span_in_context
 from pydantic import BaseModel, ValidationError
 
@@ -73,7 +73,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         if not self.tracer:
             return
@@ -146,7 +146,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         if not self.tracer:
             return
@@ -170,7 +170,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         if not self.tracer:
             return
@@ -189,7 +189,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         if not self.tracer:
             return
@@ -214,7 +214,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         if not self.tracer:
             return
@@ -240,6 +240,67 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
             self.logger.error("Error in tracing callback handler", exc_info=True)
         finally:
             self._end_span(run_id)
+
+    def on_agent_finish(
+        self,
+        finish: AgentFinish,
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
+    ) -> Any:
+        pass
+
+    def on_chain_error(
+        self,
+        error: Union[Exception, KeyboardInterrupt],
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
+    ) -> Any:
+        pass
+
+    async def on_llm_error(
+        self,
+        error: Union[Exception, KeyboardInterrupt],
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
+    ) -> None:
+        pass
+
+    def on_llm_new_token(
+        self,
+        token: str,
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
+    ) -> Any:
+        pass
+
+    def on_text(
+        self,
+        text: str,
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
+    ) -> Any:
+        pass
+
+    def on_tool_error(
+        self,
+        error: Union[Exception, KeyboardInterrupt],
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Run when tool errors."""
+        pass
 
 
 class TracingCallbackHandler(TracingCallbackHandlerMixin):
@@ -296,7 +357,7 @@ class AsyncTracingCallbackHandler(TracingCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().on_llm_start(
             serialized, prompts, run_id=run_id, parent_run_id=parent_run_id, **kwargs
@@ -314,7 +375,7 @@ class AsyncTracingCallbackHandler(TracingCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().on_chain_start(
             serialized, inputs, run_id=run_id, parent_run_id=parent_run_id, **kwargs
@@ -331,7 +392,7 @@ class AsyncTracingCallbackHandler(TracingCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().on_agent_action(
             action, run_id=run_id, parent_run_id=parent_run_id, **kwargs
@@ -344,7 +405,7 @@ class AsyncTracingCallbackHandler(TracingCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: Optional[UUID] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().on_tool_start(
             serialized, input_str, run_id=run_id, parent_run_id=parent_run_id, **kwargs
