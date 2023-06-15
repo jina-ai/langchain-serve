@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import WebSocket
@@ -37,10 +37,10 @@ class TraceInfo:
     trace: str
     span: str
     action: str
-    prompts: Optional[List[str]] = None
+    prompts: str = ""
     outputs: str = ""
-    tokens: Optional[int] = None
-    cost: Optional[float] = None
+    tokens: int = 0
+    cost: float = 0
 
 
 class TracingCallbackHandlerMixin(BaseCallbackHandler):
@@ -93,7 +93,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
                     trace=span_context.trace_id,
                     span=span_context.span_id,
                     action="on_llm_start",
-                    prompts=prompts,
+                    prompts=json.dumps(prompts),
                 )
                 self.logger.info(json.dumps(trace_info.__dict__))
                 self._register_span(run_id, span)
@@ -120,8 +120,8 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
                 span=span_context.span_id,
                 action="on_llm_end",
                 outputs=texts,
-                tokens=round(self.total_tokens, 3) if self.total_tokens else None,
-                cost=round(self.total_cost, 3) if self.total_cost else None,
+                tokens=round(self.total_tokens, 3),
+                cost=round(self.total_cost, 3),
             )
             self.logger.info(json.dumps(trace_info.__dict__))
             span.add_event("outputs", {"data": texts})
