@@ -10,7 +10,13 @@ from langchain.callbacks import OpenAICallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.schema import AgentAction, AgentFinish, LLMResult
-from opentelemetry.trace import Span, Tracer, set_span_in_context
+from opentelemetry.trace import (
+    Span,
+    Tracer,
+    format_span_id,
+    format_trace_id,
+    set_span_in_context,
+)
 from pydantic import BaseModel, ValidationError
 
 
@@ -90,11 +96,10 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
                 span.set_attribute("num_processed_prompts", len(prompts))
                 span.set_attribute("prompts_len", prompts_len)
                 span.add_event("prompts", {"data": prompts})
-                span_context = span.get_span_context()
 
                 trace_info = TraceInfo(
-                    trace=span_context.trace_id,
-                    span=span_context.span_id,
+                    trace=format_trace_id(span.context.trace_id),
+                    span=format_span_id(span.context.span_id),
                     action="on_llm_start",
                     prompts=''.join(prompts),
                 )
@@ -121,10 +126,9 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
             # total_tokens in token_usage is the total tokens (prompt + completion) for a single llm op
             cost_per_llm_op = token_usage.get("total_tokens", 0)
 
-            span_context = span.get_span_context()
             trace_info = TraceInfo(
-                trace=span_context.trace_id,
-                span=span_context.span_id,
+                trace=format_trace_id(span.context.trace_id),
+                span=format_span_id(span.context.span_id),
                 action="on_llm_end",
                 outputs=texts,
                 tokens=cost_per_llm_op,
