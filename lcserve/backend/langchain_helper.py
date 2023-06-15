@@ -39,6 +39,7 @@ class TraceInfo:
     action: str
     prompts: Optional[List[str]] = None
     outputs: str = ""
+    tokens: Optional[int] = None
     cost: Optional[float] = None
 
 
@@ -48,6 +49,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         self.tracer = tracer
         self.parent_span = parent_span
         self.logger = get_tracing_logger()
+        self.total_tokens = 0
         self.total_cost = 0
 
     def _register_span(self, run_id, span):
@@ -118,6 +120,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
                 span=span_context.span_id,
                 action="on_llm_end",
                 outputs=texts,
+                tokens=round(self.total_tokens, 3) if self.total_tokens else None,
                 cost=round(self.total_cost, 3) if self.total_cost else None,
             )
             self.logger.info(json.dumps(trace_info.__dict__))
@@ -182,8 +185,6 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         if not self.tracer:
             return
 
-        operation = "langchain.agent"
-
         try:
             span = self._current_span(run_id)
             span.add_event(
@@ -238,7 +239,7 @@ class TracingCallbackHandler(TracingCallbackHandlerMixin):
 
 class OpenAITracingCallbackHandler(TracingCallbackHandlerMixin, OpenAICallbackHandler):
     def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
-        # Set the computed total cost first with OpenAICallbackHandler and then handle the tracing
+        # Set the computed total token used and total cost first with OpenAICallbackHandler and then handle the tracing
         OpenAICallbackHandler.on_llm_end(self, response, run_id=run_id, **kwargs)
         TracingCallbackHandlerMixin.on_llm_end(self, response, run_id=run_id, **kwargs)
 
