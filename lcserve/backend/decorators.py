@@ -4,11 +4,7 @@ from typing import Callable
 
 
 def serving(
-    _func=None,
-    *,
-    websocket: bool = False,
-    trace_for_openai=False,
-    auth: Callable = None
+    _func=None, *, websocket: bool = False, openai_tracing=False, auth: Callable = None
 ):
     def decorator(func):
         @wraps(func)
@@ -29,7 +25,7 @@ def serving(
             'doc': func.__doc__,
             'params': {
                 'include_ws_callback_handlers': websocket,
-                'trace_for_openai': trace_for_openai,
+                'openai_tracing': openai_tracing,
                 # If websocket is True, pass the callback handlers to the client.
                 'auth': auth,
             },

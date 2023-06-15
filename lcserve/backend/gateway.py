@@ -460,7 +460,7 @@ class ServingGateway(FastAPIBaseGateway):
                 func,
                 dirname=dirname,
                 auth=_decorator_params.get('auth', None),
-                trace_for_openai=_decorator_params.get('trace_for_openai', False),
+                openai_tracing=_decorator_params.get('openai_tracing', False),
             )
         elif hasattr(func, '__ws_serving__'):
             self._register_ws_route(
@@ -470,7 +470,7 @@ class ServingGateway(FastAPIBaseGateway):
                 include_ws_callback_handlers=_decorator_params.get(
                     'include_ws_callback_handlers', False
                 ),
-                trace_for_openai=_decorator_params.get('trace_for_openai', False),
+                openai_tracing=_decorator_params.get('openai_tracing', False),
             )
 
     def _register_http_route(
@@ -478,7 +478,7 @@ class ServingGateway(FastAPIBaseGateway):
         func: Callable,
         dirname: str = None,
         auth: Callable = None,
-        trace_for_openai: bool = False,
+        openai_tracing: bool = False,
         **kwargs,
     ):
         return self._register_route(
@@ -486,7 +486,7 @@ class ServingGateway(FastAPIBaseGateway):
             dirname=dirname,
             auth=auth,
             route_type=RouteType.HTTP,
-            trace_for_openai=trace_for_openai,
+            openai_tracing=openai_tracing,
             **kwargs,
         )
 
@@ -496,7 +496,7 @@ class ServingGateway(FastAPIBaseGateway):
         dirname: str = None,
         auth: Callable = None,
         include_ws_callback_handlers: bool = False,
-        trace_for_openai: bool = False,
+        openai_tracing: bool = False,
         **kwargs,
     ):
         return self._register_route(
@@ -505,7 +505,7 @@ class ServingGateway(FastAPIBaseGateway):
             auth=auth,
             route_type=RouteType.WEBSOCKET,
             include_ws_callback_handlers=include_ws_callback_handlers,
-            trace_for_openai=trace_for_openai,
+            openai_tracing=openai_tracing,
             **kwargs,
         )
 
@@ -516,7 +516,7 @@ class ServingGateway(FastAPIBaseGateway):
         auth: Callable = None,
         route_type: RouteType = RouteType.HTTP,
         include_ws_callback_handlers: bool = False,
-        trace_for_openai: bool = False,
+        openai_tracing: bool = False,
         **kwargs,
     ):
         _name = func.__name__.title().replace('_', '')
@@ -556,7 +556,7 @@ class ServingGateway(FastAPIBaseGateway):
                 file_params=file_params,
                 input_model=input_model,
                 output_model=output_model,
-                trace_for_openai=trace_for_openai,
+                openai_tracing=openai_tracing,
                 post_kwargs={
                     'path': f'/{func.__name__}',
                     'name': _name,
@@ -584,7 +584,7 @@ class ServingGateway(FastAPIBaseGateway):
                     'name': _name,
                 },
                 include_ws_callback_handlers=include_ws_callback_handlers,
-                trace_for_openai=trace_for_openai,
+                openai_tracing=openai_tracing,
                 workspace=self.workspace,
                 logger=self.logger,
                 tracer=self.tracer,
@@ -678,7 +678,7 @@ def create_http_route(
     file_params: List,
     input_model: BaseModel,
     output_model: BaseModel,
-    trace_for_openai: bool,
+    openai_tracing: bool,
     post_kwargs: Dict,
     workspace: str,
     logger: JinaLogger,
@@ -715,7 +715,7 @@ def create_http_route(
     ) -> output_model:
         _output, _error = '', ''
         # Tracing handler provided if kwargs is present
-        if trace_for_openai:
+        if openai_tracing:
             to_support_in_kwargs = {
                 'tracing_handler': OpenAITracingCallbackHandler(
                     tracer=tracer, parent_span=get_current_span()
@@ -840,7 +840,7 @@ def create_websocket_route(
     input_model: BaseModel,
     output_model: BaseModel,
     include_ws_callback_handlers: bool,
-    trace_for_openai: bool,
+    openai_tracing: bool,
     ws_kwargs: Dict,
     workspace: str,
     logger: JinaLogger,
@@ -928,7 +928,7 @@ def create_websocket_route(
                         continue
 
                     # Tracing handler provided if kwargs is present
-                    if trace_for_openai:
+                    if openai_tracing:
                         to_support_in_kwargs = {
                             'tracing_handler': OpenAITracingCallbackHandler(
                                 tracer=tracer, parent_span=get_current_span()

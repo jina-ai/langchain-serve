@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import WebSocket
@@ -96,7 +96,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
                     trace=span_context.trace_id,
                     span=span_context.span_id,
                     action="on_llm_start",
-                    prompts=json.dumps(prompts),
+                    prompts=''.join(prompts),
                 )
                 self.logger.info(json.dumps(trace_info.__dict__))
                 self._register_span(run_id, span)
