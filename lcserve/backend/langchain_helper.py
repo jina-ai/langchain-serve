@@ -41,6 +41,8 @@ class TraceInfo:
     outputs: str = ""
     tokens: int = 0
     cost: float = 0
+    total_tokens: int = 0
+    total_cost: float = 0
 
 
 class TracingCallbackHandlerMixin(BaseCallbackHandler):
@@ -49,6 +51,7 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
         self.tracer = tracer
         self.parent_span = parent_span
         self.logger = get_tracing_logger()
+        self.cost_per_llm_op = 0
         self.total_tokens = 0
         self.total_cost = 0
 
@@ -114,14 +117,20 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
             texts = "\n".join(
                 [" ".join([l.text for l in lst]) for lst in response.generations]
             )
+
+            # total_tokens in token_usage is the total tokens (prompt + completion) for a single llm op
+            cost_per_llm_op = token_usage.get("total_tokens", 0)
+
             span_context = span.get_span_context()
             trace_info = TraceInfo(
                 trace=span_context.trace_id,
                 span=span_context.span_id,
                 action="on_llm_end",
                 outputs=texts,
-                tokens=round(self.total_tokens, 3),
-                cost=round(self.total_cost, 3),
+                tokens=cost_per_llm_op,
+                cost=round(self.cost_per_llm_op, 3),
+                total_tokens=round(self.total_tokens, 3),
+                total_cost=round(self.total_cost, 3),
             )
             self.logger.info(json.dumps(trace_info.__dict__))
             span.add_event("outputs", {"data": texts})
@@ -239,8 +248,11 @@ class TracingCallbackHandler(TracingCallbackHandlerMixin):
 
 class OpenAITracingCallbackHandler(TracingCallbackHandlerMixin, OpenAICallbackHandler):
     def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
-        # Set the computed total token used and total cost first with OpenAICallbackHandler and then handle the tracing
+        cost_before_op = self.total_cost
         OpenAICallbackHandler.on_llm_end(self, response, run_id=run_id, **kwargs)
+        # OpenAICallbackHandler only gives us total_cost for the entire context, but we need to get the diff
+        # in order to get cost for single llm op
+        self.cost_per_llm_op = self.total_cost - cost_before_op
         TracingCallbackHandlerMixin.on_llm_end(self, response, run_id=run_id, **kwargs)
 
 
