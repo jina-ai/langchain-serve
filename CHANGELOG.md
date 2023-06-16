@@ -44,6 +44,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1125,4 +1126,49 @@
 ### 🍹 Other Improvements
 
  - [[```96123ba7```](https://github.com/jina-ai/langchain-serve/commit/96123ba70eda234e618196c45f9c0fe86f587905)] __-__ __version__: the next version will be 0.0.44 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-45></a>
+## Release Note (`0.0.45`)
+
+> Release time: 2023-06-16 05:54:10
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  Deepankar Mahapatro,  🙇
+
+
+### 🆕 New Features
+
+ - [[```23efc6b9```](https://github.com/jina-ai/langchain-serve/commit/23efc6b9d0957f350304ee8aec84064dc62c089a)] __-__ tracing logs (*Zac Li*)
+ - [[```6265cb28```](https://github.com/jina-ai/langchain-serve/commit/6265cb28a52adead6ea13a45ff118f690a010c88)] __-__ async callback (*Zac Li*)
+ - [[```8f1892fa```](https://github.com/jina-ai/langchain-serve/commit/8f1892facf8ebf6801d4a77b06e7436310a0f8f8)] __-__ more events (*Zac Li*)
+ - [[```703ef740```](https://github.com/jina-ai/langchain-serve/commit/703ef7405988a9b66f78197815220a9cb96b4c85)] __-__ tracing support (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```c5a23c5c```](https://github.com/jina-ai/langchain-serve/commit/c5a23c5c48c532b0b9940ae6951adc87c11662b5)] __-__ id hex format fix (*Zac Li*)
+ - [[```8d18bded```](https://github.com/jina-ai/langchain-serve/commit/8d18bdedf80be866084caaab74ee519571029f8f)] __-__ handler fix (*Zac Li*)
+ - [[```b5fcab7c```](https://github.com/jina-ai/langchain-serve/commit/b5fcab7c58ec0153cb58fe802585631f78fa9993)] __-__ name update (*Zac Li*)
+ - [[```556e1b32```](https://github.com/jina-ai/langchain-serve/commit/556e1b329fbbf3744a8a0a63b8071afad6236e0b)] __-__ get cost token for single op (*Zac Li*)
+ - [[```8cbb6d7f```](https://github.com/jina-ai/langchain-serve/commit/8cbb6d7f863606c07a52629b0cc702d272546c8b)] __-__ format update (*Zac Li*)
+ - [[```9ed3708a```](https://github.com/jina-ai/langchain-serve/commit/9ed3708ab39babb075b7035d7a51d79325acf9ca)] __-__ add tokens number (*Zac Li*)
+ - [[```a814ad5b```](https://github.com/jina-ai/langchain-serve/commit/a814ad5b4aa306d325924d5b40a35ff401cfd872)] __-__ open ai handle (*Zac Li*)
+ - [[```762626d5```](https://github.com/jina-ai/langchain-serve/commit/762626d588167cbe8bacc10d2fa8a02a9c417b8b)] __-__ span topo (*Zac Li*)
+ - [[```83a21140```](https://github.com/jina-ai/langchain-serve/commit/83a21140208830431d65a34a06db120fe542ddd9)] __-__ handle when no tracer (*Zac Li*)
+ - [[```794eb12d```](https://github.com/jina-ai/langchain-serve/commit/794eb12d432a1cb667f85209248a77425c5584f6)] __-__ _get_func_data fix (*Zac Li*)
+ - [[```bf4f2b10```](https://github.com/jina-ai/langchain-serve/commit/bf4f2b10646348755902fc2a326ea0d49e2c6896)] __-__ app tweak (*Zac Li*)
+ - [[```284fc129```](https://github.com/jina-ai/langchain-serve/commit/284fc129642b960a2f094b1c8c3ef9ae4882959c)] __-__ unintended changes (*Zac Li*)
+ - [[```ab8bd0d8```](https://github.com/jina-ai/langchain-serve/commit/ab8bd0d8d1ad21525c358b422c69b765a6368bd7)] __-__ unsed (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```76a37904```](https://github.com/jina-ai/langchain-serve/commit/76a379045c4487ac8fbc27660ba145ecdff5a618)] __-__ add tests (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```04adf3a5```](https://github.com/jina-ai/langchain-serve/commit/04adf3a5eb74c2d1c945c19104b04f9fde9a1131)] __-__ __version__: the next version will be 0.0.45 (*Jina Dev Bot*)
+ - [[```328b7425```](https://github.com/jina-ai/langchain-serve/commit/328b7425ba4a68b9d265aa233d30b70a4ce71d56)] __-__ Revert &#34;fix: app tweak&#34; (*Zac Li*)
+ - [[```96123ba7```](https://github.com/jina-ai/langchain-serve/commit/96123ba70eda234e618196c45f9c0fe86f587905)] __-__ __version__: the next version will be 0.0.44 (*Jina Dev Bot*)
+ - [[```a9bdb383```](https://github.com/jina-ai/langchain-serve/commit/a9bdb3830607b1531556e7feab58c80ff45a6b97)] __-__ __version__: the next version will be 0.0.42 (*Jina Dev Bot*)
 
