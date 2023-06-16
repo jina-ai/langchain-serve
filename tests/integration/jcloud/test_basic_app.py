@@ -15,6 +15,7 @@ async def test_basic_app():
         await _test_ws_route(app_id)
         await _test_workspace(app_id)
         await _test_local_file_access(app_id)
+        await _test_tracing(app_id)
 
 
 def _test_http_route(app_id):
@@ -86,5 +87,21 @@ async def _test_local_file_access(app_id: str):
             await websocket.send(json.dumps({}))
             message = await websocket.recv()
             assert json.loads(message)["result"] == "abc"
+    except ConnectionClosedOK:
+        pass
+
+
+async def _test_tracing(app_id: str):
+    http_url = f"https://{app_id}.wolf.jina.ai/tracing"
+    ws_url = f"wss://{app_id}.wolf.jina.ai/tracing_ws"
+
+    response = requests.post(http_url, data=json.dumps({"dummy": "dummy string"}))
+    assert response.status_code == 200
+
+    try:
+        async with websockets.connect(ws_url) as websocket:
+            await websocket.send(json.dumps({"dummy": "dummy string ws"}))
+            message = await websocket.recv()
+        assert "dummy string ws" in message
     except ConnectionClosedOK:
         pass
