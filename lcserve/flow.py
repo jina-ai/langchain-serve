@@ -6,10 +6,10 @@ import shutil
 import sys
 import tempfile
 from enum import Enum
-from pathlib import Path
 from functools import wraps
 from http import HTTPStatus
 from importlib import import_module
+from pathlib import Path
 from shutil import copytree
 from tempfile import mkdtemp
 from types import ModuleType
@@ -495,6 +495,9 @@ def get_flow_dict(
                 'metrics': True,
                 'metrics_exporter_host': 'http://localhost',
                 'metrics_exporter_port': 4317,
+                'tracing': True,
+                'traces_exporter_host': 'http://localhost',
+                'traces_exporter_port': 4317,
             }
         )
     return flow_dict

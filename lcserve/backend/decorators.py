@@ -1,9 +1,11 @@
-from functools import wraps
 import inspect
+from functools import wraps
 from typing import Callable
 
 
-def serving(_func=None, *, websocket: bool = False, auth: Callable = None):
+def serving(
+    _func=None, *, websocket: bool = False, openai_tracing=False, auth: Callable = None
+):
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -22,7 +24,8 @@ def serving(_func=None, *, websocket: bool = False, auth: Callable = None):
             'name': func.__name__,
             'doc': func.__doc__,
             'params': {
-                'include_callback_handlers': websocket,
+                'include_ws_callback_handlers': websocket,
+                'openai_tracing': openai_tracing,
                 # If websocket is True, pass the callback handlers to the client.
                 'auth': auth,
             },

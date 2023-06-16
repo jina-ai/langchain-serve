@@ -1,5 +1,11 @@
 version: "3"
 services:
+  # Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+
   otel-collector:
     image: otel/opentelemetry-collector:0.61.0
     command: [ "--config=/etc/otel-collector-config.yml" ]
@@ -9,6 +15,8 @@ services:
       - "8888" # Prometheus metrics exposed by the collector
       - "8889" # Prometheus exporter metrics
       - "4317:4317" # OTLP gRPC receiver
+    depends_on:
+      - jaeger
 
   prometheus:
     container_name: prometheus

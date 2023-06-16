@@ -15,6 +15,7 @@ import requests
 from lcserve.__main__ import remove_app_on_jcloud, serve_on_jcloud
 
 PROMETHEUS_URL = "http://localhost:9090"
+JAEGER_URL = "http://localhost:16686"
 
 
 async def _serve_on_jcloud(**deployment_args):
@@ -159,6 +160,31 @@ def get_values_from_prom(metrics, route):
     except:
         duration_seconds = 0
     return duration_seconds
+
+
+def assert_jaeger_tracing_data(service, expected_string):
+    # Wait for Jaeger gets populated
+    time.sleep(30)
+    response = requests.get(
+        f"{JAEGER_URL}/api/traces?service={service}",
+    )
+    spans = []
+    try:
+        traces = response.json()["data"]
+        for trace in traces:
+            spans.extend(trace["spans"])
+    except:
+        assert False
+
+    for span in spans:
+        for log in span["logs"]:
+            for field in log["fields"]:
+                if field["key"] == "data" and field["type"] == "string":
+                    if expected_string in field["value"]:
+                        assert True
+                        return
+
+    assert False
 
 
 def examine_request_duration_with_retry(start_time, expected_value, route):

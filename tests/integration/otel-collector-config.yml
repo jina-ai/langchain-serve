@@ -4,6 +4,11 @@ receivers:
       grpc:
 
 exporters:
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
   prometheus:
     endpoint: "0.0.0.0:8889"
     resource_to_telemetry_conversion:
@@ -18,6 +23,10 @@ processors:
 service:
   extensions: []
   pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [jaeger]
+      processors: [batch]
     metrics:
       receivers: [otlp]
       processors: [batch]

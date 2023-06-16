@@ -27,10 +27,18 @@ from jina.enums import ProtocolType as GatewayProtocolType
 from jina.logging.logger import JinaLogger
 from jina.serve.runtimes.gateway.composite import CompositeGateway
 from jina.serve.runtimes.gateway.http.fastapi import FastAPIBaseGateway
+from opentelemetry.trace import get_current_span
 from pydantic import BaseModel, Field, ValidationError, create_model
 from starlette.types import ASGIApp, Receive, Scope, Send
 from websockets.exceptions import ConnectionClosed
 
+from .langchain_helper import (
+    AsyncStreamingWebsocketCallbackHandler,
+    BuiltinsWrapper,
+    OpenAITracingCallbackHandler,
+    StreamingWebsocketCallbackHandler,
+    TracingCallbackHandler,
+)
 from .playground.utils.helper import (
     AGENT_OUTPUT,
     APPDIR,
@@ -40,22 +48,18 @@ from .playground.utils.helper import (
     RESULT,
     SERVING,
     Capturing,
-    EnvironmentVarCtxtManager,
     ChangeDirCtxtManager,
+    EnvironmentVarCtxtManager,
     import_from_string,
     parse_uses_with,
     run_cmd,
     run_function,
 )
-from .playground.utils.langchain_helper import (
-    AsyncStreamingWebsocketCallbackHandler,
-    BuiltinsWrapper,
-    StreamingWebsocketCallbackHandler,
-)
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
     from opentelemetry.sdk.metrics import Counter
+    from opentelemetry.trace import Tracer
 
 cur_dir = os.path.dirname(__file__)
 
@@ -109,8 +113,8 @@ class PlaygroundGateway(Gateway):
 class LangchainFastAPIGateway(FastAPIBaseGateway):
     @property
     def app(self):
-        from fastapi import Body, FastAPI
         from docarray import Document, DocumentArray
+        from fastapi import Body, FastAPI
 
         app = FastAPI()
 
@@ -361,6 +365,7 @@ class ServingGateway(FastAPIBaseGateway):
         FastAPIInstrumentor.instrument_app(
             self._app,
             meter_provider=self.meter_provider,
+            tracer_provider=self.tracer_provider,
         )
 
         self.duration_counter = self.meter.create_counter(
@@ -452,26 +457,36 @@ class ServingGateway(FastAPIBaseGateway):
         _decorator_params = _get_decorator_params(func)
         if hasattr(func, '__serving__'):
             self._register_http_route(
-                func, dirname=dirname, auth=_decorator_params.get('auth', None)
+                func,
+                dirname=dirname,
+                auth=_decorator_params.get('auth', None),
+                openai_tracing=_decorator_params.get('openai_tracing', False),
             )
         elif hasattr(func, '__ws_serving__'):
             self._register_ws_route(
                 func,
                 dirname=dirname,
                 auth=_decorator_params.get('auth', None),
-                include_callback_handlers=_decorator_params.get(
-                    'include_callback_handlers', False
+                include_ws_callback_handlers=_decorator_params.get(
+                    'include_ws_callback_handlers', False
                 ),
+                openai_tracing=_decorator_params.get('openai_tracing', False),
             )
 
     def _register_http_route(
-        self, func: Callable, dirname: str = None, auth: Callable = None, **kwargs
+        self,
+        func: Callable,
+        dirname: str = None,
+        auth: Callable = None,
+        openai_tracing: bool = False,
+        **kwargs,
     ):
         return self._register_route(
             func,
             dirname=dirname,
             auth=auth,
             route_type=RouteType.HTTP,
+            openai_tracing=openai_tracing,
             **kwargs,
         )
 
@@ -480,7 +495,8 @@ class ServingGateway(FastAPIBaseGateway):
         func: Callable,
         dirname: str = None,
         auth: Callable = None,
-        include_callback_handlers: bool = False,
+        include_ws_callback_handlers: bool = False,
+        openai_tracing: bool = False,
         **kwargs,
     ):
         return self._register_route(
@@ -488,7 +504,8 @@ class ServingGateway(FastAPIBaseGateway):
             dirname=dirname,
             auth=auth,
             route_type=RouteType.WEBSOCKET,
-            include_callback_handlers=include_callback_handlers,
+            include_ws_callback_handlers=include_ws_callback_handlers,
+            openai_tracing=openai_tracing,
             **kwargs,
         )
 
@@ -498,7 +515,8 @@ class ServingGateway(FastAPIBaseGateway):
         dirname: str = None,
         auth: Callable = None,
         route_type: RouteType = RouteType.HTTP,
-        include_callback_handlers: bool = False,
+        include_ws_callback_handlers: bool = False,
+        openai_tracing: bool = False,
         **kwargs,
     ):
         _name = func.__name__.title().replace('_', '')
@@ -538,6 +556,7 @@ class ServingGateway(FastAPIBaseGateway):
                 file_params=file_params,
                 input_model=input_model,
                 output_model=output_model,
+                openai_tracing=openai_tracing,
                 post_kwargs={
                     'path': f'/{func.__name__}',
                     'name': _name,
@@ -546,6 +565,7 @@ class ServingGateway(FastAPIBaseGateway):
                 },
                 workspace=self.workspace,
                 logger=self.logger,
+                tracer=self.tracer,
             )
 
         elif route_type == RouteType.WEBSOCKET:
@@ -563,9 +583,11 @@ class ServingGateway(FastAPIBaseGateway):
                     'path': f'/{func.__name__}',
                     'name': _name,
                 },
-                include_callback_handlers=include_callback_handlers,
+                include_ws_callback_handlers=include_ws_callback_handlers,
+                openai_tracing=openai_tracing,
                 workspace=self.workspace,
                 logger=self.logger,
+                tracer=self.tracer,
             )
 
 
@@ -587,7 +609,7 @@ def _get_func_data(
     files_data: Dict,
     auth_response: Any = None,
     workspace: str = None,
-    include_if_kwargs_exist: Dict = {},
+    to_support_in_kwargs: Dict = {},
 ) -> Tuple[Dict[str, Any], Dict[str, str]]:
     import json
 
@@ -610,13 +632,15 @@ def _get_func_data(
     elif 'kwargs' in _func_params_names:
         _func_data.update({'auth_response': auth_response})
 
+    # Workspace handle
     if 'workspace' in _func_params_names:
         _func_data['workspace'] = workspace
     elif 'kwargs' in _func_params_names:
         _func_data.update({'workspace': workspace})
 
-    if include_if_kwargs_exist:
-        _func_data.update(include_if_kwargs_exist)
+    # Populate extra kwargs
+    if to_support_in_kwargs and 'kwargs' in _func_params_names:
+        _func_data.update(to_support_in_kwargs)
 
     return _func_data, _envs
 
@@ -654,9 +678,11 @@ def create_http_route(
     file_params: List,
     input_model: BaseModel,
     output_model: BaseModel,
+    openai_tracing: bool,
     post_kwargs: Dict,
     workspace: str,
     logger: JinaLogger,
+    tracer: 'Tracer',
 ):
     from fastapi import Depends, Form, HTTPException, Security, UploadFile, status
     from fastapi.encoders import jsonable_encoder
@@ -688,12 +714,27 @@ def create_http_route(
         auth_response: Any = None,
     ) -> output_model:
         _output, _error = '', ''
+        # Tracing handler provided if kwargs is present
+        if openai_tracing:
+            to_support_in_kwargs = {
+                'tracing_handler': OpenAITracingCallbackHandler(
+                    tracer=tracer, parent_span=get_current_span()
+                )
+            }
+        else:
+            to_support_in_kwargs = {
+                'tracing_handler': TracingCallbackHandler(
+                    tracer=tracer, parent_span=get_current_span()
+                )
+            }
+
         _func_data, _envs = _get_func_data(
             func=func,
             input_data=input_data,
             files_data=files_data,
             auth_response=auth_response,
             workspace=workspace,
+            to_support_in_kwargs=to_support_in_kwargs,
         )
         with EnvironmentVarCtxtManager(_envs), ChangeDirCtxtManager(dirname):
             with Capturing() as stdout:
@@ -798,10 +839,12 @@ def create_websocket_route(
     auth: Callable,
     input_model: BaseModel,
     output_model: BaseModel,
-    include_callback_handlers: bool,
+    include_ws_callback_handlers: bool,
+    openai_tracing: bool,
     ws_kwargs: Dict,
     workspace: str,
     logger: JinaLogger,
+    tracer: 'Tracer',
 ):
     from fastapi import (
         Depends,
@@ -884,6 +927,36 @@ def create_websocket_route(
                         await websocket.send_text(_data.json())
                         continue
 
+                    # Tracing handler provided if kwargs is present
+                    if openai_tracing:
+                        to_support_in_kwargs = {
+                            'tracing_handler': OpenAITracingCallbackHandler(
+                                tracer=tracer, parent_span=get_current_span()
+                            )
+                        }
+                    else:
+                        to_support_in_kwargs = {
+                            'tracing_handler': TracingCallbackHandler(
+                                tracer=tracer, parent_span=get_current_span()
+                            )
+                        }
+
+                    # If the function is a streaming response, we pass the websocket callback handler,
+                    # so that stream data can be sent back to the client.
+                    if include_ws_callback_handlers:
+                        to_support_in_kwargs.update(
+                            {
+                                'websocket': websocket,
+                                'streaming_handler': StreamingWebsocketCallbackHandler(
+                                    websocket=websocket,
+                                    output_model=output_model,
+                                ),
+                                'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
+                                    websocket=websocket,
+                                    output_model=output_model,
+                                ),
+                            }
+                        )
                     _returned_data, _ws_serving_error = '', ''
                     # TODO: add support for file upload
                     _func_data, _envs = _get_func_data(
@@ -892,21 +965,7 @@ def create_websocket_route(
                         files_data={},
                         auth_response=auth_response,
                         workspace=workspace,
-                        include_if_kwargs_exist={
-                            'websocket': websocket,
-                            'streaming_handler': StreamingWebsocketCallbackHandler(
-                                websocket=websocket,
-                                output_model=output_model,
-                            ),
-                            'async_streaming_handler': AsyncStreamingWebsocketCallbackHandler(
-                                websocket=websocket,
-                                output_model=output_model,
-                            ),
-                        }
-                        if include_callback_handlers
-                        else {},
-                        # If the function is a streaming response, we pass the callback handler,
-                        # so that stream data can be sent back to the client.
+                        to_support_in_kwargs=to_support_in_kwargs,
                     )
                     with EnvironmentVarCtxtManager(_envs), ChangeDirCtxtManager(
                         dirname
