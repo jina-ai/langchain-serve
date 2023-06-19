@@ -33,10 +33,10 @@ class DocArrayRetrieverWithFix(DocArrayRetriever):
 @app.on_event("startup")
 async def startup_event():
     logging.info("loading vectorstore")
-    if not Path("simple-dl.pickle").exists():
-        raise ValueError("simple-dl.pkl does not exist, please run ingest.py first")
+    if not Path("lc-serve-toy-data.pickle").exists():
+        raise ValueError("lc-serve-toy-data.pickle does not exist, please run ingest.py first")
     global retriever
-    dl = DocList[Document].load_binary('simple-dl.pickle', compress=None, protocol='pickle')
+    dl = DocList[Document].load_binary('lc-serve-toy-data.pickle', compress=None, protocol='pickle')
     from docarray.index import InMemoryExactNNIndex
     store = InMemoryExactNNIndex[Document]()
     store.index(dl)
