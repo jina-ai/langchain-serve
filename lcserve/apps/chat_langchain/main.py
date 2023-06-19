@@ -1,33 +1,48 @@
 """Main entrypoint for the app."""
 import logging
-import pickle
 from pathlib import Path
+from typing import List
 from typing import Optional
 
+import openai
+from docarray import DocList
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.retrievers.docarray import DocArrayRetriever
+from langchain.schema import Document as LCDocument
 from langchain.vectorstores import VectorStore
 
 from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from query_data import get_chain
 from schemas import ChatResponse
+from schemas import Document
 
-import openai
-openai.proxy = {'https': 'http://127.0.0.1:7890', 'http': 'http://127.0.0.1:7890'}
+# openai.proxy = {'https': 'http://127.0.0.1:7890', 'http': 'http://127.0.0.1:7890'}
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 vectorstore: Optional[VectorStore] = None
 
 
+class DocArrayRetrieverWithFix(DocArrayRetriever):
+    async def aget_relevant_documents(self, query: str) -> List[LCDocument]:
+        return self.get_relevant_documents(query)
+
+
 @app.on_event("startup")
 async def startup_event():
     logging.info("loading vectorstore")
-    if not Path("vectorstore.pkl").exists():
-        raise ValueError("vectorstore.pkl does not exist, please run ingest.py first")
-    with open("vectorstore.pkl", "rb") as f:
-        global vectorstore
-        vectorstore = pickle.load(f)
+    if not Path("lc-serve-toy-data.pickle").exists():
+        raise ValueError("lc-serve-toy-data.pickle does not exist, please run ingest.py first")
+    global retriever
+    dl = DocList[Document].load_binary('lc-serve-toy-data.pickle', compress=None, protocol='pickle')
+    from docarray.index import InMemoryExactNNIndex
+    store = InMemoryExactNNIndex[Document]()
+    store.index(dl)
+    embeddings = OpenAIEmbeddings()
+    retriever = DocArrayRetrieverWithFix(index=store, embeddings=embeddings, search_field='embedding',
+                                         content_field='page_content')
 
 
 @app.get("/")
@@ -41,7 +56,7 @@ async def websocket_endpoint(websocket: WebSocket):
     question_handler = QuestionGenCallbackHandler(websocket)
     stream_handler = StreamingLLMCallbackHandler(websocket)
     chat_history = []
-    qa_chain = get_chain(vectorstore, question_handler, stream_handler)
+    qa_chain = get_chain(retriever, question_handler, stream_handler)
     # Use the below line instead of the above line to enable tracing
     # Ensure `langchain-server` is running
     # qa_chain = get_chain(vectorstore, question_handler, stream_handler, tracing=True)
