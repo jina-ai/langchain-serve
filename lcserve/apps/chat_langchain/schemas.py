@@ -2,7 +2,7 @@
 from pydantic import BaseModel, validator
 
 from docarray import BaseDoc
-from docarray.typing import AnyEmbedding
+from docarray.typing import NdArray
 from typing import Optional
 
 class ChatResponse(BaseModel):
@@ -25,7 +25,7 @@ class ChatResponse(BaseModel):
         return v
 
 
-class DocumentWithEmbedding(BaseDoc):
-    metadata: dict
+class Document(BaseDoc):
     page_content: str
-    embedding: Optional[AnyEmbedding]
+    metadata: dict
+    embedding: Optional[NdArray[1536]]

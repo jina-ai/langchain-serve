@@ -5,13 +5,13 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.chat_vector_db.prompts import (CONDENSE_QUESTION_PROMPT,
                                                      QA_PROMPT)
 from langchain.chains.llm import LLMChain
-from langchain.llms import OpenAI
-from langchain.vectorstores.base import VectorStore
 from langchain.chains.question_answering import load_qa_chain
+from langchain.llms import OpenAI
+from langchain.schema import BaseRetriever
 
 
 def get_chain(
-    vectorstore: VectorStore, question_handler, stream_handler, tracing: bool = False
+        retriever: BaseRetriever, question_handler, stream_handler, tracing: bool = False
 ) -> ConversationalRetrievalChain:
     """Create a ConversationalRetrievalChain for question/answering."""
     # Construct a ConversationalRetrievalChain with a streaming llm for combine docs
@@ -46,7 +46,7 @@ def get_chain(
     )
 
     qa = ConversationalRetrievalChain(
-        retriever=vectorstore.as_retriever(),
+        retriever=retriever,
         combine_docs_chain=doc_chain,
         question_generator=question_generator,
         callback_manager=manager,

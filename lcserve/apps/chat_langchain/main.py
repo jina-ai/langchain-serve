@@ -1,27 +1,33 @@
 """Main entrypoint for the app."""
 import logging
-import pickle
 from pathlib import Path
+from typing import List
 from typing import Optional
 
+import openai
+from docarray import DocList
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
-from langchain.vectorstores import VectorStore
 from langchain.embeddings import OpenAIEmbeddings
+from langchain.retrievers.docarray import DocArrayRetriever
+from langchain.schema import Document as LCDocument
+from langchain.vectorstores import VectorStore
 
 from callback import QuestionGenCallbackHandler, StreamingLLMCallbackHandler
 from query_data import get_chain
-from schemas import ChatResponse, DocumentWithEmbedding
-from langchain.vectorstores.docarray import DocArrayInMemorySearch
-from langchain.vectorstores.docarray.base import DocArrayIndex
-from docarray import DocList
+from schemas import ChatResponse
+from schemas import Document
 
-import openai
-openai.proxy = {'https': 'http://127.0.0.1:7890', 'http': 'http://127.0.0.1:7890'}
+# openai.proxy = {'https': 'http://127.0.0.1:7890', 'http': 'http://127.0.0.1:7890'}
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 vectorstore: Optional[VectorStore] = None
+
+
+class DocArrayRetrieverWithFix(DocArrayRetriever):
+    async def aget_relevant_documents(self, query: str) -> List[LCDocument]:
+        return self.get_relevant_documents(query)
 
 
 @app.on_event("startup")
@@ -29,14 +35,14 @@ async def startup_event():
     logging.info("loading vectorstore")
     if not Path("simple-dl.pickle").exists():
         raise ValueError("simple-dl.pkl does not exist, please run ingest.py first")
-    global vectorstore
-    doc_cls = DocArrayIndex._get_doc_cls()
-    dl = DocList[doc_cls].load_binary('simple-dl.pickle', compress=None, protocol='pickle')
+    global retriever
+    dl = DocList[Document].load_binary('simple-dl.pickle', compress=None, protocol='pickle')
     from docarray.index import InMemoryExactNNIndex
-    index = InMemoryExactNNIndex[doc_cls](dl)
-    embedding = OpenAIEmbeddings()
-    vectorstore = DocArrayInMemorySearch(doc_index=index, embedding=embedding)
-    logging.info(f'vector store: {len(vectorstore.doc_index)}')
+    store = InMemoryExactNNIndex[Document]()
+    store.index(dl)
+    embeddings = OpenAIEmbeddings()
+    retriever = DocArrayRetrieverWithFix(index=store, embeddings=embeddings, search_field='embedding',
+                                         content_field='page_content')
 
 
 @app.get("/")
@@ -50,7 +56,7 @@ async def websocket_endpoint(websocket: WebSocket):
     question_handler = QuestionGenCallbackHandler(websocket)
     stream_handler = StreamingLLMCallbackHandler(websocket)
     chat_history = []
-    qa_chain = get_chain(vectorstore, question_handler, stream_handler)
+    qa_chain = get_chain(retriever, question_handler, stream_handler)
     # Use the below line instead of the above line to enable tracing
     # Ensure `langchain-server` is running
     # qa_chain = get_chain(vectorstore, question_handler, stream_handler, tracing=True)
