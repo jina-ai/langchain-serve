@@ -45,6 +45,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1171,4 +1172,27 @@
  - [[```328b7425```](https://github.com/jina-ai/langchain-serve/commit/328b7425ba4a68b9d265aa233d30b70a4ce71d56)] __-__ Revert &#34;fix: app tweak&#34; (*Zac Li*)
  - [[```96123ba7```](https://github.com/jina-ai/langchain-serve/commit/96123ba70eda234e618196c45f9c0fe86f587905)] __-__ __version__: the next version will be 0.0.44 (*Jina Dev Bot*)
  - [[```a9bdb383```](https://github.com/jina-ai/langchain-serve/commit/a9bdb3830607b1531556e7feab58c80ff45a6b97)] __-__ __version__: the next version will be 0.0.42 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-46></a>
+## Release Note (`0.0.46`)
+
+> Release time: 2023-06-22 09:44:31
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```4fd90791```](https://github.com/jina-ai/langchain-serve/commit/4fd90791df05e9b484fed83b3bf65a30f44fe73d)] __-__ support configuring autoscale max (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```46551b04```](https://github.com/jina-ai/langchain-serve/commit/46551b047a58d2a23ed0bda2375c91d109483174)] __-__ integration tests for tracing (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```f4ca9a15```](https://github.com/jina-ai/langchain-serve/commit/f4ca9a15851679756b49b19beee5095f97cbfce2)] __-__ __version__: the next version will be 0.0.46 (*Jina Dev Bot*)
 
