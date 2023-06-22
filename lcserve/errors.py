@@ -10,6 +10,12 @@ class InvalidAutoscaleMinError(ValueError):
         self.min = min
 
 
+class InvalidAutoscaleMaxError(ValueError):
+    def __init__(self, max):
+        super().__init__("Invalid autoscale.max: {}".format(max))
+        self.max = max
+
+
 class InvalidDiskSizeError(ValueError):
     def __init__(self, disk_size):
         super().__init__("Invalid disk size: {}".format(disk_size))

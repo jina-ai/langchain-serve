@@ -4,6 +4,7 @@ import pytest
 
 from lcserve.config import validate_jcloud_config
 from lcserve.errors import (
+    InvalidAutoscaleMaxError,
     InvalidAutoscaleMinError,
     InvalidDiskSizeError,
     InvalidInstanceError,
@@ -12,7 +13,7 @@ from lcserve.errors import (
 
 def test_validate_jcloud_config():
     # Test with valid data
-    valid_data = "instance: C1\nautoscale_min: 0\n"
+    valid_data = "instance: C1\nautoscale_min: 0\nautoscale_max: 1\n"
     with patch("builtins.open", mock_open(read_data=valid_data)):
         assert validate_jcloud_config("path/to/valid_config.yaml") is None
 
@@ -36,6 +37,20 @@ def test_validate_jcloud_config():
         with pytest.raises(InvalidAutoscaleMinError):
             validate_jcloud_config("path/to/non_int_autoscale_min_config.yaml")
             assert str(e.min) == "not_an_int"
+
+    # Test with invalid autoscale_max
+    invalid_autoscale_max_data = "instance: C1\nautoscale_max: -1\n"
+    with patch("builtins.open", mock_open(read_data=invalid_autoscale_max_data)):
+        with pytest.raises(InvalidAutoscaleMaxError) as e:
+            validate_jcloud_config("path/to/invalid_autoscale_max_config.yaml")
+            assert str(e.max) == "-1"
+
+    # Test with non-integer autoscale_max
+    non_int_autoscale_max_data = "instance: C1\nautoscale_max: not_an_int\n"
+    with patch("builtins.open", mock_open(read_data=non_int_autoscale_max_data)):
+        with pytest.raises(InvalidAutoscaleMaxError):
+            validate_jcloud_config("path/to/non_int_autoscale_max_config.yaml")
+            assert str(e.max) == "not_an_int"
 
     # Test with valid disk_size
     valid_disk_size_data = "instance: C1\nautoscale_min: 0\ndisk_size: 1G\n"
