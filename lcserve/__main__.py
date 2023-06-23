@@ -16,6 +16,7 @@ from .flow import (
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
     SLACK_BOT_NAME,
+    SLACKBOT_DEMO_APP_NAME,
     ExportKind,
     create_slack_app_manifest,
     deploy_app_on_jcloud,
@@ -241,6 +242,37 @@ async def serve_pandas_ai_on_jcloud(
         name=name,
         app_id=app_id,
         app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'pandas_ai'),
+        requirements=requirements,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        config=config,
+        cors=cors,
+        env=env,
+        verbose=verbose,
+        public=public,
+        lcserve_app=True,
+    )
+
+
+async def serve_slackbot_demo_on_jcloud(
+    name: str = SLACKBOT_DEMO_APP_NAME,
+    app_id: str = None,
+    requirements: List[str] = None,
+    version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
+    platform: str = None,
+    config: str = None,
+    cors: bool = True,
+    env: str = None,
+    verbose: bool = False,
+    public: bool = False,
+):
+    await serve_on_jcloud(
+        module_str='lcserve.apps.slackbot.app',
+        name=name,
+        app_id=app_id,
+        app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'slackbot'),
         requirements=requirements,
         version=version,
         timeout=timeout,
@@ -806,6 +838,45 @@ async def pandas_ai(
     public,
 ):
     await serve_pandas_ai_on_jcloud(
+        name=name,
+        app_id=app_id,
+        requirements=requirements,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        config=config,
+        cors=cors,
+        env=env,
+        verbose=verbose,
+        public=public,
+    )
+
+
+@deploy.command(help='Deploy slackbot-demo on JCloud.')
+@click.option(
+    '--name',
+    type=str,
+    default=SLACKBOT_DEMO_APP_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+@jcloud_shared_options
+@click.help_option('-h', '--help')
+@syncify
+async def slackbot_demo(
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    env,
+    verbose,
+    public,
+):
+    await serve_slackbot_demo_on_jcloud(
         name=name,
         app_id=app_id,
         requirements=requirements,

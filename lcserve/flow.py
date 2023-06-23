@@ -25,11 +25,12 @@ if TYPE_CHECKING:
     from fastapi import FastAPI
 
 APP_NAME = 'langchain'
-SLACK_BOT_NAME = 'langchain-bot'
 BABYAGI_APP_NAME = 'babyagi'
 PDF_QNA_APP_NAME = 'pdfqna'
 PANDAS_AI_APP_NAME = 'pandasai'
 AUTOGPT_APP_NAME = 'autogpt'
+SLACKBOT_DEMO_APP_NAME = 'slackbot'
+SLACK_BOT_NAME = 'langchain-bot'
 
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
@@ -697,6 +698,9 @@ async def get_app_status_on_jcloud(app_id: str):
         )
         _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
         _add_row('OpenAPI JSON', _replace_wss_with_https(f'{endpoint}/openapi.json'))
+        _add_row(
+            'Slack Events URL', _replace_wss_with_https(f'{endpoint}/slack/events')
+        )
         console.print(_t)
 
 
