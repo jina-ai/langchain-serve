@@ -5,10 +5,16 @@ from typing import Dict
 import click
 import yaml
 
-from .errors import InvalidAutoscaleMinError, InvalidDiskSizeError, InvalidInstanceError
+from .errors import (
+    InvalidAutoscaleMaxError,
+    InvalidAutoscaleMinError,
+    InvalidDiskSizeError,
+    InvalidInstanceError,
+)
 
 INSTANCE = 'instance'
 AUTOSCALE_MIN = 'autoscale_min'
+AUTOSCALE_MAX = 'autoscale_max'
 DISK_SIZE = 'disk_size'
 JCloudConfigFile = 'jcloud_config.yml'
 DEFAULT_TIMEOUT = 120
@@ -113,6 +119,7 @@ def validate_jcloud_config(config_path):
         config_data: Dict = yaml.safe_load(f)
         instance: str = config_data.get(INSTANCE)
         autoscale_min: str = config_data.get(AUTOSCALE_MIN)
+        autoscale_max: str = config_data.get(AUTOSCALE_MAX)
         disk_size: str = config_data.get(DISK_SIZE)
 
         if instance and not (
@@ -127,6 +134,14 @@ def validate_jcloud_config(config_path):
                     raise InvalidAutoscaleMinError(autoscale_min)
             except ValueError:
                 raise InvalidAutoscaleMinError(autoscale_min)
+
+        if autoscale_max:
+            try:
+                autoscale_max_int = int(autoscale_max)
+                if autoscale_max_int < 0:
+                    raise InvalidAutoscaleMaxError(autoscale_max)
+            except ValueError:
+                raise InvalidAutoscaleMaxError(autoscale_max)
 
         if disk_size is not None:
             if (
@@ -201,12 +216,15 @@ def get_jcloud_config(
 
         instance = config_data.get(INSTANCE)
         autoscale_min = config_data.get(AUTOSCALE_MIN)
+        autoscale_max = config_data.get(AUTOSCALE_MAX)
         disk_size = config_data.get(DISK_SIZE)
 
         if instance:
             jcloud_config.instance = instance
         if autoscale_min is not None:
             jcloud_config.autoscale.min = autoscale_min
+        if autoscale_max is not None:
+            jcloud_config.autoscale.max = autoscale_max
         if disk_size is not None:
             jcloud_config.disk_size = disk_size
 
