@@ -189,7 +189,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 ### 🎉 LLM Apps on production
   
   - 👉 **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** 
-  - 👉 **[Build, deploy & distribute Slack bots using `@slackbot` decorator](#-slack-bots-using-slack-decorator)**
+  - 👉 **[Build, deploy & distribute Slack bots using `@slackbot` decorator](#-build-deploy--distribute-slack-bots-built-with-langchain)**
   - 👉 **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)**
 
 ### 🔥 Secure, Scalable, Serverless, Streaming REST/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
@@ -542,7 +542,7 @@ curl -X 'POST' \
 
 ## 🤖💬 Build, Deploy & Distribute Slack bots built with LangChain
 
-langchain-serve exposes `@slackbot` decorator to quickly build, deploy & distribute LLM-powered Slack bots without worrying about the infrastructure. It provides a simple interface to any langchain app on and makes them super accessible to users a platform they're already comfortable with.
+langchain-serve exposes a `@slackbot` decorator to quickly build, deploy & distribute LLM-powered Slack bots without worrying about the infrastructure. It provides a simple interface to any langchain app on and makes them super accessible to users a platform they're already comfortable with.
 
 ✨ Ready to dive in? There's a [step-by-step guide in the repository](lcserve/apps/slackbot/) to help you build your own bot.
 

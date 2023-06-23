@@ -1,8 +1,8 @@
 # Langchain Slack Bots on [Jina AI Cloud](https://cloud.jina.ai/)
 
-In addition to deploying scalable APIs for your LLM applications, `langchain-serve` can also be used to deploy conversational bots on Slack using langchain components. This is a step-by-step guide to deploy and configure a demo bot on Slack. 
+In addition to deploying scalable APIs for your LLM applications, `langchain-serve` can also be used to deploy conversational bots on Slack using langchain components. This is a step-by-step guide to build, deploy and distribute a Slack bot using `langchain-serve`. 
 
-### Step 1: Install Langchain Serve
+### 👉 Step 1: Install Langchain Serve
 
 Let's start by installing langchain-serve if you haven't already
 
@@ -10,7 +10,7 @@ Let's start by installing langchain-serve if you haven't already
 pip install langchain-serve
 ```
 
-### Step 2: Create the app manifest
+### 👉 Step 2: Create the app manifest
 
 Slack apps can be created from scratch or, from a manifest. We have a command to generate the manifest for you.
 
@@ -25,7 +25,6 @@ display_information:
 features:
   bot_user:
     display_name: langchain-bot
-    description: Slack bot built with Langchain, hosted on Jina AI Cloud
     always_online: true
 oauth_config:
   redirect_urls:
@@ -53,7 +52,7 @@ settings:
   token_rotation_enabled: false                                                              
 ```
 
-### Step 3: Create the app and configure it
+### 👉 Step 3: Create the app and configure it
 
 - Go to [slack apps](https://api.slack.com/apps?new_app=1) page.
 - Choose `From an app manifest` and pick the workspace you want to install the app in.
@@ -74,7 +73,7 @@ You will be redirected to the app configuration page. Your app needs 2 tokens to
     - You can find the token under `OAuth & Permissions` -> `OAuth Tokens for Your Workspace`. Copy it and save it somewhere safe. 
     - It'd be used as `SLACK_BOT_TOKEN` in the next step.
 
-### Step 4: Deploy the demo langchain bot on Jina AI Cloud
+### 👉 Step 4: Deploy the demo langchain bot on Jina AI Cloud
 
 Create a `.env` file with the following content. Replace the values with the ones you got in the previous step. Without these, the bot won't be able to authenticate itself with Slack.
 
@@ -115,11 +114,11 @@ After the deployment is complete, you will see `Slack Events URL` in the output,
 
 </details>
 
-### Step 5: Configure the app to use the deployed endpoint
+### 👉 Step 5: Configure the app to use the deployed endpoint
 
 Go to `Event Subscriptions` -> `Request URL` and set it to the Events URL you got in the previous step. Upon saving, Slack will send a request to the URL to verify it. If everything is configured correctly, you will see a green Verified checkmark. If you see an error instead, check the logs of the deployment on [Jina AI Cloud](https://cloud.jina.ai/user/flows).
 
-### Step 6: Use the bot on Slack
+### 👉 Step 6: Use the bot on Slack
 
 There are 2 ways to interact with the bot.
 
@@ -137,7 +136,7 @@ There are 2 ways to interact with the bot.
 
 ---
 
-### Step 7: Enhance the bot to suit your application
+### 👉 Step 7: Enhance the bot to suit your application
 
 Let's dig deep into the demo bot code and see how it works. This example uses Agents with Tools & Chat conversation memory to answer questions from Slack threads. 
 
@@ -218,7 +217,7 @@ Every bot deployed on Jina AI Cloud gets a persistent storage path. This can be 
 The `reply` function is used to send a reply back to the user. It takes a single argument - `message` - which is the reply message to be sent to the user.
 
 
-### Step 8: Deploy your customized bot on Jina AI Cloud
+### 👉 Step 8: Deploy your customized bot on Jina AI Cloud
 
 After customizing the bot to suit your application, you can deploy it on Jina AI Cloud & use the new Slack Events URL in the app configuration page.
 
@@ -226,7 +225,7 @@ After customizing the bot to suit your application, you can deploy it on Jina AI
 lc-serve deploy jcloud app --env .env
 ```
 
-### Step 9: Distribute your bot to the world
+### 👉 Step 9: Distribute your bot to the world
 
 Once you have a bot that works for your application, you can go to `Manage Distribution` -> `Add to Slack` to get sharaable links for your bot. You can read more about how to distribute your bot to the world [here](https://api.slack.com/start/distributing).
 
