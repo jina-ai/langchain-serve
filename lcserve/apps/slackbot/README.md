@@ -65,13 +65,13 @@ settings:
 
 You will be redirected to the app configuration page. Your app needs 2 tokens to work.
 
-- `Signing Secret` 
+- **Signing Secret**
 
-This is used to verify that the request is coming from Slack. You can find it under `Basic Information` -> `App Credentials` -> `Signing Secret`. Copy it and save it somewhere safe. It'd be used as `SLACK_SIGNING_SECRET` in the next step.
+    This is used to verify that the request is coming from Slack. You can find it under `Basic Information` -> `App Credentials` -> `Signing Secret`. Copy it and save it somewhere safe. It'd be used as `SLACK_SIGNING_SECRET` in the next step.
 
-- `Bot User OAuth Token`
+- **Bot User OAuth Token**
 
-This is used to authenticate the bot user. To get a token, you'd first need to install it to your workspace. Go to `Install App` -> `Install to Workspace`. You will be asked to authorize the app. Once you do that, you will be redirected back to the app configuration page. You can find the token under `OAuth & Permissions` -> `OAuth Tokens for Your Workspace`. Copy it and save it somewhere safe. It'd be used as `SLACK_BOT_TOKEN` in the next step.
+    This is used to authenticate the bot user. To get a token, you'd first need to install it to your workspace. Go to `Install App` -> `Install to Workspace`. You will be asked to authorize the app. Once you do that, you will be redirected back to the app configuration page. You can find the token under `OAuth & Permissions` -> `OAuth Tokens for Your Workspace`. Copy it and save it somewhere safe. It'd be used as `SLACK_BOT_TOKEN` in the next step.
 
 ### Step 4: Run the bot
 
