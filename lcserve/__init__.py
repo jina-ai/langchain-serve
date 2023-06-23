@@ -12,6 +12,7 @@ def _ignore_warnings():
 
 _ignore_warnings()
 
-from .backend import serving, download_df, upload_df
+from .backend import serving, slackbot, download_df, upload_df
+from .backend.slackbot.memory import MemoryMode, get_memory
 
 __version__ = '0.0.46'
