@@ -198,15 +198,15 @@ We define a decorator `@slackbot` to mark this function as a slackbot. This is u
 
 ##### Prompt
 
-We use a [predefined prompt template](https://github.com/jina-ai/langchain-serve/blob/ae9f63ab7cbf545fb16a71499c2dd55cfd922586/lcserve/backend/slackbot/slackbot.py#L303) for the agent to act like a Slack bot. This can be easily extended to fit your application.
+We use a [predefined prompt template](https://github.com/jina-ai/langchain-serve/blob/98a586254cfe0b01409a5ce7e6d4af23d57bff32/lcserve/backend/slackbot/slackbot.py#L303) for the agent to act like a Slack bot. This can be easily extended to fit your application.
 
 
 ##### Memory
-Since slack threads can be long and go beyond the token limits for LLMs, we use `memory` modules defined in `langchain` to store the conversation history. The [get_memory fucntion](https://github.com/jina-ai/langchain-serve/blob/ae9f63ab7cbf545fb16a71499c2dd55cfd922586/lcserve/backend/slackbot/memory.py#L29) is just some opinionated memory objects generated from conversation history. You can use custom memory objects as well - e.g.- [LlamaIndex's memory wrappers](https://github.com/jerryjliu/llama_index/blob/main/examples/langchain_demo/LangchainDemo.ipynb).
+Since slack threads can be long and go beyond the token limits for LLMs, we use `memory` modules defined in `langchain` to store the conversation history. The [get_memory function](https://github.com/jina-ai/langchain-serve/blob/98a586254cfe0b01409a5ce7e6d4af23d57bff32/lcserve/backend/slackbot/memory.py#L29) is just some opinionated memory objects generated from conversation history. You can use custom memory objects as well - e.g.- [LlamaIndex's memory wrappers](https://github.com/jerryjliu/llama_index/blob/main/examples/langchain_demo/LangchainDemo.ipynb).
 
 
 ##### Tools
-Likewise, we have a pre-defined tool for Slack - a slack thread parser that extracts the conversation history from the thread UR and makes it available in current context. This proves useful when the user shares a different thread URL with the bot. This can be extended to other [pre-defined tools in langchain](https://python.langchain.com/docs/modules/agents/tools/) or, [custom tools](https://python.langchain.com/docs/modules/agents/tools/how_to/custom_tools)  can be built as per the requirements. 
+Likewise, we have a pre-defined tool for Slack - a [slack thread parser](https://github.com/jina-ai/langchain-serve/blob/98a586254cfe0b01409a5ce7e6d4af23d57bff32/lcserve/backend/slackbot/slackbot.py#L147) that extracts the conversation history from the thread UR and makes it available in current context. This proves useful when the user shares a different thread URL with the bot. This can be extended to other [pre-defined tools in langchain](https://python.langchain.com/docs/modules/agents/tools/) or, [custom tools](https://python.langchain.com/docs/modules/agents/tools/how_to/custom_tools)  can be built as per the requirements. 
 
 
 ##### Workspace
