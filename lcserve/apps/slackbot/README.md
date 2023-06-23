@@ -3,7 +3,7 @@
 In addition to deploying scalable APIs for your LLM applications, `langchain-serve` can also be used to deploy conversational bots on Slack using langchain components. This is a step-by-step guide to build, deploy and distribute a Slack bot using `langchain-serve`. 
 
 <p float="left">
-  <img src="../../../.github/images/slack-thread-1.png" width="20%" />
+  <img src="../../../.github/images/slack-thread-1.png" width="22%" />
   <img src="../../../.github/images/slack-thread-2.png" width="20%" /> 
   <img src="../../../.github/images/slack-thread-3.png" width="20%" />
   <img src="../../../.github/images/slack-thread-4.png" width="20%" />
