@@ -611,7 +611,7 @@ class ServingGateway(FastAPIBaseGateway):
             from .slackbot import SlackBot
 
             self.logger.info(f'Registering slackbot: {func.__name__}')
-            bot = SlackBot()
+            bot = SlackBot(workspace=self.workspace)
 
             @self.app.post("/slack/events")
             async def endpoint(req: Request):

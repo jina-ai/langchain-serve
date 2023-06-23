@@ -2,14 +2,17 @@ from typing import Callable, List
 
 import langchain
 from langchain.agents import AgentExecutor, ConversationalAgent
-from langchain.cache import InMemoryCache
 from langchain.memory import ChatMessageHistory
 from langchain.prompts import PromptTemplate
 from langchain.tools import Tool
 
-from lcserve import MemoryMode, get_memory, slackbot
+from lcserve import get_memory, slackbot
 
-langchain.llm_cache = InMemoryCache()
+
+def update_cache(path):
+    from langchain.cache import SQLiteCache
+
+    langchain.llm_cache = SQLiteCache(database_path=path / "llm_cache.db")
 
 
 @slackbot
@@ -19,12 +22,14 @@ def agent(
     history: ChatMessageHistory,
     tools: List[Tool],
     reply: Callable,
+    workspace: str,
     **kwargs,
 ):
     from langchain import LLMChain
     from langchain.chat_models import ChatOpenAI
 
-    memory = get_memory(history, MemoryMode.SUMMARY_BUFFER)
+    update_cache(workspace)
+    memory = get_memory(history)
     agent = ConversationalAgent(
         llm_chain=LLMChain(
             llm=ChatOpenAI(temperature=0, verbose=True),

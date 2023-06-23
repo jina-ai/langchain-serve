@@ -22,7 +22,7 @@ PROGRESS_MESSAGE = "Processing..."
 class SlackBot:
     _logger = JinaLogger('SlackBot')
 
-    def __init__(self):
+    def __init__(self, workspace: str):
         from langchain.output_parsers import PydanticOutputParser
         from slack_bolt import App
         from slack_bolt.adapter.fastapi import SlackRequestHandler
@@ -33,6 +33,7 @@ class SlackBot:
             from .helper import TextOrBlock
 
         self.slack_app = App()
+        self.workspace = workspace
         self.handler = SlackRequestHandler(self.slack_app)
         self._parser = PydanticOutputParser(pydantic_object=TextOrBlock)
 
@@ -362,6 +363,7 @@ Human: {input}
                     thread_ts=_thread_ts,
                     parser=self._parser,
                 ),
+                workspace=self.workspace,
                 user=_user,
                 context=context,
             )
@@ -395,6 +397,7 @@ Human: {input}
                     thread_ts=_thread_ts,
                     parser=self._parser,
                 ),
+                workspace=self.workspace,
                 user=_channel,
                 context=context,
             )

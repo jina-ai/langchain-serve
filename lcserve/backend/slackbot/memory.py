@@ -1,4 +1,5 @@
 from enum import Enum
+
 from langchain.memory import ChatMessageHistory
 
 try:
@@ -14,6 +15,8 @@ class MemoryMode(str, Enum):
 
 
 def get_memory(history: ChatMessageHistory, mode=MemoryMode.SUMMARY_BUFFER):
+    from langchain.llms import OpenAI
+
     if mode == MemoryMode.SUMMARY:
         from langchain.memory import ConversationSummaryMemory
 
@@ -24,7 +27,6 @@ def get_memory(history: ChatMessageHistory, mode=MemoryMode.SUMMARY_BUFFER):
         )
 
     elif mode == MemoryMode.SUMMARY_BUFFER:
-        from langchain.llms import OpenAI
         from langchain.memory import ConversationSummaryBufferMemory
 
         memory = ConversationSummaryBufferMemory(
@@ -46,7 +48,6 @@ def get_memory(history: ChatMessageHistory, mode=MemoryMode.SUMMARY_BUFFER):
             )
 
     elif mode == MemoryMode.LLAMA_SUMMARY:
-        from langchain.llms import OpenAI
         from llama_index import ListIndex
 
         try:
