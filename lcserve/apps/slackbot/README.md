@@ -25,6 +25,7 @@ display_information:
 features:
   bot_user:
     display_name: langchain-bot
+    description: Slack bot built with Langchain, hosted on Jina AI Cloud
     always_online: true
 oauth_config:
   redirect_urls:

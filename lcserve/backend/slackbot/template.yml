@@ -1,8 +1,10 @@
 display_information:
-  name: langchain-bot
+  name: Langchain Bot
+  description: Slack bot built with Langchain, hosted on Jina AI Cloud
+  background_color: "#323336"
 features:
   bot_user:
-    display_name: langchain-bot
+    display_name: Langchain Bot
     always_online: true
 oauth_config:
   redirect_urls:
