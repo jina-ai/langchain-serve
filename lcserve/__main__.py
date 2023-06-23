@@ -15,6 +15,9 @@ from .flow import (
     DEFAULT_TIMEOUT,
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
+    SLACK_BOT_NAME,
+    ExportKind,
+    create_slack_app_manifest,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
@@ -26,7 +29,6 @@ from .flow import (
     remove_app_on_jcloud,
     syncify,
     update_requirements,
-    ExportKind,
 )
 
 
@@ -837,6 +839,32 @@ def util():
 )
 def upload_df(module, name):
     upload_df_to_jcloud(module, name)
+
+
+@util.command(help='Create slack app manifest.')
+@click.option(
+    '--name',
+    type=str,
+    default=SLACK_BOT_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+def slack_app_manifest(name):
+    from rich.console import Console
+    from rich.rule import Rule
+    from rich.syntax import Syntax
+    from rich.text import Text
+
+    syntax = Syntax(create_slack_app_manifest(name), "yaml")
+    console = Console()
+    console.print(Rule("App Manifest", style="bold green"))
+    console.print(
+        Text("Copy this yaml to create your Slack App.", style="bold blue"),
+        justify='center',
+    )
+    console.print(Rule(style="bold green"))
+    console.print(syntax)
+    console.print(Rule(style="bold green"))
 
 
 @serve.command(help='List all deployed apps.')

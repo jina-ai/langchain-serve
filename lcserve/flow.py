@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from fastapi import FastAPI
 
 APP_NAME = 'langchain'
+SLACK_BOT_NAME = 'langchain-bot'
 BABYAGI_APP_NAME = 'babyagi'
 PDF_QNA_APP_NAME = 'pdfqna'
 PANDAS_AI_APP_NAME = 'pandasai'
@@ -793,3 +794,16 @@ def update_requirements(path: str, requirements: List[str]) -> List[str]:
 
 def remove_prefix(text, prefix):
     return text[len(prefix) :] if text.startswith(prefix) else text
+
+
+def create_slack_app_manifest(name) -> str:
+    slackbot_template = os.path.join(
+        os.path.dirname(__file__), 'backend', 'slackbot', 'template.yml'
+    )
+    with open(slackbot_template, 'r') as f:
+        slackbot_template = f.read()
+
+    slackbot_dict = yaml.safe_load(slackbot_template)
+    slackbot_dict['display_information']['name'] = name
+    slackbot_dict['features']['bot_user']['display_name'] = name
+    return yaml.dump(slackbot_dict)

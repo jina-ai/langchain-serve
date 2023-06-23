@@ -332,8 +332,6 @@ Human: {input}
     def app_mention(self, func):
         @self.slack_app.event('app_mention')
         def wrapper(client: WebClient, body, context):
-            print(f"Received event: {body}")
-
             _event: Dict = body["event"]
             _channel = _event["channel"]
             _thread_ts = _event.get("thread_ts", _event["ts"])
@@ -343,6 +341,10 @@ Human: {input}
             elif "message" in _event:
                 _message = _event["message"]["text"]
                 _thread_ts = _event["message"].get("ts", _thread_ts)
+
+            self._logger.info(
+                f"App mentioned by user `{_user}` in channel `{_channel}`. Message: `{_message}` "
+            )
 
             if not self.is_bot_in_channel(client, _channel):
                 # send a DM to the user to invite the bot to the channel
@@ -373,9 +375,6 @@ Human: {input}
     def message(self, func):
         @self.slack_app.event('message')
         def wrapper(client, body, context):
-            print(f"Received event: {body}")
-            self._logger.info(f"Received DM ")
-
             _event: Dict = body["event"]
             _channel = _event["channel"]
             _thread_ts = _event.get("thread_ts", _event["ts"])
@@ -385,6 +384,10 @@ Human: {input}
             elif "message" in _event:
                 _message = _event["message"]["text"]
                 _thread_ts = _event["message"].get("ts", _thread_ts)
+
+            self._logger.info(
+                f"DM received in channel `{_channel}`. Message: `{_message}` "
+            )
 
             func(
                 message=_message,

@@ -1,0 +1,30 @@
+display_information:
+  name: langchain-bot
+features:
+  bot_user:
+    display_name: langchain-bot
+    always_online: true
+oauth_config:
+  redirect_urls:
+    - https://cloud.jina.ai/
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - chat:write
+      - groups:history
+      - groups:read
+      - im:history
+      - im:read
+      - im:write
+      - users.profile:read
+      - channels:read
+settings:
+  event_subscriptions:
+    request_url: https://your-app.wolf.jina.ai/slack/events
+    bot_events:
+      - app_mention
+      - message.im
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
