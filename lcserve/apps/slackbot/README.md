@@ -1,6 +1,6 @@
-# Langchain Slack Bots on [Jina AI Cloud](https://cloud.jina.ai/)
+# LangChain Slack Bots on [Jina AI Cloud](https://cloud.jina.ai/)
 
-In addition to deploying scalable APIs for your LLM applications, `langchain-serve` can also be used to deploy conversational bots on Slack using langchain components. This is a step-by-step guide to build, deploy and distribute a Slack bot using `langchain-serve`. 
+Complementing its capacity to deploy robust APIs for your LangChain applications, `langchain-serve` also brings your the ability to launching conversational bots on Slack using LangChain components. This is a step-by-step guide to build, deploy and distribute a Slack bot using `langchain-serve`. 
 
 <table align="center">
   <tr>
@@ -18,7 +18,7 @@ In addition to deploying scalable APIs for your LLM applications, `langchain-ser
 </table>
 
 
-### 👉 Step 1: Install Langchain Serve
+### 👉 Step 1: Install langchain-serve
 
 Let's start by installing langchain-serve if you haven't already
 
