@@ -12,7 +12,7 @@
 
 [Jina](https://github.com/jina-ai/jina) is an open-source framework for building scalable multi modal AI apps on Production. [LangChain](https://python.langchain.com/en/latest/index.html) is another open-source framework for building applications powered by LLMs.
 
-**langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in just a matter of seconds. You can now benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development. OR you can also deploy your LangChain apps on your own infrastructure making sure your data remains private.
+**langchain-serve** helps you deploy your LangChain apps on Jina AI Cloud in a matter of seconds. You can benefit from the scalability and serverless architecture of the cloud without sacrificing the ease and convenience of local development. And if you prefer, you can also deploy your LangChain apps on your own infrastructure to ensure data privacy. With langchain-serve, you can craft REST/Websocket APIs, spin up LLM-powered conversational Slack bots, or wrap your LangChain apps into FastAPI packages on cloud or on-premises.
 
 > Give us a :star: and tell us what more you'd like to see! 
 
@@ -188,15 +188,17 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
 
 ### 🎉 LLM Apps on production
   
-  - 👉 **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** OR,
-  - 👉 **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)** !
+  - 👉 **[Define your API using `@serving` decorator](#-rest-apis-using-serving-decorator)** 
+  - 👉 **[Build, deploy & distribute Slack bots using `@slackbot` decorator](#-build-deploy--distribute-slack-bots-built-with-langchain)**
+  - 👉 **[Bring your own FastAPI app](#-bring-your-own-fastapi-app)**
 
 ### 🔥 Secure, Scalable, Serverless, Streaming REST/Websocket APIs on [Jina AI Cloud](https://cloud.jina.ai/).
 
   - 🌎 Globally available REST/Websocket APIs with automatic TLS certs.
   - 🌊 Stream LLM interactions in real-time with Websockets.
   - 👥 Enable human in the loop for your agents.
-  - 🔑 Protect your APIs with [API authorization](#-authorize-your-apis) using Bearer tokens.
+  - 💬 Build, deploy & distribute Slack bots built with langchain.
+  - 🔑 Protect your APIs with [API authorization](#-authorize-your-apis) using Bearer tokens. 
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless, autoscaling apps that scales automatically with your traffic.
   - 📁 Persistent storage (EFS) mounted on your app for your data.
@@ -538,6 +540,14 @@ curl -X 'POST' \
 
 ---
 
+## 🤖💬 Build, Deploy & Distribute Slack bots built with LangChain
+
+langchain-serve exposes a `@slackbot` decorator to quickly build, deploy & distribute LLM-powered Slack bots without worrying about the infrastructure. It provides a simple interface to any langchain app on and makes them super accessible to users a platform they're already comfortable with.
+
+✨ Ready to dive in? There's a [step-by-step guide in the repository](lcserve/apps/slackbot/) to help you build your own bot.
+
+---
+
 ## 🔐 Authorize your APIs
 
 To add an extra layer of security, we can integrate any custom API authorization by adding a `auth` argument to the `@serving` decorator. 
@@ -742,7 +752,8 @@ Applications hosted on JCloud are priced in two categories:
 
 ### Examples
 
-**Example 1:**
+<details>
+<summary><b>Example 1</b></summary>
 
 Consider an HTTP application that has served requests for `10` minutes in the last hour and uses a custom config:
 ```
@@ -760,7 +771,11 @@ Serving credits = 20 * 10/60 = 3.33
 Total credits per hour = 0.208 + 3.33 = 3.538
 ```
 
-**Example 2:**
+</details>
+
+
+<details>
+<summary><b>Example 2</b></summary>
 
 Consider a WebSocket application that had active connections for 20 minutes in the last hour and uses the default configuration.
 ```
@@ -778,6 +793,8 @@ Serving credits = 10 * 20/60 = 3.33
 Total credits per hour = 10.104 + 3.33 = 13.434
 ```
 
+</details>
+
 # ❓ Frequently Asked Questions
 
 - [`lc-serve` command not found](#lc-serve-command-not-found)
@@ -788,10 +805,17 @@ Total credits per hour = 10.104 + 3.33 = 13.434
 
 ### `lc-serve` command not found
 
+<details>
+<summary><b>Expand</b></summary>
+
 `lc-serve` command is registered during `langchain-serve` installation. If you get `command not found: lc-serve` error, please replace `lc-serve` command with `python -m lcserve` & retry.
   
-  
+</details>
+
 ### My client that connects to the JCloud hosted App gets timed-out, what should I do?
+
+<details>
+<summary><b>Expand</b></summary>
 
 If you make long HTTP/ WebSocket requests, the default timeout value (2 minutes) might not be suitable for your use case. You can provide a custom timeout value during JCloud deployment by using the `--timeout` argument.
 
@@ -799,7 +823,12 @@ Additionally, for HTTP, you may also experience timeouts due to limitations in t
 
 For WebSocket, please note that the connection will be closed if idle for more than 5 minutes.
 
+</details>
+
 ### How to pass environment variables to the app?
+
+<details>
+<summary><b>Expand</b></summary>
 
 We provide 2 options to pass environment variables:
 
@@ -816,12 +845,21 @@ We provide 2 options to pass environment variables:
     }
     ```
 
+</details>
+
 ### JCloud deployment failed at pushing image to Jina Hubble, what should I do?
+
+<details>
+<summary><b>Expand</b></summary>
 
 Please use `--verbose` and retry to get more information. If you are operating on computer with `arm64` arch, please retry with `--platform linux/amd64` so the image can be built correctly.
 
+</details>
+
 ### Debug babyagi playground request/response for external integration
 
+<details>
+<summary><b>Expand</b></summary>
 1. Start textual console in a terminal (exclude following groups to reduce the noise in logging)
     
     ```bash
@@ -833,6 +871,8 @@ Please use `--verbose` and retry to get more information. If you are operating o
     ```bash
     lc-serve playground babyagi --verbose
     ```
+
+</details>
 
 # 📣 Reach out to us
 

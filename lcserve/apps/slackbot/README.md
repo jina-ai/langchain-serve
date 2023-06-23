@@ -1,8 +1,24 @@
-# Langchain Slack Bots on [Jina AI Cloud](https://cloud.jina.ai/)
+# LangChain Slack Bots on [Jina AI Cloud](https://cloud.jina.ai/)
 
-In addition to deploying scalable APIs for your LLM applications, `langchain-serve` can also be used to deploy conversational bots on Slack using langchain components. This is a step-by-step guide to deploy and configure a demo bot on Slack. 
+Complementing its capacity to deploy robust APIs for your LangChain applications, `langchain-serve` also brings your the ability to launching conversational bots on Slack using LangChain components. This is a step-by-step guide to build, deploy and distribute a Slack bot using `langchain-serve`. 
 
-### Step 1: Install Langchain Serve
+<table align="center">
+  <tr>
+    <td><img src="../../../.github/images/slack-thread-1.png" width="200"/></td>
+    <td><img src="../../../.github/images/slack-thread-2.png" width="200"/></td>
+    <td><img src="../../../.github/images/slack-thread-3.png" width="200"/></td>
+    <td><img src="../../../.github/images/slack-thread-4.png" width="200"/></td>
+  </tr>
+  <tr>
+    <td align="center">1</td>
+    <td align="center">2</td>
+    <td align="center">3</td>
+    <td align="center">4</td>
+  </tr>
+</table>
+
+
+### 👉 Step 1: Install langchain-serve
 
 Let's start by installing langchain-serve if you haven't already
 
@@ -10,7 +26,7 @@ Let's start by installing langchain-serve if you haven't already
 pip install langchain-serve
 ```
 
-### Step 2: Create the app manifest
+### 👉 Step 2: Create the app manifest
 
 Slack apps can be created from scratch or, from a manifest. We have a command to generate the manifest for you.
 
@@ -52,7 +68,7 @@ settings:
   token_rotation_enabled: false                                                              
 ```
 
-### Step 3: Create the app and configure it
+### 👉 Step 3: Create the app and configure it
 
 - Go to [slack apps](https://api.slack.com/apps?new_app=1) page.
 - Choose `From an app manifest` and pick the workspace you want to install the app in.
@@ -73,7 +89,7 @@ You will be redirected to the app configuration page. Your app needs 2 tokens to
     - You can find the token under `OAuth & Permissions` -> `OAuth Tokens for Your Workspace`. Copy it and save it somewhere safe. 
     - It'd be used as `SLACK_BOT_TOKEN` in the next step.
 
-### Step 4: Deploy the demo langchain bot on Jina AI Cloud
+### 👉 Step 4: Deploy the demo langchain bot on Jina AI Cloud
 
 Create a `.env` file with the following content. Replace the values with the ones you got in the previous step. Without these, the bot won't be able to authenticate itself with Slack.
 
@@ -114,11 +130,11 @@ After the deployment is complete, you will see `Slack Events URL` in the output,
 
 </details>
 
-### Step 5: Configure the app to use the deployed endpoint
+### 👉 Step 5: Configure the app to use the deployed endpoint
 
 Go to `Event Subscriptions` -> `Request URL` and set it to the Events URL you got in the previous step. Upon saving, Slack will send a request to the URL to verify it. If everything is configured correctly, you will see a green Verified checkmark. If you see an error instead, check the logs of the deployment on [Jina AI Cloud](https://cloud.jina.ai/user/flows).
 
-### Step 6: Use the bot on Slack
+### 👉 Step 6: Use the bot on Slack
 
 There are 2 ways to interact with the bot.
 
@@ -136,7 +152,7 @@ There are 2 ways to interact with the bot.
 
 ---
 
-### Step 7: Enhance the bot to suit your application
+### 👉 Step 7: Enhance the bot to suit your application
 
 Let's dig deep into the demo bot code and see how it works. This example uses Agents with Tools & Chat conversation memory to answer questions from Slack threads. 
 
@@ -184,7 +200,7 @@ def agent(
     reply(agent_executor.run(message))
 ```
 
-We define a decorator `@slackbot` to mark this function as a slackbot. This is used by the `lcserve` CLI to identify the slackbot function. The function takes the following arguments:
+We define a decorator `@slackbot` to mark this function as the entrypoint to the bot, used by the `lc-serve` CLI to identify the slackbot function. Functions wrapped with `@slackbot` take the following arguments:
 
 | Parameter | Type | Description |
 |---|---|:---:|
@@ -217,7 +233,7 @@ Every bot deployed on Jina AI Cloud gets a persistent storage path. This can be 
 The `reply` function is used to send a reply back to the user. It takes a single argument - `message` - which is the reply message to be sent to the user.
 
 
-### Step 8: Deploy your customized bot on Jina AI Cloud
+### 👉 Step 8: Deploy your customized bot on Jina AI Cloud
 
 After customizing the bot to suit your application, you can deploy it on Jina AI Cloud & use the new Slack Events URL in the app configuration page.
 
@@ -225,14 +241,13 @@ After customizing the bot to suit your application, you can deploy it on Jina AI
 lc-serve deploy jcloud app --env .env
 ```
 
-### Step 9: Distribute your bot to the world
+### 👉 Step 9: Distribute your bot to the world
 
 Once you have a bot that works for your application, you can go to `Manage Distribution` -> `Add to Slack` to get sharaable links for your bot. You can read more about how to distribute your bot to the world [here](https://api.slack.com/start/distributing).
 
 
-## What's next?
+## 👀 What's next?
 
 - [Learn more about Langchain](https://python.langchain.com/docs/)
 - [Learn more about langchain-serve](https://github.com/jina-ai/langchain-serve)
 - Have questions? [Join our Discord community](https://discord.jina.ai/)
-
