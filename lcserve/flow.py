@@ -29,6 +29,8 @@ BABYAGI_APP_NAME = 'babyagi'
 PDF_QNA_APP_NAME = 'pdfqna'
 PANDAS_AI_APP_NAME = 'pandasai'
 AUTOGPT_APP_NAME = 'autogpt'
+SLACKBOT_DEMO_APP_NAME = 'slackbot'
+SLACK_BOT_NAME = 'langchain-bot'
 
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
@@ -696,6 +698,9 @@ async def get_app_status_on_jcloud(app_id: str):
         )
         _add_row('Swagger UI', _replace_wss_with_https(f'{endpoint}/docs'))
         _add_row('OpenAPI JSON', _replace_wss_with_https(f'{endpoint}/openapi.json'))
+        _add_row(
+            'Slack Events URL', _replace_wss_with_https(f'{endpoint}/slack/events')
+        )
         console.print(_t)
 
 
@@ -793,3 +798,16 @@ def update_requirements(path: str, requirements: List[str]) -> List[str]:
 
 def remove_prefix(text, prefix):
     return text[len(prefix) :] if text.startswith(prefix) else text
+
+
+def create_slack_app_manifest(name) -> str:
+    slackbot_template = os.path.join(
+        os.path.dirname(__file__), 'backend', 'slackbot', 'template.yml'
+    )
+    with open(slackbot_template, 'r') as f:
+        slackbot_template = f.read()
+
+    slackbot_dict = yaml.safe_load(slackbot_template)
+    slackbot_dict['display_information']['name'] = name
+    slackbot_dict['features']['bot_user']['display_name'] = name
+    return yaml.dump(slackbot_dict)

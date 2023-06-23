@@ -7,3 +7,4 @@ jina-hubble-sdk
 nest-asyncio
 textual
 toml
+slack_bolt

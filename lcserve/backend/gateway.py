@@ -434,7 +434,7 @@ class ServingGateway(FastAPIBaseGateway):
             import traceback
 
             traceback.print_exc()
-            print(f'Unable to import module: {mod} as {e}')
+            self.logger.error(f'Unable to import module: {mod} as {e}')
 
     def _register_file(self, file: Path):
         try:
@@ -444,7 +444,7 @@ class ServingGateway(FastAPIBaseGateway):
             for _, func in inspect.getmembers(mod, inspect.isfunction):
                 self._register_func(func, dirname=os.path.dirname(file))
         except Exception as e:
-            print(f'Unable to import {file}: {e}')
+            self.logger.error(f'Unable to import {file}: {e}')
 
     def _register_func(self, func: Callable, dirname: str = None):
         def _get_decorator_params(func):
@@ -452,6 +452,8 @@ class ServingGateway(FastAPIBaseGateway):
                 return getattr(func, '__serving__').get('params', {})
             elif hasattr(func, '__ws_serving__'):
                 return getattr(func, '__ws_serving__').get('params', {})
+            elif hasattr(func, '__slackbot__'):
+                return getattr(func, '__slackbot__').get('params', {})
             return {}
 
         _decorator_params = _get_decorator_params(func)
@@ -470,6 +472,12 @@ class ServingGateway(FastAPIBaseGateway):
                 include_ws_callback_handlers=_decorator_params.get(
                     'include_ws_callback_handlers', False
                 ),
+                openai_tracing=_decorator_params.get('openai_tracing', False),
+            )
+        elif hasattr(func, '__slackbot__'):
+            self._register_slackbot(
+                func,
+                dirname=dirname,
                 openai_tracing=_decorator_params.get('openai_tracing', False),
             )
 
@@ -589,6 +597,27 @@ class ServingGateway(FastAPIBaseGateway):
                 logger=self.logger,
                 tracer=self.tracer,
             )
+
+    def _register_slackbot(
+        self,
+        func: Callable,
+        dirname: str,
+        openai_tracing: bool = False,  # TODO: add openai_tracing to slackbot
+        **kwargs,
+    ):
+        from fastapi import Request
+
+        with ChangeDirCtxtManager(dirname):
+            from .slackbot import SlackBot
+
+            self.logger.info(f'Registering slackbot: {func.__name__}')
+            bot = SlackBot(workspace=self.workspace)
+
+            @self.app.post("/slack/events")
+            async def endpoint(req: Request):
+                return await bot.handler.handle(req)
+
+            bot.register(func)
 
 
 def _get_files_data(kwargs: Dict) -> Dict:

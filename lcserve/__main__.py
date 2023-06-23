@@ -15,6 +15,10 @@ from .flow import (
     DEFAULT_TIMEOUT,
     PANDAS_AI_APP_NAME,
     PDF_QNA_APP_NAME,
+    SLACK_BOT_NAME,
+    SLACKBOT_DEMO_APP_NAME,
+    ExportKind,
+    create_slack_app_manifest,
     deploy_app_on_jcloud,
     get_app_status_on_jcloud,
     get_flow_dict,
@@ -26,7 +30,6 @@ from .flow import (
     remove_app_on_jcloud,
     syncify,
     update_requirements,
-    ExportKind,
 )
 
 
@@ -239,6 +242,37 @@ async def serve_pandas_ai_on_jcloud(
         name=name,
         app_id=app_id,
         app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'pandas_ai'),
+        requirements=requirements,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        config=config,
+        cors=cors,
+        env=env,
+        verbose=verbose,
+        public=public,
+        lcserve_app=True,
+    )
+
+
+async def serve_slackbot_demo_on_jcloud(
+    name: str = SLACKBOT_DEMO_APP_NAME,
+    app_id: str = None,
+    requirements: List[str] = None,
+    version: str = 'latest',
+    timeout: int = DEFAULT_TIMEOUT,
+    platform: str = None,
+    config: str = None,
+    cors: bool = True,
+    env: str = None,
+    verbose: bool = False,
+    public: bool = False,
+):
+    await serve_on_jcloud(
+        module_str='lcserve.apps.slackbot.app',
+        name=name,
+        app_id=app_id,
+        app_dir=os.path.join(os.path.dirname(__file__), 'apps', 'slackbot'),
         requirements=requirements,
         version=version,
         timeout=timeout,
@@ -818,6 +852,45 @@ async def pandas_ai(
     )
 
 
+@deploy.command(help='Deploy slackbot-demo on JCloud.')
+@click.option(
+    '--name',
+    type=str,
+    default=SLACKBOT_DEMO_APP_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+@jcloud_shared_options
+@click.help_option('-h', '--help')
+@syncify
+async def slackbot_demo(
+    name,
+    app_id,
+    requirements,
+    version,
+    timeout,
+    platform,
+    config,
+    cors,
+    env,
+    verbose,
+    public,
+):
+    await serve_slackbot_demo_on_jcloud(
+        name=name,
+        app_id=app_id,
+        requirements=requirements,
+        version=version,
+        timeout=timeout,
+        platform=platform,
+        config=config,
+        cors=cors,
+        env=env,
+        verbose=verbose,
+        public=public,
+    )
+
+
 @serve.group(help='Utility commands for lc-serve.')
 @click.help_option('-h', '--help')
 def util():
@@ -837,6 +910,32 @@ def util():
 )
 def upload_df(module, name):
     upload_df_to_jcloud(module, name)
+
+
+@util.command(help='Create slack app manifest.')
+@click.option(
+    '--name',
+    type=str,
+    default=SLACK_BOT_NAME,
+    help='Name of the app.',
+    show_default=True,
+)
+def slack_app_manifest(name):
+    from rich.console import Console
+    from rich.rule import Rule
+    from rich.syntax import Syntax
+    from rich.text import Text
+
+    syntax = Syntax(create_slack_app_manifest(name), "yaml")
+    console = Console()
+    console.print(Rule("App Manifest", style="bold green"))
+    console.print(
+        Text("Copy this yaml to create your Slack App.", style="bold blue"),
+        justify='center',
+    )
+    console.print(Rule(style="bold green"))
+    console.print(syntax)
+    console.print(Rule(style="bold green"))
 
 
 @serve.command(help='List all deployed apps.')
