@@ -46,6 +46,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1195,4 +1196,36 @@
 ### 🍹 Other Improvements
 
  - [[```f4ca9a15```](https://github.com/jina-ai/langchain-serve/commit/f4ca9a15851679756b49b19beee5095f97cbfce2)] __-__ __version__: the next version will be 0.0.46 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-47></a>
+## Release Note (`0.0.47`)
+
+> Release time: 2023-06-23 17:55:56
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  Zac Li,  🙇
+
+
+### 🆕 New Features
+
+ - [[```48316aa4```](https://github.com/jina-ai/langchain-serve/commit/48316aa43fe664d50fee63a18cf19785c16fdabf)] __-__ add app template (*Deepankar Mahapatro*)
+ - [[```f7c4d5ed```](https://github.com/jina-ai/langchain-serve/commit/f7c4d5ed94504fc54dbe0e0032ca12e07e84a048)] __-__ create slackbot (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```da00b4a7```](https://github.com/jina-ai/langchain-serve/commit/da00b4a70589b6aef9993254bfd71a95d08d934c)] __-__ update slackbot readme (*Deepankar Mahapatro*)
+ - [[```8a4b46f0```](https://github.com/jina-ai/langchain-serve/commit/8a4b46f0a58fff97c80b3f42c98ad5fe3fea8b09)] __-__ add slackbot readme (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```46551b04```](https://github.com/jina-ai/langchain-serve/commit/46551b047a58d2a23ed0bda2375c91d109483174)] __-__ integration tests for tracing (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```412a1eb1```](https://github.com/jina-ai/langchain-serve/commit/412a1eb1997569e513128af5bcc0baec6b61a707)] __-__ skip .env files in gitignore (*Deepankar Mahapatro*)
+ - [[```45f964a2```](https://github.com/jina-ai/langchain-serve/commit/45f964a2ad535535664cb097b778087f0572ee91)] __-__ __version__: the next version will be 0.0.47 (*Jina Dev Bot*)
+ - [[```f4ca9a15```](https://github.com/jina-ai/langchain-serve/commit/f4ca9a15851679756b49b19beee5095f97cbfce2)] __-__ __version__: the next version will be 0.0.46 (*Jina Dev Bot*)
+ - [[```5958fe1f```](https://github.com/jina-ai/langchain-serve/commit/5958fe1f40388f2546bab303a072a687c49c2536)] __-__ Merge pull request #104 from jina-ai/feat-tracing (*Zac Li*)
 
