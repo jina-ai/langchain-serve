@@ -200,7 +200,7 @@ def agent(
     reply(agent_executor.run(message))
 ```
 
-We define a decorator `@slackbot` to mark this function as a slackbot. This is used by the `lcserve` CLI to identify the slackbot function. The function takes the following arguments:
+We define a decorator `@slackbot` to mark this function as the entrypoint to the bot, used by the `lc-serve` CLI to identify the slackbot function. Functions wrapped with `@slackbot` take the following arguments:
 
 | Parameter | Type | Description |
 |---|---|:---:|
@@ -246,9 +246,8 @@ lc-serve deploy jcloud app --env .env
 Once you have a bot that works for your application, you can go to `Manage Distribution` -> `Add to Slack` to get sharaable links for your bot. You can read more about how to distribute your bot to the world [here](https://api.slack.com/start/distributing).
 
 
-## What's next?
+## 👀 What's next?
 
 - [Learn more about Langchain](https://python.langchain.com/docs/)
 - [Learn more about langchain-serve](https://github.com/jina-ai/langchain-serve)
 - Have questions? [Join our Discord community](https://discord.jina.ai/)
-
