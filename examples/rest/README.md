@@ -54,7 +54,7 @@ Final Answer: Arrr, Canada be havin' 38,610,447 scallywags livin' there as of 20
 > Finished chain.
 ```
 
-## 👉 Step 1: Refactor your code to function(s) that should be served with `@serving` decorator
+### 👉 Step 1: Refactor your code to function(s) that should be served with `@serving` decorator
 
 
 ```python
@@ -113,14 +113,15 @@ if __name__ == "__main__":
 
 ---
 
-## 👉 Step 2: Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed
+### 👉 Step 2: Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed
 
 ```text
 # requirements.txt
 openai
 google-search-results
 ```
-</>
+
+---
 
 ### 👉 Step 3: Run `lc-serve deploy local app` to test your API locally
 
