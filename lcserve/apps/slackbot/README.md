@@ -25,22 +25,6 @@ Complementing its capacity to deploy robust APIs for your LangChain applications
 </table>
 
 
-<table align="center">
-  <tr>
-    <td><img src="../../../.github/images/slack-thread-1.png" width="200"/></td>
-    <td><img src="../../../.github/images/slack-thread-2.png" width="200"/></td>
-    <td><img src="../../../.github/images/slack-thread-3.png" width="200"/></td>
-    <td><img src="../../../.github/images/slack-thread-4.png" width="200"/></td>
-  </tr>
-  <tr>
-    <td align="center">1</td>
-    <td align="center">2</td>
-    <td align="center">3</td>
-    <td align="center">4</td>
-  </tr>
-</table>
-
-
 ### 👉 Step 1: Install langchain-serve
 
 Let's start by installing langchain-serve if you haven't already
@@ -275,9 +259,6 @@ lc-serve deploy jcloud app --env .env
 ### 👉 Step 9: Distribute your bot to the world
 
 Once you have a bot that works for your application, you can go to `Manage Distribution` -> `Add to Slack` to get shareable links for your bot. You can read more about how to distribute your bot to the world [here](https://api.slack.com/start/distributing).
-
-<p align="center">
-  <img src="https://api.slack.com/img/blocks/bkb_template_images/hero.png" alt="Distribute your bot to the world" width="600" />
 
 
 ## 👀 What's next?
