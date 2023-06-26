@@ -54,9 +54,7 @@ Final Answer: Arrr, Canada be havin' 38,610,447 scallywags livin' there as of 20
 > Finished chain.
 ```
 
-### Step 1: 
-
-**Refactor your code to function(s) that should be served with `@serving` decorator.**
+## 👉 Step 1: Refactor your code to function(s) that should be served with `@serving` decorator
 
 
 ```python
@@ -115,9 +113,7 @@ if __name__ == "__main__":
 
 ---
 
-### Step 2:
-
-**Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.**
+## 👉 Step 2: Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed
 
 ```text
 # requirements.txt
@@ -126,9 +122,7 @@ google-search-results
 ```
 </>
 
-### Step 3:
-
-**Run `lc-serve deploy local app` to test your API locally.**
+### 👉 Step 3: Run `lc-serve deploy local app` to test your API locally
 
 > `app` is the name of the module that contains the `ask` function.
 
@@ -142,7 +136,7 @@ lc-serve deploy local app
 ```text
 ────────────────────────────────────────────────────────────────────────────────────────────────────── 🎉 Flow is ready to serve! ───────────────────────────────────────────────────────────────────────────────────────────────────────
 ╭──────────────────────── 🔗 Endpoint ────────────────────────╮
-│  ⛓   Protocol                                         HTTP  │
+│  ⛓   Protocol                                        HTTP  │
 │  🏠     Local                                 0.0.0.0:8080  │
 │  🔒   Private                          192.168.29.185:8080  │
 │  🌍    Public  2405:201:d007:e8e7:2c33:cf8e:ed66:2018:8080  │
@@ -202,9 +196,7 @@ curl -X 'POST' \
 
 ---
 
-### Step 4:
-
-**Run `lc-serve deploy jcloud app` to deploy your API to Jina AI Cloud.**
+## 👉 Step 4: Run `lc-serve deploy jcloud app` to deploy your API to Jina AI Cloud
 
 ```bash
 # Login to Jina AI Cloud
