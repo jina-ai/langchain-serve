@@ -1,4 +1,4 @@
-# 🔄 REST APIs using `@serving` decorator
+# 🔄 LangChain REST APIs using `@serving` decorator
 
 `langchain-serve` allows you to easily wrap your LangChain applications with REST APIs using the `@serving` decorator. This enables you to integrate your local LangChain applications with a variety of external applications seamlessly, broadening your application's reach and functionality.
 
