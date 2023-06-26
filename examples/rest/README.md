@@ -56,11 +56,8 @@ Final Answer: Arrr, Canada be havin' 38,610,447 scallywags livin' there as of 20
 
 ### Step 1: 
 
-**Refactor your code to function(s) that should be served with `@serving` decorator**
+**Refactor your code to function(s) that should be served with `@serving` decorator.**
 
-
-<details>
-<summary>Show updated agent code (app.py)</summary>
 
 ```python
 # app.py
@@ -122,15 +119,12 @@ if __name__ == "__main__":
 
 **Create a `requirements.txt` file in your app directory to ensure all necessary dependencies are installed.**
 
-<details>
-<summary>Show requirements.txt</summary>
-
 ```text
 # requirements.txt
 openai
 google-search-results
 ```
-</details>
+</>
 
 ### Step 3:
 
@@ -168,7 +162,7 @@ Let's open the [Swagger UI](http://localhost:8080/docs) to test our API locally.
 <details>
 <summary>Show Swagger UI</summary>
 
-![Local Swagger UI](.github/images/local-swagger-ui.png)
+![Local Swagger UI](../../.github/images/local-swagger-ui.png)
 
 </details>
 
@@ -263,8 +257,8 @@ Let's open the Swagger UI to test our API on Jina AI Cloud. With `Try it out` bu
 <summary>Show Swagger UI</summary>
 
 <p float="center">
-  <img src=".github/images/jcloud-swagger-ui.png" width="400" />
-  <img src=".github/images/jcloud-openapi.png" width="300" />
+  <img src="../../.github/images/jcloud-swagger-ui.png" width="400" />
+  <img src="../../.github/images/jcloud-openapi.png" width="300" />
 </p>
 
 </details>
@@ -302,4 +296,3 @@ curl -X 'POST' \
 - The API includes a Swagger UI and the OpenAPI specification, so it can be easily integrated with other services. 
 - Now, other agents can integrate with your agents on Jina AI Cloud thanks to the [OpenAPI Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/openapi.html) 💡
 
-</details>
