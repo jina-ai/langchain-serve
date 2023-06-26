@@ -289,3 +289,9 @@ curl -X 'POST' \
 - The API includes a Swagger UI and the OpenAPI specification, so it can be easily integrated with other services. 
 - Now, other agents can integrate with your agents on Jina AI Cloud thanks to the [OpenAPI Agent](https://python.langchain.com/en/latest/modules/agents/toolkits/examples/openapi.html) 💡
 
+
+## 👀 What's next?
+
+- [Learn more about Langchain](https://python.langchain.com/docs/)
+- [Learn more about langchain-serve](https://github.com/jina-ai/langchain-serve)
+- Have questions? [Join our Discord community](https://discord.jina.ai/)
