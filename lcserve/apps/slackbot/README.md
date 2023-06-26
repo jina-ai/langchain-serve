@@ -3,6 +3,29 @@
 Complementing its capacity to deploy robust APIs for your LangChain applications, `langchain-serve` also brings your the ability to launching conversational bots on Slack using LangChain components. This is a step-by-step guide to build, deploy and distribute a Slack bot using `langchain-serve`. 
 
 <table align="center">
+  <thead>
+    <tr>
+      <th colspan="4" style="text-align:center;">A brainstorming bot having elaborate discussions with a team to decide their platform strategy.</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="../../../.github/images/slack-thread-1.png" width="200"/></td>
+      <td><img src="../../../.github/images/slack-thread-2.png" width="200"/></td>
+      <td><img src="../../../.github/images/slack-thread-3.png" width="200"/></td>
+      <td><img src="../../../.github/images/slack-thread-4.png" width="200"/></td>
+    </tr>
+    <tr>
+      <td align="center">1</td>
+      <td align="center">2</td>
+      <td align="center">3</td>
+      <td align="center">4</td>
+    </tr>
+  </tbody>
+</table>
+
+
+<table align="center">
   <tr>
     <td><img src="../../../.github/images/slack-thread-1.png" width="200"/></td>
     <td><img src="../../../.github/images/slack-thread-2.png" width="200"/></td>
@@ -239,15 +262,22 @@ The `reply` function is used to send a reply back to the user. It takes a single
 
 ### 👉 Step 8: Deploy your customized bot on Jina AI Cloud
 
-After customizing the bot to suit your application, you can deploy it on Jina AI Cloud & use the new Slack Events URL in the app configuration page.
+After customizing the bot to suit your application, you can deploy it on Jina AI Cloud & use the new **Slack Events URL** in the app configuration page.
 
 ```bash
 lc-serve deploy jcloud app --env .env
 ```
 
+<p align="center">
+  <img src="../../../.github/images/jcloud-slack-events.png" alt="Distribute your bot to the world" width="600" />
+</p>
+
 ### 👉 Step 9: Distribute your bot to the world
 
-Once you have a bot that works for your application, you can go to `Manage Distribution` -> `Add to Slack` to get sharaable links for your bot. You can read more about how to distribute your bot to the world [here](https://api.slack.com/start/distributing).
+Once you have a bot that works for your application, you can go to `Manage Distribution` -> `Add to Slack` to get shareable links for your bot. You can read more about how to distribute your bot to the world [here](https://api.slack.com/start/distributing).
+
+<p align="center">
+  <img src="https://api.slack.com/img/blocks/bkb_template_images/hero.png" alt="Distribute your bot to the world" width="600" />
 
 
 ## 👀 What's next?
