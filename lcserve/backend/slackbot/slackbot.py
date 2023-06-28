@@ -300,8 +300,8 @@ If you can't find the url, please ask the user to provide it to you.
         ]
 
     @staticmethod
-    def get_agent_prompt() -> PromptTemplate:
-        prefix = """
+    def get_agent_prompt_prefix() -> str:
+        return """
 As an AI bot on Slack, your primary objective is to provide substantial assistance to one or more human users within a Slack thread. \
 Your mission is to facilitate the completion of tasks through a strategic approach, gathering comprehensive information by posing pertinent questions to refine your understanding of the users' needs. \
 Not only should you deliver precise, insightful responses to aid users in task fulfillment, \
@@ -315,7 +315,9 @@ TOOLS:
 Assistant has access to the following tools:
         """
 
-        suffix = """Begin!
+    @staticmethod
+    def get_agent_prompt_suffix() -> str:
+        return """Begin!
 
 Previous conversation history:
 {chat_history}
@@ -323,10 +325,12 @@ Previous conversation history:
 Human: {input}
 {agent_scratchpad}"""
 
+    @staticmethod
+    def get_agent_prompt() -> PromptTemplate:
         return ConversationalAgent.create_prompt(
             tools=SlackBot.get_agent_tools(),
-            prefix=prefix,
-            suffix=suffix,
+            prefix=SlackBot.get_agent_prompt_prefix(),
+            suffix=SlackBot.get_agent_prompt_suffix(),
         )
 
     def app_mention(self, func):
