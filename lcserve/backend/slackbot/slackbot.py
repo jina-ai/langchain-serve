@@ -1,7 +1,7 @@
 import json
 import os
 from functools import lru_cache
-from typing import Any, Dict, Generator, List, Tuple, Union
+from typing import Any, Callable, Dict, Generator, List, Tuple, Union
 from urllib.parse import urlparse
 
 from jina.logging.logger import JinaLogger
@@ -273,6 +273,27 @@ If you can't find the url, please ask the user to provide it to you.
 
         return __call__
 
+    @staticmethod
+    def command_send(
+        client: WebClient,
+        channel: str,
+        user_id: str,
+        command: str,
+    ):
+        # send a progress message first on the thread
+        response = client.chat_postMessage(
+            channel=channel,
+            text=f'<@{user_id}> Acknowledged request. Running `{command}`',
+        )
+
+        def __call__(text: str):
+            client.chat_postMessage(
+                channel=channel, text=text, thread_ts=response["ts"]
+            )
+            return
+
+        return __call__
+
     @classmethod
     @lru_cache
     def get_slack_url(cls):
@@ -411,7 +432,41 @@ Human: {input}
 
         return wrapper
 
-    def register(self, func) -> Any:
+    def command(self, command: str):
+        def decorator(command_func):
+            @self.slack_app.command(command)
+            def wrapper(ack, client, body, context):
+                ack()
+                _channel = body["channel_id"]
+                _user = body["user_id"]
+                _message = body["text"]
+
+                self._logger.info(
+                    f"Command `{command}` received in channel `{_channel}`. Message: `{_message}` "
+                )
+
+                command_func(
+                    message=_message,
+                    workspace=self.workspace,
+                    reply=SlackBot.command_send(
+                        client=client,
+                        channel=_channel,
+                        user_id=_user,
+                        command=command,
+                    ),
+                    user=_channel,
+                    context=context,
+                )
+
+            return wrapper
+
+        return decorator
+
+    def register(self, func: Callable, commands: Dict[str, Callable] = None) -> Any:
         self.app_mention(func)
         self.message(func)
+
+        if commands is not None:
+            for command, command_func in commands.items():
+                self.command(command)(command_func)
         return func
