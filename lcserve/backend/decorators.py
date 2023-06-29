@@ -1,6 +1,6 @@
 import inspect
 from functools import wraps
-from typing import Callable
+from typing import Callable, Dict
 
 
 def serving(
@@ -50,6 +50,7 @@ def serving(
 def slackbot(
     _func=None,
     *,
+    commands: Dict[str, Callable] = None,
     openai_tracing: bool = False,
 ):
     def decorator(func):
@@ -70,6 +71,7 @@ def slackbot(
             'name': func.__name__,
             'doc': func.__doc__,
             'params': {
+                'commands': commands,
                 'openai_tracing': openai_tracing,
             },
         }
