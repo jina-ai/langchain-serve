@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import time
+import traceback
 import uuid
 from enum import Enum
 from functools import cached_property
@@ -478,6 +479,7 @@ class ServingGateway(FastAPIBaseGateway):
             self._register_slackbot(
                 func,
                 dirname=dirname,
+                commands=_decorator_params.get('commands', None),
                 openai_tracing=_decorator_params.get('openai_tracing', False),
             )
 
@@ -602,6 +604,7 @@ class ServingGateway(FastAPIBaseGateway):
         self,
         func: Callable,
         dirname: str,
+        commands: Dict[str, Callable] = None,
         openai_tracing: bool = False,  # TODO: add openai_tracing to slackbot
         **kwargs,
     ):
@@ -617,7 +620,7 @@ class ServingGateway(FastAPIBaseGateway):
             async def endpoint(req: Request):
                 return await bot.handler.handle(req)
 
-            bot.register(func)
+            bot.register(func=func, commands=commands)
 
 
 def _get_files_data(kwargs: Dict) -> Dict:
@@ -771,7 +774,7 @@ def create_http_route(
                     _output = await run_function(func, **_func_data)
                 except Exception as e:
                     logger.error(f'Got an exception: {e}')
-                    _error = str(e)
+                    _error = str(traceback.format_exc())
 
             if _error != '':
                 print(f'Error: {_error}')
@@ -1031,7 +1034,7 @@ def create_websocket_route(
 
                         except Exception as e:
                             logger.error(f'Got an exception: {e}', exc_info=True)
-                            _ws_serving_error = str(e)
+                            _ws_serving_error = str(traceback.format_exc())
                             # For other errors, we send the error back to the client.
                             _data = output_model(
                                 result='',
