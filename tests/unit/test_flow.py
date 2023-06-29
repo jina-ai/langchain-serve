@@ -42,7 +42,7 @@ flow_dict_template = {
                     "size": "1G",
                 },
             },
-            "healthcheck": True,
+            "network": {"healthcheck": False},
             "timeout": 120,
             "autoscale": {
                 "min": None,
@@ -202,6 +202,5 @@ def test_get_flow_dict_for_jcloud(
     flow_dict_template["gateway"]["jcloud"]["autoscale"]["min"] = autoscale_min
     flow_dict_template["gateway"]["jcloud"]["resources"]["instance"] = instance
     flow_dict_template["gateway"]["jcloud"]["resources"]["storage"]["size"] = disk_size
-    flow_dict_template["gateway"]["jcloud"]["healthcheck"] = not is_websocket
 
     assert flow_dict == flow_dict_template

@@ -39,6 +39,8 @@ async def deploy_jcloud_app(**deployment_args):
 
     deployment_args["module_str"] = "basic_app"
     app_id = await _serve_on_jcloud(**deployment_args)
+    # Since we don't do hc for the Flow, let's wait for a while for it to be ready
+    asyncio.sleep(60)
 
     try:
         yield app_id

@@ -98,7 +98,7 @@ class JCloudConfig:
                     'instance': self.instance,
                     'capacity': 'spot',
                 },
-                'healthcheck': not self.is_websocket,
+                'network': {'healthcheck': False},
                 'timeout': self.timeout,
                 **self.autoscale.to_dict(),
             }
