@@ -1,4 +1,29 @@
-# HR Slack Bot
+# 🤖👔 HR Slack Bot
+
+Following is a step-by-step guide to build & deploy a customizable LLM-powered Slack bot designed to streamline & automate various HR tasks and interactions on Slack. It is designed to assist both employees and the HR team, enhancing efficiency and engagement within the workspace.
+
+
+<table align="center">
+  <thead>
+    <tr>
+      <th colspan="4" style="text-align:center;">HR Bot helping a new employee & the HR team with onboarding & queries about the HR policies</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="../../../.github/images/slack-hrbot-thread-1.png" width="200"/></td>
+      <td><img src="../../../.github/images/slack-hrbot-thread-2.png" width="200"/></td>
+      <td><img src="../../../.github/images/slack-hrbot-thread-3.png" width="200"/></td>
+      <td><img src="../../../.github/images/slack-hrbot-thread-4.png" width="200"/></td>
+    </tr>
+    <tr>
+      <td align="center">1</td>
+      <td align="center">2</td>
+      <td align="center">3</td>
+      <td align="center">4</td>
+    </tr>
+  </tbody>
+</table>
 
 
 ### 👉 Step 1: Install langchain-serve
@@ -119,7 +144,7 @@ lc-serve deploy jcloud app --env .env
   <img src="../../.github/images/slack-hrbot-requests-url.png" alt="Slack Request URL" width="60%"/>
 </p>
 
-2. Go to `Slash Commands` and edit the `/refresh-gdrive-index` command. Set the request URL to the Events URL you got in the previous step. 
+2. Go to `Slash Commands` and edit the `/refresh-gdrive-index` & `/remove-gdrive-index` commands. Set the Request URL to the Events URL you got in the previous step. 
 
 <p align="center">
   <img src="../../.github/images/slack-hrbot-slash-command.png" alt="Slack Slash Command" width="60%"/>
