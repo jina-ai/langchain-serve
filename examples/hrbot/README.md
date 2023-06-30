@@ -1,6 +1,6 @@
 # 🤖👔 HR Slack Bot
 
-Following is a step-by-step guide to build & deploy a customizable LLM-powered Slack bot designed to streamline & automate various HR tasks and interactions on Slack. It is designed to assist both employees and the HR team, enhancing efficiency and engagement within the workspace.
+Following is a step-by-step guide to build & deploy a customizable LLM-powered Slack bot designed to streamline & automate various HR tasks and interactions on Slack based in PDF documents on internal Google Drive. It is designed to assist both employees and the HR team, enhancing efficiency and engagement within the workspace.
 
 
 <table align="center">
@@ -24,6 +24,7 @@ Following is a step-by-step guide to build & deploy a customizable LLM-powered S
     </tr>
   </tbody>
 </table>
+
 
 
 ### 👉 Step 1: Install langchain-serve
