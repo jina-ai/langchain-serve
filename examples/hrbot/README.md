@@ -118,5 +118,5 @@ lc-serve deploy jcloud app --env .env
 2. Go to `Slash Commands` and edit the `/refresh-gdrive-index` command. Set the request URL to the Events URL you got in the previous step. 
 
 <p align="center">
-  <img src="../../.github/images/slack-slash-command.png" alt="Slack Slash Command" width="60%"/>
+  <img src="../../.github/images/slack-hrbot-slash-command.png" alt="Slack Slash Command" width="60%"/>
 </p>
