@@ -106,5 +106,5 @@ lc-serve deploy jcloud app --env .env
 Go to `Event Subscriptions` -> `Request URL` and set it to the Events URL you got in the previous step. Upon saving, Slack will send a request to the URL to verify it. If everything is configured correctly, you will see a green Verified checkmark. If you see an error instead, check the logs of the deployment on [Jina AI Cloud](https://cloud.jina.ai/user/flows).
 
 <p align="center">
-  <img src="../../../.github/images/slack-requests-url.png" alt="Slack Request URL" width="80%"/>
+  <img src="../../.github/images/slack-requests-url.png" alt="Slack Request URL" width="80%"/>
 </p>
