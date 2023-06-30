@@ -231,7 +231,10 @@ pip install langchain-serve
 
 langchain-serve exposes a `@slackbot` decorator to quickly build, deploy & distribute LLM-powered Slack bots without worrying about the infrastructure. It provides a simple interface to any langchain app on and makes them super accessible to users a platform they're already comfortable with.
 
-✨ Ready to dive in? There's a [step-by-step guide in the repository](lcserve/apps/slackbot/) to help you build your own bot.
+✨ Ready to dive in? 
+
+- There's a [step-by-step guide in the repository](lcserve/apps/slackbot/) to help you build your own bot for helping with reasoning.
+- Here's another [step-by-step guide](examples/hrbot/README.md) to help you chat over own internal HR-realted documents (like onboarding, policies etc.) with your employees right inside your Slack workspace.
 
 ---
 
