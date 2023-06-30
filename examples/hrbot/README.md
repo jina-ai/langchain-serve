@@ -1,6 +1,8 @@
-# 🤖👔 HR Slack Bot
+# 🤖👔 LangChain-powered HR Slack Bot
 
-Following is a step-by-step guide to build & deploy a customizable LLM-powered Slack bot designed to streamline & automate various HR tasks and interactions on Slack based in PDF documents on internal Google Drive. It is designed to assist both employees and the HR team, enhancing efficiency and engagement within the workspace.
+Leveraging the power of Langchain, we present a guide to building and deploying a LLM-powered HR Slack bot. Langchain simplifies the creation of potent LLM applications, while Langchain-serve enables seamless cloud deployment, bringing these applications closer to users and enhancing accessibility.
+
+In this guide, we focus on constructing a Slack bot specifically designed to automate and streamline HR tasks and interactions. This bot, powered by internal PDF documents on Google Drive, is an essential tool for both employees and the HR team, promoting efficiency and engagement in the workspace. Harness the potential of Langchain and Langchain-serve to make complex tasks manageable and transform your HR processes.
 
 
 <table align="center">
@@ -11,10 +13,10 @@ Following is a step-by-step guide to build & deploy a customizable LLM-powered S
   </thead>
   <tbody>
     <tr>
-      <td><img src="../../.github/images/slack-hrbot-thread-1.png" width="200"/></td>
-      <td><img src="../../.github/images/slack-hrbot-thread-2.png" width="200"/></td>
-      <td><img src="../../.github/images/slack-hrbot-thread-3.png" width="200"/></td>
-      <td><img src="../../.github/images/slack-hrbot-thread-4.png" width="200"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-1.png" width="220"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-2.png" width="220"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-3.png" width="220"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-4.png" width="220"/></td>
     </tr>
     <tr>
       <td align="center">1</td>
@@ -150,3 +152,20 @@ lc-serve deploy jcloud app --env .env
 <p align="center">
   <img src="../../.github/images/slack-hrbot-slash-command.png" alt="Slack Slash Command" width="60%"/>
 </p>
+
+
+### 👉 Step 8: Use the bot in your workspace
+
+You can now use the bot in your workspace. Make sure you invite the bot to the channel you want to use it in. You can do that by typing `/invite @langchain-hrbot` in the channel.
+
+
+By default, the bot doesn't have access to any of your documents. We've added 2 slash commands to help you with that.
+
+- **Refresh index from Google drive** - You can give it access to your documents by typing `/refresh-gdrive-index` in the channel. This will index all the pdf files in your GDrive, create `Tools` from them and save it in the workspace. You can then use the bot to ask questions about the internal documents relevant to your company.
+- **Remove index from Google drive** - You can remove the index by typing `/remove-gdrive-index` in the channel. This will remove the index from the workspace.
+
+<p align="center">
+  <img src="../../.github/images/slack-command-refresh.png" alt="Slack Demo" width="60%"/>
+</p>
+
+Once the index is created, you can ask the bot questions about the internal documents. You can do that by mentioning the bot in the channel and asking the question. For example, `@langchain-hrbot what is the leave policy?`. The bot will then use the question to search the index and answer it.
