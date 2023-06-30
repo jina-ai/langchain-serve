@@ -5,7 +5,7 @@ Leveraging the power of Langchain, we present a guide to building and deploying 
 In this guide, we focus on constructing a Slack bot specifically designed to automate and streamline HR tasks and interactions. This bot, powered by internal PDF documents on Google Drive, is an essential tool for both employees and the HR team, promoting efficiency and engagement in the workspace. Harness the potential of Langchain and Langchain-serve to make complex tasks manageable and transform your HR processes.
 
 
-<table align="center">
+<table align="center" id="hrbot-demo">
   <thead>
     <tr>
       <th colspan="4" style="text-align:center;">HR Bot helping a new employee & the HR team with onboarding & queries about the HR policies</th>
@@ -175,4 +175,6 @@ By default, the bot doesn't have access to any of your documents. We've added 2 
   </tr>
 </table>
 
-Once the index is created, you can ask the bot questions about the internal documents. You can do that by mentioning the bot in the channel and asking the question. For example, `@langchain-hrbot what is the leave policy?`. The bot will then use the question to search the index and answer it.
+Once the index is created, you can ask the bot questions about the internal documents. You can do that by mentioning the bot in the channel and asking the question. For example, `@langchain-hrbot what is the leave policy?`. The bot will then use the question to search the index and answer it. 
+
+[Check out the demo at the top of this page to see it in action](#hrbot-demo).
