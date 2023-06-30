@@ -32,6 +32,10 @@ features:
       url: https://your-app.wolf.jina.ai/slack/events
       description: Refresh GDrive Index
       should_escape: false
+    - command: /remove-gdrive-index
+      url: https://your-app.wolf.jina.ai/slack/events
+      description: Remove GDrive index from workspace
+      should_escape: false
 oauth_config:
   redirect_urls:
     - https://cloud.jina.ai/

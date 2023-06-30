@@ -43,6 +43,19 @@ TOOLS:
 You have access to the following tools:"""
 
 
+def remove_gdrive_index(workspace: str, reply: Callable = None, **kwargs):
+    for root, _, files in os.walk(workspace):
+        for file in files:
+            if (
+                file.endswith(".faiss")
+                or file.endswith(".pkl")
+                or file.endswith("-tool.json")
+            ):
+                os.remove(os.path.join(root, file))
+    if reply:
+        reply("Removed all index files from workspace")
+
+
 def refresh_gdrive_index(workspace: str, reply: Callable = None, **kwargs):
     llm = OpenAI(temperature=0, verbose=True)
     service = get_gdrive_service()
@@ -69,19 +82,19 @@ def refresh(**kwargs) -> str:
 @slackbot(
     commands={
         '/refresh-gdrive-index': refresh_gdrive_index,
+        '/remove-gdrive-index': remove_gdrive_index,
     }
 )
 def hrbot(
     message: str,
     history: ChatMessageHistory,
-    tools: List[Tool],
     reply: Callable,
     workspace: str,
     **kwargs,
 ):
     llm = OpenAI(temperature=0, verbose=True)
     update_cache(workspace)
-    tools.extend(load_tools_from_disk(llm=llm, path=workspace))
+    tools = load_tools_from_disk(llm=llm, path=workspace)
     prompt = ConversationalAgent.create_prompt(
         tools=tools,
         prefix=get_hrbot_prefix(),
