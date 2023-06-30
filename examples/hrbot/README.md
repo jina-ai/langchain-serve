@@ -115,7 +115,7 @@ You will be redirected to the app configuration page. Your app needs 2 tokens to
     - You can find the token under `OAuth & Permissions` -> `OAuth Tokens for Your Workspace`. Copy it and save it somewhere safe. 
     - It'd be used as `SLACK_BOT_TOKEN` in the next step.
 
-### 👉 Step 4: Create required `.env` file
+### 👉 Step 4: Create the required `.env` file
 
 Create a `.env` file with the following content. Replace the values with the ones you got in the previous step. Without these, the bot won't be able to authenticate itself with Slack.
 
@@ -126,6 +126,15 @@ OPENAI_API_TOKEN=<your-openai-api-token>
 ```
 
 ### 👉 Step 5: Create your GDrive service account and download the credentials
+
+This hrbot builds on the following documents (created by ChatGPT)
+
+- [Team Communications Guide](https://drive.google.com/file/d/1XgUcM2f1l6RsqjpyX4PIW5gLFDwNn1Qq/view?usp=drive_link)
+- [Leave Policy](https://drive.google.com/file/d/1K21DMGm5ofH-k9qVGvez9nJ5U4lAByRE/view?usp=drive_link)
+- [Code of Conduct](https://drive.google.com/file/d/1ugoWUfXizs1_PoYFiut2egIHMXhLZJZJ/view?usp=drive_link)
+- [Remote Work Policy](https://drive.google.com/file/d/14OYFJO3tywOTE6a06aVqAN5-A5zFtDIu/view?usp=drive_link)
+- [Zac's Onboarding Guide](https://drive.google.com/file/d/1h4dwvENHHNVmU4ug2Zp3Bm6-bd4P_XxW/view?usp=drive_link)
+
 
 To allow the bot to access the pdf files in your GDrive, you need to create a service account and download the credentials. You can read more about it [here](https://developers.google.com/identity/protocols/oauth2/service-account#creatinganaccount). Once you have the credentials, save it as `gdrive-service-account.json` in the `examples/hrbot` directory.
 
