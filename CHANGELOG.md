@@ -48,6 +48,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1253,4 +1254,32 @@
 ### 🍹 Other Improvements
 
  - [[```f3e520d8```](https://github.com/jina-ai/langchain-serve/commit/f3e520d836be3afbb29db1c30b489c4ed89c5c97)] __-__ __version__: the next version will be 0.0.48 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-49></a>
+## Release Note (`0.0.49`)
+
+> Release time: 2023-06-30 09:48:52
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```c44b5fe5```](https://github.com/jina-ai/langchain-serve/commit/c44b5fe535fcb46fa35961ae587caa242d745a7c)] __-__ hr-slackbot example (*Deepankar Mahapatro*)
+ - [[```de908f10```](https://github.com/jina-ai/langchain-serve/commit/de908f1068922d8892fc45f63b9784a495678413)] __-__ __slackbot__: slash commands (*Deepankar Mahapatro*)
+ - [[```d3967f6a```](https://github.com/jina-ai/langchain-serve/commit/d3967f6aa5f55ba31a15718bf98a7ae9807ceb4f)] __-__ access prompt prefix, suffix (*Deepankar Mahapatro*)
+
+### 📗 Documentation
+
+ - [[```2b50b61d```](https://github.com/jina-ai/langchain-serve/commit/2b50b61d47c530202a551b02d7a6fe7e603e7dd0)] __-__ add requests url screenshot (*Deepankar Mahapatro*)
+ - [[```0a980502```](https://github.com/jina-ai/langchain-serve/commit/0a98050209e898c8665c2f310cd31415390ec2af)] __-__ refactor serving readme (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```10c19960```](https://github.com/jina-ai/langchain-serve/commit/10c19960b8eb751b77507aa309a18c46d874a6c6)] __-__ __version__: the next version will be 0.0.49 (*Jina Dev Bot*)
+ - [[```f3e520d8```](https://github.com/jina-ai/langchain-serve/commit/f3e520d836be3afbb29db1c30b489c4ed89c5c97)] __-__ __version__: the next version will be 0.0.48 (*Jina Dev Bot*)
+ - [[```5be0d81f```](https://github.com/jina-ai/langchain-serve/commit/5be0d81f30a4e06c3064d5e6e89f26b9b6104088)] __-__ Merge pull request #112 from jina-ai/slackbot-readme (*Deepankar Mahapatro*)
 
