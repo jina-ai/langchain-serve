@@ -4,29 +4,31 @@ Leveraging the power of Langchain, we present a guide to building and deploying 
 
 In this guide, we focus on constructing a Slack bot specifically designed to automate and streamline HR tasks and interactions. This bot, powered by internal PDF documents on Google Drive, is an essential tool for both employees and the HR team, promoting efficiency and engagement in the workspace. Harness the potential of Langchain and Langchain-serve to make complex tasks manageable and transform your HR processes.
 
-
 <table align="center" id="hrbot-demo">
   <thead>
     <tr>
-      <th colspan="4" style="text-align:center;">HR Bot helping a new employee & the HR team with onboarding & queries about the HR policies</th>
+      <th colspan="2" style="text-align:center;">HR Bot helping a new employee & the HR team with onboarding & queries about the HR policies</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><img src="../../.github/images/slack-hrbot-thread-1.png" width="220"/></td>
-      <td><img src="../../.github/images/slack-hrbot-thread-2.png" width="220"/></td>
-      <td><img src="../../.github/images/slack-hrbot-thread-3.png" width="220"/></td>
-      <td><img src="../../.github/images/slack-hrbot-thread-4.png" width="220"/></td>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-1.png" width="220"/></td>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-2.png" width="220"/></td>
     </tr>
     <tr>
       <td align="center">1</td>
       <td align="center">2</td>
+    </tr>
+    <tr>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-3.png" width="220"/></td>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-4.png" width="220"/></td>
+    </tr>
+    <tr>
       <td align="center">3</td>
       <td align="center">4</td>
     </tr>
   </tbody>
 </table>
-
 
 
 ### 👉 Step 1: Install langchain-serve
