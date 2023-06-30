@@ -165,7 +165,8 @@ By default, the bot doesn't have access to any of your documents. We've added 2 
 - **Remove index from Google drive** - You can remove the index by typing `/remove-gdrive-index` in the channel. This will remove the index from the workspace.
 
 <p align="center">
-  <img src="../../.github/images/slack-command-refresh.png" alt="Slack Demo" width="60%"/>
+  <img src="../../.github/images/slack-commands.png" alt="Slack Demo" width="40%"/>
+  <img src="../../.github/images/slack-command-refresh.png" alt="Slack Demo" width="40%"/>
 </p>
 
 Once the index is created, you can ask the bot questions about the internal documents. You can do that by mentioning the bot in the channel and asking the question. For example, `@langchain-hrbot what is the leave policy?`. The bot will then use the question to search the index and answer it.
