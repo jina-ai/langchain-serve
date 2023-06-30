@@ -11,10 +11,10 @@ Following is a step-by-step guide to build & deploy a customizable LLM-powered S
   </thead>
   <tbody>
     <tr>
-      <td><img src="../../../.github/images/slack-hrbot-thread-1.png" width="200"/></td>
-      <td><img src="../../../.github/images/slack-hrbot-thread-2.png" width="200"/></td>
-      <td><img src="../../../.github/images/slack-hrbot-thread-3.png" width="200"/></td>
-      <td><img src="../../../.github/images/slack-hrbot-thread-4.png" width="200"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-1.png" width="200"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-2.png" width="200"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-3.png" width="200"/></td>
+      <td><img src="../../.github/images/slack-hrbot-thread-4.png" width="200"/></td>
     </tr>
     <tr>
       <td align="center">1</td>
