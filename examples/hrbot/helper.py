@@ -108,9 +108,9 @@ def index_pdfs_and_save(
     basedir: str,
     llm: OpenAI,
 ):
-    base_description = (
-        """Useful when you need to answer questions about {description}."""
-    )
+    base_description = """\
+Useful when you need to answer questions about {description}. \
+Input should be a a fully formed question."""
     tools_stored = []
 
     for pdf_file in pdf_files:
