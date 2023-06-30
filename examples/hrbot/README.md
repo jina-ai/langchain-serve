@@ -12,16 +12,16 @@ In this guide, we focus on constructing a Slack bot specifically designed to aut
   </thead>
   <tbody>
     <tr>
-      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-1.png" width="220"/></td>
-      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-2.png" width="220"/></td>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-1.png" width="400"/></td>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-2.png" width="400"/></td>
     </tr>
     <tr>
       <td align="center">1</td>
       <td align="center">2</td>
     </tr>
     <tr>
-      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-3.png" width="220"/></td>
-      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-4.png" width="220"/></td>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-3.png" width="400"/></td>
+      <td valign="middle"><img src="../../.github/images/slack-hrbot-thread-4.png" width="400"/></td>
     </tr>
     <tr>
       <td align="center">3</td>
