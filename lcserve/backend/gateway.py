@@ -1224,7 +1224,8 @@ class LoggingMiddleware:
         ]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope['path'] not in self.skip_routes:
+        # Not Scope obj has path key, e.g., lifespan type of scope
+        if scope.get('path', '') not in self.skip_routes:
             # Get IP address, use X-Forwarded-For if set else use scope['client'][0]
             ip_address = scope.get('client')[0] if scope.get('client') else None
             if scope.get('headers'):
