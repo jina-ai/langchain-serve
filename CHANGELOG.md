@@ -49,6 +49,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1282,4 +1283,27 @@
  - [[```10c19960```](https://github.com/jina-ai/langchain-serve/commit/10c19960b8eb751b77507aa309a18c46d874a6c6)] __-__ __version__: the next version will be 0.0.49 (*Jina Dev Bot*)
  - [[```f3e520d8```](https://github.com/jina-ai/langchain-serve/commit/f3e520d836be3afbb29db1c30b489c4ed89c5c97)] __-__ __version__: the next version will be 0.0.48 (*Jina Dev Bot*)
  - [[```5be0d81f```](https://github.com/jina-ai/langchain-serve/commit/5be0d81f30a4e06c3064d5e6e89f26b9b6104088)] __-__ Merge pull request #112 from jina-ai/slackbot-readme (*Deepankar Mahapatro*)
+
+<a name=release-note-0-0-50></a>
+## Release Note (`0.0.50`)
+
+> Release time: 2023-07-03 13:49:27
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```7b961598```](https://github.com/jina-ai/langchain-serve/commit/7b9615985f797e93158468615f8625d28eb93cc1)] __-__ logging middle scope check error (*Zac Li*)
+
+### 📗 Documentation
+
+ - [[```cd17dcc1```](https://github.com/jina-ai/langchain-serve/commit/cd17dcc1bd625a767475061f227b195c894524c9)] __-__ add link to hrbot documents (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```d6f93486```](https://github.com/jina-ai/langchain-serve/commit/d6f934862dc2ed8ce8784295ff983a61e00bc19a)] __-__ __version__: the next version will be 0.0.50 (*Jina Dev Bot*)
 
