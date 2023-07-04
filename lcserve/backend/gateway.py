@@ -1184,7 +1184,8 @@ class MetricsMiddleware:
         ]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope['path'] not in self.skip_routes:
+        # Not Scope obj has path key, e.g., lifespan type of scope
+        if scope.get('path', '') not in self.skip_routes:
             timer = Timer(5)
             shared_data = timer.SharedData(last_reported_time=time.perf_counter())
             send_duration_task = asyncio.create_task(
