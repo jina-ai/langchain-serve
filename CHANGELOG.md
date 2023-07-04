@@ -50,6 +50,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1306,4 +1307,23 @@
 ### 🍹 Other Improvements
 
  - [[```d6f93486```](https://github.com/jina-ai/langchain-serve/commit/d6f934862dc2ed8ce8784295ff983a61e00bc19a)] __-__ __version__: the next version will be 0.0.50 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-51></a>
+## Release Note (`0.0.51`)
+
+> Release time: 2023-07-04 06:49:01
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```ec43705a```](https://github.com/jina-ai/langchain-serve/commit/ec43705a840fe863569da328dd71a16248d3d8fc)] __-__ metrics middleware scope check bug (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```7dd90736```](https://github.com/jina-ai/langchain-serve/commit/7dd90736e6a621bcb1c7b94e49325032c693e6b0)] __-__ __version__: the next version will be 0.0.51 (*Jina Dev Bot*)
 
