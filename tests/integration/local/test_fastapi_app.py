@@ -21,6 +21,24 @@ APP = "tests.integration.fastapi_app.endpoints:app"
 
 @pytest.mark.parametrize(
     "run_fastapi_app_locally, route",
+    [(APP, "startup_check")],
+    indirect=["run_fastapi_app_locally"],
+)
+def test_start_up_event_with_gateway(run_fastapi_app_locally, route):
+    url = os.path.join(HTTP_HOST, route)
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    response = requests.get(url, headers=headers)
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data == {"startup_event_ran": True}
+
+
+@pytest.mark.parametrize(
+    "run_fastapi_app_locally, route",
     [(APP, "status"), (APP, "astatus")],
     indirect=["run_fastapi_app_locally"],
 )

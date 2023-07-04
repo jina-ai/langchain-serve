@@ -5,6 +5,19 @@ from typing import Union
 from fastapi import FastAPI, WebSocket
 
 app = FastAPI()
+startup_event_ran = False
+
+
+@app.on_event("startup")
+async def startup_event():
+    global startup_event_ran
+    startup_event_ran = True
+
+
+@app.get("/startup_check")
+def check_startup_event():
+    # This endpoint is to signify if lifespan/startup event from @app.on_event("startup") works with our middleware
+    return {"startup_event_ran": startup_event_ran}
 
 
 @app.get("/status")

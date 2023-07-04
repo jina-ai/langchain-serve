@@ -1184,13 +1184,14 @@ class MetricsMiddleware:
         ]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        # Not Scope obj has path key, e.g., lifespan type of scope
-        if scope.get('path', '') not in self.skip_routes:
+        # Not all Scope objs have path key, e.g., lifespan type of scope
+        path = scope.get('path')
+        if path and path not in self.skip_routes:
             timer = Timer(5)
             shared_data = timer.SharedData(last_reported_time=time.perf_counter())
             send_duration_task = asyncio.create_task(
                 timer.send_duration_periodically(
-                    shared_data, scope['path'], scope['type'], self.duration_counter
+                    shared_data, path, scope['type'], self.duration_counter
                 )
             )
             try:
@@ -1200,11 +1201,11 @@ class MetricsMiddleware:
                 if self.duration_counter:
                     self.duration_counter.add(
                         time.perf_counter() - shared_data.last_reported_time,
-                        {'route': scope['path'], 'protocol': scope['type']},
+                        {'route': path, 'protocol': scope['type']},
                     )
                 if self.request_counter:
                     self.request_counter.add(
-                        1, {'route': scope['path'], 'protocol': scope['type']}
+                        1, {'route': path, 'protocol': scope['type']}
                     )
         else:
             await self.app(scope, receive, send)
@@ -1225,8 +1226,9 @@ class LoggingMiddleware:
         ]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        # Not Scope obj has path key, e.g., lifespan type of scope
-        if scope.get('path', '') not in self.skip_routes:
+        # Not all Scope objs have path key, e.g., lifespan type of scope
+        path = scope.get('path')
+        if path and path not in self.skip_routes:
             # Get IP address, use X-Forwarded-For if set else use scope['client'][0]
             ip_address = scope.get('client')[0] if scope.get('client') else None
             if scope.get('headers'):
@@ -1261,11 +1263,11 @@ class LoggingMiddleware:
 
             if scope["type"] == "http":
                 self.logger.info(
-                    f"HTTP request: {request_id} - Path: {scope['path']} - Client IP: {ip_address} - Status code: {status_code} - Duration: {duration} s"
+                    f"HTTP request: {request_id} - Path: {path} - Client IP: {ip_address} - Status code: {status_code} - Duration: {duration} s"
                 )
             elif scope["type"] == "websocket":
                 self.logger.info(
-                    f"WebSocket connection: {connection_id} - Path: {scope['path']} - Client IP: {ip_address} - Duration: {duration} s"
+                    f"WebSocket connection: {connection_id} - Path: {path} - Client IP: {ip_address} - Duration: {duration} s"
                 )
 
         else:
