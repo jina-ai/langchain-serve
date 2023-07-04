@@ -51,6 +51,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1326,4 +1327,23 @@
 ### 🍹 Other Improvements
 
  - [[```7dd90736```](https://github.com/jina-ai/langchain-serve/commit/7dd90736e6a621bcb1c7b94e49325032c693e6b0)] __-__ __version__: the next version will be 0.0.51 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-52></a>
+## Release Note (`0.0.52`)
+
+> Release time: 2023-07-04 09:46:18
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```67d89d4a```](https://github.com/jina-ai/langchain-serve/commit/67d89d4ad7eb9cbc374a7259bc19b776db5bdc34)] __-__ middleware issues (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```156018a5```](https://github.com/jina-ai/langchain-serve/commit/156018a5a3b89ada79bae8bc6ec2962daa1437df)] __-__ __version__: the next version will be 0.0.52 (*Jina Dev Bot*)
 
