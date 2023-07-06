@@ -52,6 +52,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1346,4 +1347,33 @@
 ### 🍹 Other Improvements
 
  - [[```156018a5```](https://github.com/jina-ai/langchain-serve/commit/156018a5a3b89ada79bae8bc6ec2962daa1437df)] __-__ __version__: the next version will be 0.0.52 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-53></a>
+## Release Note (`0.0.53`)
+
+> Release time: 2023-07-06 08:32:55
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```b7ca41b9```](https://github.com/jina-ai/langchain-serve/commit/b7ca41b9b026fb325b84ca9822afc6e8fa578f7d)] __-__ make sure workspace is set as env in fastapi app (*Zac Li*)
+
+### 📗 Documentation
+
+ - [[```67b1d672```](https://github.com/jina-ai/langchain-serve/commit/67b1d672931be1b32079957c6c9b114721bf287d)] __-__ update about pause (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```66079e18```](https://github.com/jina-ai/langchain-serve/commit/66079e18650b5caf38e287cf3706c55d03571c7c)] __-__ integraion test (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```df32cb38```](https://github.com/jina-ai/langchain-serve/commit/df32cb383bc7b21f27e060d556734499c4ec91f8)] __-__ remove old readmes (*Deepankar Mahapatro*)
+ - [[```8477885b```](https://github.com/jina-ai/langchain-serve/commit/8477885b9eab0e316c759ab68968ae982ad8e7e7)] __-__ cap jcloud version under 0.2.12 (*Deepankar Mahapatro*)
+ - [[```8ea92878```](https://github.com/jina-ai/langchain-serve/commit/8ea92878720ea1c0d31e476e6c14e156c26e59a6)] __-__ __version__: the next version will be 0.0.53 (*Jina Dev Bot*)
 
