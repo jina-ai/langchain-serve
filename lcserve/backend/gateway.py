@@ -323,11 +323,12 @@ class ServingGateway(FastAPIBaseGateway):
     def _init_fastapi_app(self):
         from fastapi import FastAPI
 
-        if self._fastapi_app_str is not None:
-            self.logger.info(f'Loading app from {self._fastapi_app_str}')
-            self._app, _ = import_from_string(self._fastapi_app_str)
-        else:
-            self._app = FastAPI()
+        with EnvironmentVarCtxtManager({'JCLOUD_WORKSPACE': self.workspace}):
+            if self._fastapi_app_str is not None:
+                self.logger.info(f'Loading app from {self._fastapi_app_str}')
+                self._app, _ = import_from_string(self._fastapi_app_str)
+            else:
+                self._app = FastAPI()
 
     def _configure_cors(self):
         if self.cors:
