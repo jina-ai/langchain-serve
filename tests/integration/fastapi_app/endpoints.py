@@ -1,4 +1,5 @@
 import asyncio
+import os
 import time
 from typing import Union
 
@@ -16,8 +17,10 @@ async def startup_event():
 
 @app.get("/startup_check")
 def check_startup_event():
-    # This endpoint is to signify if lifespan/startup event from @app.on_event("startup") works with our middleware
-    return {"startup_event_ran": startup_event_ran}
+    # This endpoint to:
+    # 1. signify if lifespan/startup event from @app.on_event("startup") works with our middleware
+    # 2. signify if env var is currently set
+    return {"startup_event_ran": startup_event_ran, "envvar": os.environ}
 
 
 @app.get("/status")
