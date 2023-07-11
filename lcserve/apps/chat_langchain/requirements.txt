@@ -1,0 +1,4 @@
+langchain==0.0.204
+beautifulsoup4==4.12.2
+tiktoken==0.4.0
+docarray[weaviate, elasticsearch]==0.33.0
