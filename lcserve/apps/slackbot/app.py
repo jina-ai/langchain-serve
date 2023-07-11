@@ -1,3 +1,4 @@
+import os
 from typing import Callable, List
 
 import langchain
@@ -12,7 +13,7 @@ from lcserve import get_memory, slackbot
 def update_cache(path):
     from langchain.cache import SQLiteCache
 
-    langchain.llm_cache = SQLiteCache(database_path=path / "llm_cache.db")
+    langchain.llm_cache = SQLiteCache(database_path=os.path.join(path, "llm_cache.db"))
 
 
 @slackbot
