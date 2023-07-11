@@ -53,6 +53,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1376,4 +1377,23 @@
  - [[```df32cb38```](https://github.com/jina-ai/langchain-serve/commit/df32cb383bc7b21f27e060d556734499c4ec91f8)] __-__ remove old readmes (*Deepankar Mahapatro*)
  - [[```8477885b```](https://github.com/jina-ai/langchain-serve/commit/8477885b9eab0e316c759ab68968ae982ad8e7e7)] __-__ cap jcloud version under 0.2.12 (*Deepankar Mahapatro*)
  - [[```8ea92878```](https://github.com/jina-ai/langchain-serve/commit/8ea92878720ea1c0d31e476e6c14e156c26e59a6)] __-__ __version__: the next version will be 0.0.53 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-54></a>
+## Release Note (`0.0.54`)
+
+> Release time: 2023-07-11 04:40:41
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🐞 Bug fixes
+
+ - [[```161a7de6```](https://github.com/jina-ai/langchain-serve/commit/161a7de662983068b4042836d55a2ccdcdfc108e)] __-__ path concat bug in slack demo app (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```28d099c8```](https://github.com/jina-ai/langchain-serve/commit/28d099c80d71620cf2ce59b747d9ee90ceddd7f4)] __-__ __version__: the next version will be 0.0.54 (*Jina Dev Bot*)
 
