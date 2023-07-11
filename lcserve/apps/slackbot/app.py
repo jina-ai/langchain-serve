@@ -3,6 +3,7 @@ from typing import Callable, List
 
 import langchain
 from langchain.agents import AgentExecutor, ConversationalAgent
+from langchain.callbacks.manager import CallbackManager
 from langchain.memory import ChatMessageHistory
 from langchain.prompts import PromptTemplate
 from langchain.tools import Tool
@@ -16,13 +17,14 @@ def update_cache(path):
     langchain.llm_cache = SQLiteCache(database_path=os.path.join(path, "llm_cache.db"))
 
 
-@slackbot
+@slackbot(openai_tracing=True)
 def agent(
     message: str,
     prompt: PromptTemplate,
     history: ChatMessageHistory,
     tools: List[Tool],
     reply: Callable,
+    tracing_handler,
     workspace: str,
     **kwargs,
 ):
@@ -33,7 +35,7 @@ def agent(
     memory = get_memory(history)
     agent = ConversationalAgent(
         llm_chain=LLMChain(
-            llm=ChatOpenAI(temperature=0, verbose=True),
+            llm=ChatOpenAI(temperature=0, verbose=True, callbacks=[tracing_handler]),
             prompt=prompt,
         ),
         allowed_tools=[tool.name for tool in tools],

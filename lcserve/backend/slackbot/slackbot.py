@@ -30,6 +30,8 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 if TYPE_CHECKING:
     from opentelemetry.sdk.metrics import Counter
 
+    from ..langchain_helper import OpenAICallbackHandler, TracingCallbackHandler
+
 
 PROGRESS_MESSAGE = "Processing..."
 
@@ -40,6 +42,7 @@ class SlackBot:
     def __init__(
         self,
         workspace: str,
+        tracing_handler: Union['OpenAICallbackHandler', 'TracingCallbackHandler'],
         request_counter: Optional['Counter'] = None,
         duration_counter: Optional['Counter'] = None,
     ):
@@ -56,6 +59,7 @@ class SlackBot:
         self.workspace = workspace
         self.request_counter = request_counter
         self.duration_counter = duration_counter
+        self.tracing_handler = tracing_handler
         self.handler = SlackRequestHandler(self.slack_app)
         self._parser = PydanticOutputParser(pydantic_object=TextOrBlock)
 
@@ -428,6 +432,7 @@ Human: {input}
                     thread_ts=_thread_ts,
                     parser=self._parser,
                 ),
+                tracing_handler=self.tracing_handler,
                 workspace=self.workspace,
                 user=_user,
                 context=context,
@@ -465,6 +470,7 @@ Human: {input}
                     thread_ts=_thread_ts,
                     parser=self._parser,
                 ),
+                tracing_handler=self.tracing_handler,
                 workspace=self.workspace,
                 user=_channel,
                 context=context,
@@ -496,6 +502,7 @@ Human: {input}
                         user_id=_user,
                         command=command,
                     ),
+                    tracing_handler=self.tracing_handler,
                     user=_channel,
                     context=context,
                 )

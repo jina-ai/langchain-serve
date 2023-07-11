@@ -607,7 +607,7 @@ class ServingGateway(FastAPIBaseGateway):
         func: Callable,
         dirname: str,
         commands: Dict[str, Callable] = None,
-        openai_tracing: bool = False,  # TODO: add openai_tracing to slackbot
+        openai_tracing: bool = False,
         **kwargs,
     ):
         from fastapi import Request
@@ -616,10 +616,21 @@ class ServingGateway(FastAPIBaseGateway):
             from .slackbot import SlackBot
 
             self.logger.info(f'Registering slackbot: {func.__name__}')
+
+            if openai_tracing:
+                tracing_handler = OpenAITracingCallbackHandler(
+                    tracer=self.tracer, parent_span=get_current_span()
+                )
+            else:
+                tracing_handler = TracingCallbackHandler(
+                    tracer=self.tracer, parent_span=get_current_span()
+                )
+
             bot = SlackBot(
                 workspace=self.workspace,
                 duration_counter=self.duration_counter,
                 request_counter=self.request_counter,
+                tracing_handler=tracing_handler,
             )
 
             @self.app.post("/slack/events")
