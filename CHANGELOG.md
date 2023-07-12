@@ -54,6 +54,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1396,4 +1397,24 @@
 ### 🍹 Other Improvements
 
  - [[```28d099c8```](https://github.com/jina-ai/langchain-serve/commit/28d099c80d71620cf2ce59b747d9ee90ceddd7f4)] __-__ __version__: the next version will be 0.0.54 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-55></a>
+## Release Note (`0.0.55`)
+
+> Release time: 2023-07-12 03:56:28
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```ddecd4c8```](https://github.com/jina-ai/langchain-serve/commit/ddecd4c8242a2c3f014c39add01db1758e70c5d1)] __-__ tracing for slackbot (*Zac Li*)
+ - [[```db7ccd24```](https://github.com/jina-ai/langchain-serve/commit/db7ccd24a5e913680d7b064b443da0cddbe1a442)] __-__ tracking for slack (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```f622954e```](https://github.com/jina-ai/langchain-serve/commit/f622954ee028d2ebeb716912473c6d8254417ffb)] __-__ __version__: the next version will be 0.0.55 (*Jina Dev Bot*)
 
