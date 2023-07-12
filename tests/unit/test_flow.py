@@ -56,6 +56,8 @@ flow_dict_template = {
     },
     "jcloud": {
         "name": "langchain",
+        "docarray": "0.21.0",
+        "version": "3.18.0",
         "labels": {"app": "langchain"},
         "monitor": {
             "traces": {"enable": True},
