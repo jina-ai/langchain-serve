@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import logging
 from dataclasses import dataclass
@@ -166,7 +167,12 @@ class TracingCallbackHandlerMixin(BaseCallbackHandler):
                 "chain", context=context, end_on_exit=False
             ) as span:
                 span.set_attribute("otel.operation.name", operation)
-                span.add_event("inputs", {"data": json.dumps(inputs)})
+
+                # If the event is from slack bot, we need to pop chat_history as it's not serializable,
+                # nor do we need the chat_history anyway for tracing.
+                copied_inputs = copy.deepcopy(inputs)
+                copied_inputs.pop('chat_history', None)
+                span.add_event("inputs", {"data": json.dumps(copied_inputs)})
                 self._register_span(run_id, span)
         except Exception:
             self.logger.error("Error in tracing callback handler", exc_info=True)

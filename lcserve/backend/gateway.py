@@ -295,8 +295,9 @@ class ServingGateway(FastAPIBaseGateway):
         self._init_fastapi_app()
         self._configure_cors()
         self._register_healthz()
-        self._register_modules()
+        # _setup_metrics needs to be invoked before _register_modules since slack requires tracking metrics
         self._setup_metrics()
+        self._register_modules()
         self._setup_logging()
 
     @property
@@ -360,8 +361,8 @@ class ServingGateway(FastAPIBaseGateway):
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
         if not self.meter_provider:
-            self.http_duration_counter = None
-            self.ws_duration_counter = None
+            self.duration_counter = None
+            self.request_counter = None
             return
 
         FastAPIInstrumentor.instrument_app(
@@ -606,7 +607,7 @@ class ServingGateway(FastAPIBaseGateway):
         func: Callable,
         dirname: str,
         commands: Dict[str, Callable] = None,
-        openai_tracing: bool = False,  # TODO: add openai_tracing to slackbot
+        openai_tracing: bool = False,
         **kwargs,
     ):
         from fastapi import Request
@@ -615,7 +616,22 @@ class ServingGateway(FastAPIBaseGateway):
             from .slackbot import SlackBot
 
             self.logger.info(f'Registering slackbot: {func.__name__}')
-            bot = SlackBot(workspace=self.workspace)
+
+            if openai_tracing:
+                tracing_handler = OpenAITracingCallbackHandler(
+                    tracer=self.tracer, parent_span=get_current_span()
+                )
+            else:
+                tracing_handler = TracingCallbackHandler(
+                    tracer=self.tracer, parent_span=get_current_span()
+                )
+
+            bot = SlackBot(
+                workspace=self.workspace,
+                duration_counter=self.duration_counter,
+                request_counter=self.request_counter,
+                tracing_handler=tracing_handler,
+            )
 
             @self.app.post("/slack/events")
             async def endpoint(req: Request):
@@ -1182,6 +1198,7 @@ class MetricsMiddleware:
             '/dry_run',
             '/metrics',
             '/favicon.ico',
+            '/slack/events',
         ]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -1224,6 +1241,7 @@ class LoggingMiddleware:
             '/dry_run',
             '/metrics',
             '/favicon.ico',
+            '/slack/events',
         ]
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:

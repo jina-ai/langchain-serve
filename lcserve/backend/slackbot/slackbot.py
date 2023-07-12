@@ -1,7 +1,18 @@
 import json
 import os
+import time
 from functools import lru_cache
-from typing import Any, Callable, Dict, Generator, List, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 from urllib.parse import urlparse
 
 from jina.logging.logger import JinaLogger
@@ -16,13 +27,25 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+if TYPE_CHECKING:
+    from opentelemetry.sdk.metrics import Counter
+
+    from ..langchain_helper import OpenAICallbackHandler, TracingCallbackHandler
+
+
 PROGRESS_MESSAGE = "Processing..."
 
 
 class SlackBot:
     _logger = JinaLogger('SlackBot')
 
-    def __init__(self, workspace: str):
+    def __init__(
+        self,
+        workspace: str,
+        tracing_handler: Union['OpenAICallbackHandler', 'TracingCallbackHandler'],
+        request_counter: Optional['Counter'] = None,
+        duration_counter: Optional['Counter'] = None,
+    ):
         from langchain.output_parsers import PydanticOutputParser
         from slack_bolt import App
         from slack_bolt.adapter.fastapi import SlackRequestHandler
@@ -34,6 +57,9 @@ class SlackBot:
 
         self.slack_app = App()
         self.workspace = workspace
+        self.request_counter = request_counter
+        self.duration_counter = duration_counter
+        self.tracing_handler = tracing_handler
         self.handler = SlackRequestHandler(self.slack_app)
         self._parser = PydanticOutputParser(pydantic_object=TextOrBlock)
 
@@ -354,7 +380,23 @@ Human: {input}
             suffix=SlackBot.get_agent_prompt_suffix(),
         )
 
+    def metrics_decorator(self, func):
+        def wrapper_timer(*args, **kwargs):
+            start_time = time.perf_counter()
+            result = func(*args, **kwargs)
+            end_time = time.perf_counter()
+            elapsed_time = end_time - start_time
+            if self.request_counter:
+                self.request_counter.add(1)
+            if self.duration_counter:
+                self.duration_counter.add(elapsed_time)
+            return result
+
+        return wrapper_timer
+
     def app_mention(self, func):
+        func = self.metrics_decorator(func)
+
         @self.slack_app.event('app_mention')
         def wrapper(client: WebClient, body, context):
             _event: Dict = body["event"]
@@ -390,6 +432,7 @@ Human: {input}
                     thread_ts=_thread_ts,
                     parser=self._parser,
                 ),
+                tracing_handler=self.tracing_handler,
                 workspace=self.workspace,
                 user=_user,
                 context=context,
@@ -398,6 +441,8 @@ Human: {input}
         return wrapper
 
     def message(self, func):
+        func = self.metrics_decorator(func)
+
         @self.slack_app.event('message')
         def wrapper(client, body, context):
             _event: Dict = body["event"]
@@ -425,6 +470,7 @@ Human: {input}
                     thread_ts=_thread_ts,
                     parser=self._parser,
                 ),
+                tracing_handler=self.tracing_handler,
                 workspace=self.workspace,
                 user=_channel,
                 context=context,
@@ -434,6 +480,8 @@ Human: {input}
 
     def command(self, command: str):
         def decorator(command_func):
+            command_func = self.metrics_decorator(command_func)
+
             @self.slack_app.command(command)
             def wrapper(ack, client, body, context):
                 ack()
@@ -454,6 +502,7 @@ Human: {input}
                         user_id=_user,
                         command=command,
                     ),
+                    tracing_handler=self.tracing_handler,
                     user=_channel,
                     context=context,
                 )
