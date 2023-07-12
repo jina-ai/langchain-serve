@@ -32,6 +32,9 @@ AUTOGPT_APP_NAME = 'autogpt'
 SLACKBOT_DEMO_APP_NAME = 'slackbot'
 SLACK_BOT_NAME = 'langchain-bot'
 
+JINA_VERSION = '3.18.0'
+DOCARRAY_VERSION = '0.21.0'
+
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
 PRICING_URL = "****{cph}**** ([Read about pricing here](https://github.com/jina-ai/langchain-serve#-pricing))"
@@ -408,6 +411,8 @@ def get_global_jcloud_args(app_id: str = None, name: str = APP_NAME) -> Dict:
             'labels': {
                 'app': APP_NAME,
             },
+            'version': JINA_VERSION,
+            'docarray': DOCARRAY_VERSION,
             'monitor': {
                 'traces': {
                     'enable': True,
