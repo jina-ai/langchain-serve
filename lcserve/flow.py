@@ -38,6 +38,7 @@ DOCARRAY_VERSION = '0.21.0'
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
 PRICING_URL = "****{cph}**** ([Read about pricing here](https://github.com/jina-ai/langchain-serve#-pricing))"
+INIT_MODULE = '__init__'
 
 
 def syncify(f):
@@ -150,6 +151,11 @@ def get_module_dir(
     _add_to_path(lcserve_app=lcserve_app)
 
     if module_str is not None:
+        # if module_str is ., then it is the current directory. So, we can use __init__ as the module
+        if module_str == '.':
+            module_str = INIT_MODULE
+        # if module_str is a directory, then importing `module_str` will import the __init__.py file in that directory
+
         _module = _load_module_from_str(module_str)
         _is_websocket = _any_websocket_router_in_module(_module)
         _module_dir = _get_parent_dir(modname=module_str, filename=_module.__file__)
@@ -462,6 +468,13 @@ def get_flow_dict(
     env: str = None,
     lcserve_app: bool = False,
 ) -> Dict:
+    # if module_str is ., then it is the current directory. So, we can use __init__ as the module
+    if module_str == '.':
+        module_str = INIT_MODULE
+    # if module_str is a directory, we need to change the module_str to __init__, as during upload we only upload the directory. Only for jcloud
+    elif module_str and os.path.isdir(module_str) and jcloud:
+        module_str = INIT_MODULE
+
     if jcloud:
         jcloud_config = get_jcloud_config(
             config_path=jcloud_config_path, timeout=timeout, is_websocket=is_websocket
