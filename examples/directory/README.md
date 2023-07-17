@@ -1,4 +1,4 @@
-## Deploy endpoints from different files at a time
+## Deploy endpoints from different files
 
 lc-serve also allows you to deploy endpoints from different files at a time. This is useful when you want to deploy endpoints from different files at a time.
 
