@@ -1,3 +1,6 @@
+import os
+import sys
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
 
@@ -6,7 +9,7 @@ if TYPE_CHECKING:
 
 import hubble
 
-
+APPDIR = '/appdir'
 JINAAI_PREFIX = 'jinaai://'
 
 
@@ -50,3 +53,17 @@ def download_df(id: str, read_csv_kwargs={}) -> 'DataFrame':
         df = pd.read_csv(id, **read_csv_kwargs)
         df.columns = [col.strip('" ') for col in df.columns]
         return df
+
+
+def fix_sys_path(lcserve_app: bool = False):
+    if os.getcwd() not in sys.path:
+        sys.path.append(os.getcwd())
+    if Path(APPDIR).exists() and APPDIR not in sys.path:
+        # This is where the app code is mounted in the container
+        sys.path.append(APPDIR)
+
+    if lcserve_app:
+        # register all predefined apps to sys.path if they exist
+        if os.path.exists(os.path.join(APPDIR, 'lcserve', 'apps')):
+            for app in os.listdir(os.path.join(APPDIR, 'lcserve', 'apps')):
+                sys.path.append(os.path.join(APPDIR, 'lcserve', 'apps', app))

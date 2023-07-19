@@ -42,7 +42,6 @@ from .langchain_helper import (
 )
 from .playground.utils.helper import (
     AGENT_OUTPUT,
-    APPDIR,
     DEFAULT_KEY,
     LANGCHAIN_API_PORT,
     LANGCHAIN_PLAYGROUND_PORT,
@@ -56,6 +55,7 @@ from .playground.utils.helper import (
     run_cmd,
     run_function,
 )
+from .utils import fix_sys_path
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -291,7 +291,7 @@ class ServingGateway(FastAPIBaseGateway):
         self._modules = modules
         self._fastapi_app_str = fastapi_app_str
         self._lcserve_app = lcserve_app
-        self._fix_sys_path()
+        fix_sys_path()
         self._init_fastapi_app()
         self._configure_cors()
         self._register_healthz()
@@ -343,19 +343,6 @@ class ServingGateway(FastAPIBaseGateway):
                 allow_methods=['*'],
                 allow_headers=['*'],
             )
-
-    def _fix_sys_path(self):
-        if os.getcwd() not in sys.path:
-            sys.path.append(os.getcwd())
-        if Path(APPDIR).exists() and APPDIR not in sys.path:
-            # This is where the app code is mounted in the container
-            sys.path.append(APPDIR)
-
-        if self._lcserve_app:
-            # register all predefined apps to sys.path if they exist
-            if os.path.exists(os.path.join(APPDIR, 'lcserve', 'apps')):
-                for app in os.listdir(os.path.join(APPDIR, 'lcserve', 'apps')):
-                    sys.path.append(os.path.join(APPDIR, 'lcserve', 'apps', app))
 
     def _setup_metrics(self):
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -483,6 +470,13 @@ class ServingGateway(FastAPIBaseGateway):
                 dirname=dirname,
                 commands=_decorator_params.get('commands', None),
                 openai_tracing=_decorator_params.get('openai_tracing', False),
+            )
+        elif hasattr(func, '__job__'):
+            self._register_job(
+                func,
+                dirname=dirname,
+                timeout=_decorator_params.get('timeout', 600),
+                backofflimit=_decorator_params.get('backofflimit', 6),
             )
 
     def _register_http_route(
@@ -638,6 +632,38 @@ class ServingGateway(FastAPIBaseGateway):
                 return await bot.handler.handle(req)
 
             bot.register(func=func, commands=commands)
+
+    def _register_job(
+        self,
+        func: Callable,
+        dirname: str,
+        timeout: int = 600,
+        backofflimit: int = 6,
+        **kwargs,
+    ):
+        from fastapi import Request
+
+        with ChangeDirCtxtManager(dirname):
+            self.logger.info(f'Registering job: {func.__name__}')
+
+            @self.app.post(f'/{func.__name__}')
+            async def job(req: Request):
+                namespace = os.getenv('K8S_NAMESPACE_NAME', 'no')
+                app_name = os.getenv('LCSERVE_APP_NAME', 'no')
+                flow_id = app_name + '-' + namespace.split('-')[1]
+                image_id = os.getenv('LCSERVE_IMAGE', 'no')
+
+                from jcloud.flow import CloudFlow
+
+                job_response = await CloudFlow(flow_id=flow_id).create_job(
+                    job_name=func.__name__,
+                    image_name=image_id,
+                    backofflimit=backofflimit,
+                    timeout=timeout,
+                    entrypoint="python lcserve/backend/cli.py --help",
+                )
+                print(job_response)
+                return f'job -  timeout {timeout} - backofflimit {backofflimit} - flowid {flow_id} - image {image_id}'
 
 
 def _get_files_data(kwargs: Dict) -> Dict:
