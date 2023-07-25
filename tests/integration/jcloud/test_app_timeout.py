@@ -14,6 +14,7 @@ from ..helper import deploy_jcloud_app
 async def test_timeout():
     timeout = 60
     async with deploy_jcloud_app(timeout=timeout) as app_id:
+        time.sleep(60)
         _test_http_route(app_id, timeout)
         await _test_ws_route(app_id, timeout)
 
