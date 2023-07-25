@@ -1,3 +1,4 @@
+import uuid
 from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
 
@@ -5,7 +6,6 @@ if TYPE_CHECKING:
     from pandas import DataFrame
 
 import hubble
-
 
 JINAAI_PREFIX = 'jinaai://'
 
@@ -50,3 +50,7 @@ def download_df(id: str, read_csv_kwargs={}) -> 'DataFrame':
         df = pd.read_csv(id, **read_csv_kwargs)
         df.columns = [col.strip('" ') for col in df.columns]
         return df
+
+
+def get_random_name():
+    return 'f-' + uuid.uuid4().hex[:6]

@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import requests
 import yaml
+from dotenv import dotenv_values
 from jina import Flow
 
 from .config import DEFAULT_TIMEOUT, get_jcloud_config
@@ -650,6 +651,32 @@ async def deploy_app_on_jcloud(
                 return app_id, v
 
     return None, None
+
+
+async def patch_secret_on_jcloud(
+    flow_dict: Dict, app_id: str, secret: str, verbose: bool = False
+):
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+    from .backend.utils import get_random_name
+
+    os.environ['JCLOUD_LOGLEVEL'] = 'INFO' if verbose else 'ERROR'
+
+    from jcloud.flow import CloudFlow
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        flow_path = os.path.join(tmpdir, 'flow.yml')
+        with open(flow_path, 'w') as f:
+            yaml.safe_dump(flow_dict, f, sort_keys=False)
+
+        deploy_envs = {'JCLOUD_HIDE_SUCCESS_MSG': 'true'} if not verbose else {}
+        with EnvironmentVarCtxtManager(deploy_envs):
+            jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
+            secret_name = get_random_name()
+
+            secrets_values = dict(dotenv_values(secret))
+            await jcloud_flow.create_secret(
+                secret_name=secret_name, env_secret_data=secrets_values, update=True
+            )
 
 
 async def get_app_status_on_jcloud(app_id: str):
