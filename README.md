@@ -201,6 +201,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   - 🔑 Protect your APIs with [API authorization](#-authorize-your-apis) using Bearer tokens. 
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless, autoscaling apps that scales automatically with your traffic.
+  - 🗝️ Secure handling of secrets and environment variables.
   - 📁 Persistent storage (EFS) mounted on your app for your data.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
@@ -369,7 +370,120 @@ lc-serve deploy jcloud --app endpoints:app
 
 </details>
 
----
+## 🗝️ Using Secrets during Deployment
+
+You can use secrets during app deployment by passing a secrets file to deployment with the `--secrets` flag. The secrets file should be a `.env` file containing the secrets.
+
+```bash
+lcserve deploy jcloud app --secrets .env
+```
+
+<details>
+<summary>Show details</summary>
+
+Let's take an example of a simple FastAPI app that uses an external Redis instance for rate-limiting endpoints.
+
+### 🚦 Deploy a FastAPI app with redis based rate-limiting
+
+This directory contains the following files:
+
+```
+.
+├── main.py             # The FastAPI app
+├── jcloud.yml          # JCloud deployment config file with 2 replicas
+├── README.md           # This README file
+├── requirements.txt    # The requirements file for the FastAPI app
+└── secrets.env         # The secrets file containing the redis credentials
+```
+
+> **Note**
+> `secret.env` in this directory is a dummy file. You should replace it with your own secrets after creating a Redis instance. (For example with [Upstash](https://upstash.com/)), such as:
+
+```text
+REDIS_HOST=redis-12345.upstash.io
+REDIS_PORT=12345
+REDIS_PASSWORD=12345
+```
+
+`main.py` will look like:
+
+```python
+# main.py
+import os
+
+from fastapi import Depends, FastAPI
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
+from redis.asyncio import Redis
+
+app = FastAPI()
+
+
+@app.on_event("startup")
+async def startup():
+    host = os.getenv("REDIS_HOST", "localhost")
+    port = os.getenv("REDIS_PORT", 6379)
+    password = os.getenv("REDIS_PASSWORD", None)
+    redis = Redis(
+        host=host, port=port, password=password, decode_responses=True, ssl=True
+    )
+    await FastAPILimiter.init(redis)
+
+
+@app.get("/endpoint", dependencies=[Depends(RateLimiter(times=2, seconds=5))])
+async def endpoint():
+    return {"msg": "Hello World"}
+```
+
+In the above example, we are using the `fastapi-limiter` library to limit `/endpoint` to accepting only 2 requests every 5 seconds. The library uses Redis to store the rate limit counters. We are using the `redis` library to connect to the Redis instance. The Redis credentials are read from the environment variables.
+
+### 🚀 Deploying to Jina AI Cloud
+
+```bash
+lc-serve deploy jcloud --app main:app --secrets secrets.env
+```
+
+```text
+╭─────────────────────────┬────────────────────────────────────────────────────────────────────────╮
+│ App ID                  │                           langchain-3b9f461694                         │
+├─────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Phase                   │                                Serving                                 │
+├─────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Endpoint                │                https://langchain-3b9f461694.wolf.jina.ai               │
+├─────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ App logs                │                         https://cloud.jina.ai/                         │
+├─────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Base credits (per hour) │                      20.04 (Read about pricing here)                   │
+├─────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Swagger UI              │              https://langchain-3b9f461694.wolf.jina.ai/docs            │
+├─────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ OpenAPI JSON            │          https://langchain-3b9f461694.wolf.jina.ai/openapi.json        │
+╰─────────────────────────┴────────────────────────────────────────────────────────────────────────╯
+```
+
+### 💻 Testing
+
+To test the rate-limiting, we can send a GET request to the endpoint:
+
+```bash
+curl -X GET "https://langchain-3b9f461694.wolf.jina.ai/endpoint"
+```
+
+```json
+{
+  "msg": "Hello World"
+}
+```
+
+The endpoint allows 2 requests every 5 seconds. If you send more than 2 requests within 5 seconds, you will get the following response:
+
+```json
+{
+  "detail": "Too many requests"
+}
+```
+
+</details>
 
 ## 💻 `lc-serve` CLI
 
