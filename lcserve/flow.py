@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import requests
 import yaml
+from dotenv import dotenv_values
 from jina import Flow
 
 from .backend.utils import fix_sys_path
@@ -39,6 +40,7 @@ DOCARRAY_VERSION = '0.21.0'
 ServingGatewayConfigFile = 'servinggateway_config.yml'
 APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
 PRICING_URL = "****{cph}**** ([Read about pricing here](https://github.com/jina-ai/langchain-serve#-pricing))"
+INIT_MODULE = '__init__'
 
 
 def syncify(f):
@@ -151,6 +153,11 @@ def get_module_dir(
     fix_sys_path(lcserve_app=lcserve_app)
 
     if module_str is not None:
+        # if module_str is ., then it is the current directory. So, we can use __init__ as the module
+        if module_str == '.':
+            module_str = INIT_MODULE
+        # if module_str is a directory, then importing `module_str` will import the __init__.py file in that directory
+
         _module = _load_module_from_str(module_str)
         _is_websocket = _any_websocket_router_in_module(_module)
         _module_dir = _get_parent_dir(modname=module_str, filename=_module.__file__)
@@ -465,6 +472,13 @@ def get_flow_dict(
     env: str = None,
     lcserve_app: bool = False,
 ) -> Dict:
+    # if module_str is ., then it is the current directory. So, we can use __init__ as the module
+    if module_str == '.':
+        module_str = INIT_MODULE
+    # if module_str is a directory, we need to change the module_str to __init__, as during upload we only upload the directory. Only for jcloud
+    elif module_str and os.path.isdir(module_str) and jcloud:
+        module_str = INIT_MODULE
+
     if jcloud:
         jcloud_config = get_jcloud_config(
             config_path=jcloud_config_path, timeout=timeout, is_websocket=is_websocket
@@ -643,6 +657,32 @@ async def deploy_app_on_jcloud(
                 return app_id, v
 
     return None, None
+
+
+async def patch_secret_on_jcloud(
+    flow_dict: Dict, app_id: str, secret: str, verbose: bool = False
+):
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+    from .backend.utils import get_random_name
+
+    os.environ['JCLOUD_LOGLEVEL'] = 'INFO' if verbose else 'ERROR'
+
+    from jcloud.flow import CloudFlow
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        flow_path = os.path.join(tmpdir, 'flow.yml')
+        with open(flow_path, 'w') as f:
+            yaml.safe_dump(flow_dict, f, sort_keys=False)
+
+        deploy_envs = {'JCLOUD_HIDE_SUCCESS_MSG': 'true'} if not verbose else {}
+        with EnvironmentVarCtxtManager(deploy_envs):
+            jcloud_flow = CloudFlow(path=flow_path, flow_id=app_id)
+            secret_name = get_random_name()
+
+            secrets_values = dict(dotenv_values(secret))
+            await jcloud_flow.create_secret(
+                secret_name=secret_name, env_secret_data=secrets_values, update=True
+            )
 
 
 async def get_app_status_on_jcloud(app_id: str):

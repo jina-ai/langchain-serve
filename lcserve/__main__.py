@@ -29,7 +29,7 @@ from .flow import (
     list_apps_on_jcloud,
     list_jobs_on_jcloud,
     load_local_df,
-    pause_app_on_jcloud,
+    patch_secret_on_jcloud,
     remove_app_on_jcloud,
     resume_app_on_jcloud,
     syncify,
@@ -70,6 +70,7 @@ async def serve_on_jcloud(
     config: str = None,
     cors: bool = True,
     env: str = None,
+    secret: str = None,
     verbose: bool = False,
     public: bool = False,
     lcserve_app: bool = False,
@@ -96,25 +97,40 @@ async def serve_on_jcloud(
             public=public,
         )
 
+    # Get the flow dict
+    flow_dict = get_flow_dict(
+        module_str=module_str,
+        fastapi_app_str=fastapi_app_str,
+        jcloud=True,
+        port=8080,
+        name=name,
+        timeout=timeout,
+        app_id=app_id,
+        gateway_id=gateway_id,
+        is_websocket=is_websocket,
+        jcloud_config_path=config,
+        cors=cors,
+        env=env,
+        lcserve_app=lcserve_app,
+    )
+
+    # Deploy the app
     app_id, _ = await deploy_app_on_jcloud(
-        flow_dict=get_flow_dict(
-            module_str=module_str,
-            fastapi_app_str=fastapi_app_str,
-            jcloud=True,
-            port=8080,
-            name=name,
-            timeout=timeout,
-            app_id=app_id,
-            gateway_id=gateway_id,
-            is_websocket=is_websocket,
-            jcloud_config_path=config,
-            cors=cors,
-            env=env,
-            lcserve_app=lcserve_app,
-        ),
+        flow_dict=flow_dict,
         app_id=app_id,
         verbose=verbose,
     )
+
+    # If secret is not None, create a secret and update the app
+    if secret is not None:
+        await patch_secret_on_jcloud(
+            flow_dict=flow_dict,
+            app_id=app_id,
+            secret=secret,
+            verbose=verbose,
+        )
+
+    # Show the app status
     await get_app_status_on_jcloud(app_id=app_id)
     return app_id
 
@@ -129,6 +145,7 @@ async def serve_babyagi_on_jcloud(
     config: str = None,
     cors: bool = True,
     env: str = None,
+    secret: str = None,
     verbose: bool = False,
     public: bool = False,
 ):
@@ -151,6 +168,7 @@ async def serve_babyagi_on_jcloud(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
         lcserve_app=True,
@@ -167,6 +185,7 @@ async def serve_autogpt_on_jcloud(
     config: str = None,
     cors: bool = True,
     env: str = None,
+    secret: str = None,
     verbose: bool = False,
     public: bool = False,
 ):
@@ -188,6 +207,7 @@ async def serve_autogpt_on_jcloud(
         platform=platform,
         config=config,
         env=env,
+        secret=secret,
         cors=cors,
         verbose=verbose,
         public=public,
@@ -205,6 +225,7 @@ async def serve_pdf_qna_on_jcloud(
     config: str = None,
     cors: bool = True,
     env: str = None,
+    secret: str = None,
     verbose: bool = False,
     public: bool = False,
 ):
@@ -220,6 +241,7 @@ async def serve_pdf_qna_on_jcloud(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
         lcserve_app=True,
@@ -236,6 +258,7 @@ async def serve_pandas_ai_on_jcloud(
     config: str = None,
     cors: bool = True,
     env: str = None,
+    secret: str = None,
     verbose: bool = False,
     public: bool = False,
 ):
@@ -251,6 +274,7 @@ async def serve_pandas_ai_on_jcloud(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
         lcserve_app=True,
@@ -267,6 +291,7 @@ async def serve_slackbot_demo_on_jcloud(
     config: str = None,
     cors: bool = True,
     env: str = None,
+    secret: str = None,
     verbose: bool = False,
     public: bool = False,
 ):
@@ -282,6 +307,7 @@ async def serve_slackbot_demo_on_jcloud(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
         lcserve_app=True,
@@ -399,17 +425,24 @@ _jcloud_shared_options = [
         show_default=False,
     ),
     click.option(
+        '--cors',
+        is_flag=True,
+        help='Enable CORS.',
+        default=True,
+        show_default=True,
+    ),
+    click.option(
         '--env',
         type=click.Path(exists=True),
         help='Path to the environment file',
         show_default=False,
     ),
     click.option(
-        '--cors',
-        is_flag=True,
-        help='Enable CORS.',
-        default=True,
-        show_default=True,
+        '--secret',
+        '--secrets',
+        type=click.Path(exists=True),
+        help='Path to the secrets file (should be a .env file)',
+        show_default=False,
     ),
     click.option(
         '--verbose',
@@ -677,6 +710,7 @@ async def jcloud(
     config,
     cors,
     env,
+    secret,
     verbose,
     public,
 ):
@@ -693,6 +727,7 @@ async def jcloud(
         platform=platform,
         config=config,
         env=env,
+        secret=secret,
         cors=cors,
         verbose=verbose,
         public=public,
@@ -720,6 +755,7 @@ async def babyagi(
     config,
     cors,
     env,
+    secret,
     verbose,
     public,
 ):
@@ -733,6 +769,7 @@ async def babyagi(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
     )
@@ -759,6 +796,7 @@ async def pdf_qna(
     config,
     cors,
     env,
+    secret,
     verbose,
     public,
 ):
@@ -772,6 +810,7 @@ async def pdf_qna(
         platform=platform,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
     )
@@ -798,6 +837,7 @@ async def autogpt(
     config,
     cors,
     env,
+    secret,
     verbose,
     public,
 ):
@@ -811,6 +851,7 @@ async def autogpt(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
     )
@@ -837,6 +878,7 @@ async def pandas_ai(
     config,
     cors,
     env,
+    secret,
     verbose,
     public,
 ):
@@ -850,6 +892,7 @@ async def pandas_ai(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
     )
@@ -876,6 +919,7 @@ async def slackbot_demo(
     config,
     cors,
     env,
+    secret,
     verbose,
     public,
 ):
@@ -889,6 +933,7 @@ async def slackbot_demo(
         config=config,
         cors=cors,
         env=env,
+        secret=secret,
         verbose=verbose,
         public=public,
     )

@@ -1,5 +1,6 @@
 import os
 import sys
+import uuid
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
@@ -67,3 +68,7 @@ def fix_sys_path(lcserve_app: bool = False):
         if os.path.exists(os.path.join(APPDIR, 'lcserve', 'apps')):
             for app in os.listdir(os.path.join(APPDIR, 'lcserve', 'apps')):
                 sys.path.append(os.path.join(APPDIR, 'lcserve', 'apps', app))
+
+
+def get_random_name():
+    return 'f-' + uuid.uuid4().hex[:6]

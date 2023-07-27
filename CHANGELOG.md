@@ -56,6 +56,8 @@
 
 
 
+
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1437,4 +1439,58 @@
 ### 🍹 Other Improvements
 
  - [[```55c5a81c```](https://github.com/jina-ai/langchain-serve/commit/55c5a81cf2f6981165f4e2b53c000cea08d161ad)] __-__ __version__: the next version will be 0.0.56 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-57></a>
+## Release Note (`0.0.57`)
+
+> Release time: 2023-07-17 10:58:11
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```3e841f12```](https://github.com/jina-ai/langchain-serve/commit/3e841f12a5b54184bf1dc2237500a4a8a272ba2c)] __-__ support directories (*Deepankar Mahapatro*)
+
+### 🍹 Other Improvements
+
+ - [[```84f855e0```](https://github.com/jina-ai/langchain-serve/commit/84f855e0685ba755cef7024377db0e2d4569f28c)] __-__ __version__: the next version will be 0.0.57 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-58></a>
+## Release Note (`0.0.58`)
+
+> Release time: 2023-07-27 06:14:03
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Deepankar Mahapatro,  Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```12384fa0```](https://github.com/jina-ai/langchain-serve/commit/12384fa05254dcbbd2075c28f0b03c50a8045c79)] __-__ support secrets (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```f75922c5```](https://github.com/jina-ai/langchain-serve/commit/f75922c5aa29710961c07967f9edd636ef916e11)] __-__ update requirements.txt (*Deepankar Mahapatro*)
+ - [[```e014cdd2```](https://github.com/jina-ai/langchain-serve/commit/e014cdd2afc0c52892447fdd23138ca8e8db2970)] __-__ jcloud version (*Zac Li*)
+ - [[```6e4499fb```](https://github.com/jina-ai/langchain-serve/commit/6e4499fb78b94c27df492657250d776a5ab19ba2)] __-__ integration test fix (*Zac Li*)
+
+### 📗 Documentation
+
+ - [[```1f33c6ff```](https://github.com/jina-ai/langchain-serve/commit/1f33c6ffc4b5ae5331c9084f8a146a5edf7e34f2)] __-__ update (*Zac Li*)
+ - [[```1ee8aa1e```](https://github.com/jina-ai/langchain-serve/commit/1ee8aa1eec593fd7299ed9cb1ec98e1ed09820b2)] __-__ secret docs (*Zac Li*)
+ - [[```6b2fd26f```](https://github.com/jina-ai/langchain-serve/commit/6b2fd26f0749fddfec4b791d880240c71336c48f)] __-__ update readme.md (*Deepankar Mahapatro*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```b385fc58```](https://github.com/jina-ai/langchain-serve/commit/b385fc58537ecf10b0609d787e4b27807e2fbc40)] __-__ fix tests (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```d538013b```](https://github.com/jina-ai/langchain-serve/commit/d538013b053cd751b314f053a47f3f4ef2ddd5b6)] __-__ __version__: the next version will be 0.0.58 (*Jina Dev Bot*)
 

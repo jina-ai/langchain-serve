@@ -201,6 +201,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   - 🔑 Protect your APIs with [API authorization](#-authorize-your-apis) using Bearer tokens. 
   - 📄 Swagger UI, and OpenAPI spec included with your APIs.
   - ⚡️ Serverless, autoscaling apps that scales automatically with your traffic.
+  - 🗝️ Secure handling of secrets and environment variables.
   - 📁 Persistent storage (EFS) mounted on your app for your data.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
@@ -369,7 +370,71 @@ lc-serve deploy jcloud --app endpoints:app
 
 </details>
 
----
+## 🗝️ Using Secrets during Deployment
+
+You can use secrets during app deployment by passing a secrets file to deployment with the `--secrets` flag. The secrets file should be a `.env` file containing the secrets.
+
+```bash
+lcserve deploy jcloud app --secrets .env
+```
+
+<details>
+<summary>Show details</summary>
+
+Let's take an example of a simple app that uses `OPENAI_API_KEY` stored as secrets.
+
+This app directory contains the following files:
+
+```
+.
+├── main.py             # The app
+├── jcloud.yml          # JCloud deployment config file
+├── README.md           # This README file
+├── requirements.txt    # The requirements file for the app
+└── secrets.env         # The secrets file containing the redis credentials
+```
+
+> **Note**
+> `secret.env` in this directory is a dummy file. You should replace it with your own secrets after creating a Redis instance. (For example with [Upstash](https://upstash.com/)), such as:
+
+```text
+OPENAI_API_KEY=sk-xxx
+```
+
+`main.py` will look like:
+
+```python
+# main.py
+from lcserve import serving
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain.chat_models import ChatOpenAI
+
+prompt = PromptTemplate(
+    input_variables=["subject"],
+    template="Write me a short poem about {subject}?",
+)
+
+
+@serving(openai_tracing=True)
+def poem(subject: str, **kwargs):
+    tracing_handler = kwargs.get("tracing_handler")
+
+    chat = ChatOpenAI(temperature=0.5, callbacks=[tracing_handler])
+    chain = LLMChain(llm=chat, prompt=prompt, callbacks=[tracing_handler])
+
+    return chain.run(subject)
+```
+
+In the above example, the app will use `OPENAI_API_KEY` provided by the secrets to interact with OpenAI.
+
+Then you can deploy using the following command and interact with the deployed endpoint.
+
+```bash
+lc-serve deploy jcloud main --secrets secrets.env
+```
+
+</details>
 
 ## 💻 `lc-serve` CLI
 
