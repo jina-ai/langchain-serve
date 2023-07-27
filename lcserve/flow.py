@@ -127,23 +127,6 @@ def _any_websocket_router_in_module(module: ModuleType) -> bool:
     return False
 
 
-def get_uri(id: str, tag: str):
-    import requests
-    from hubble import Auth
-
-    r = requests.get(
-        f"https://apihubble.jina.ai/v2/executor/getMeta?id={id}&tag={tag}",
-        headers={"Authorization": f"token {Auth.get_auth_token()}"},
-    )
-    _json = r.json()
-    if _json is None:
-        print(f'Could not find image with id {id} and tag {tag}')
-        return
-    _image_name = _json['data']['name']
-    _user_name = _json['meta']['owner']['name']
-    return f'jinaai+docker://{_user_name}/{_image_name}:{tag}'
-
-
 def get_module_dir(
     module_str: str = None,
     fastapi_app_str: str = None,
@@ -492,8 +475,10 @@ def get_flow_dict(
         _envs = dict(dotenv_values(env))
 
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
-    _envs['LCSERVE_IMAGE'] = uses
-    _envs['LCSERVE_APP_NAME'] = name
+
+    if jcloud:
+        _envs['LCSERVE_IMAGE'] = uses
+        _envs['LCSERVE_APP_NAME'] = name
 
     flow_dict = {
         'jtype': 'Flow',
@@ -850,10 +835,16 @@ async def list_jobs_on_jcloud(flow_id: str):
         for job in all_jobs:
             _t.add_row(
                 job['name'],
-                job['status']['conditions'][-1]['type'],
+                job['status']['conditions'][-1]['type']
+                if job['status'].get('conditions')
+                else 'Failed',
                 cleanup_dt(job['status']['startTime']),
                 cleanup_dt(job['status'].get('completionTime', 'N/A')),
-                cleanup_dt(job['status']['conditions'][-1]['lastProbeTime']),
+                cleanup_dt(
+                    job['status']['conditions'][-1]['lastProbeTime']
+                    if job['status'].get('conditions')
+                    else 'N/A'
+                ),
             )
     console.print(_t)
 

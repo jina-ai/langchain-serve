@@ -1,5 +1,3 @@
-import json
-
 import click
 
 
@@ -15,11 +13,12 @@ import click
     required=True,
 )
 @click.option(
-    '--args',
-    type=str,
+    '--param',
+    type=(str, str),
+    multiple=True,
     required=True,
 )
-def cli(module, name, args):
+def cli(module, name, param):
     import importlib
 
     from utils import fix_sys_path
@@ -27,7 +26,7 @@ def cli(module, name, args):
     fix_sys_path()
 
     mod = importlib.import_module(module)
-    getattr(mod, name)(**json.loads(args))
+    getattr(mod, name)(**dict(param))
 
 
 if __name__ == '__main__':

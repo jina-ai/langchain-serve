@@ -1,8 +1,8 @@
 import asyncio
 import inspect
+import json
 import os
 import shutil
-import sys
 import time
 import traceback
 import uuid
@@ -641,29 +641,53 @@ class ServingGateway(FastAPIBaseGateway):
         backofflimit: int = 6,
         **kwargs,
     ):
-        from fastapi import Request
+        from fastapi import Body, Header, HTTPException
+        from fastapi.security.utils import get_authorization_scheme_param
 
         with ChangeDirCtxtManager(dirname):
             self.logger.info(f'Registering job: {func.__name__}')
 
             @self.app.post(f'/{func.__name__}')
-            async def job(req: Request):
-                namespace = os.getenv('K8S_NAMESPACE_NAME', 'no')
-                app_name = os.getenv('LCSERVE_APP_NAME', 'no')
-                flow_id = app_name + '-' + namespace.split('-')[1]
-                image_id = os.getenv('LCSERVE_IMAGE', 'no')
+            async def job(
+                req: Dict = Body(...), authorization: Optional[str] = Header(None)
+            ):
+                if authorization is None:
+                    raise HTTPException(
+                        status_code=400, detail="Missing auth token in header"
+                    )
+                scheme, token = get_authorization_scheme_param(authorization)
+                if scheme.lower() != "bearer":
+                    raise HTTPException(
+                        status_code=400, detail="Invalid token type. Expected 'Bearer'"
+                    )
+
+                os.environ['JINA_AUTH_TOKEN'] = token
+
+                try:
+                    flow_id = (
+                        os.getenv('LCSERVE_APP_NAME')
+                        + '-'
+                        + os.getenv('K8S_NAMESPACE_NAME').split('-')[1]
+                    )
+                    job_name = func.__name__ + '-' + uuid.uuid4().hex[:5]
+                    image_id = os.getenv('LCSERVE_IMAGE')
+                    params = ' '.join([f'--param {k} {v}' for k, v in req.items()])
+                    entrypoint = f"python lcserve/backend/cli.py --module {self._modules[0]} --name {func.__name__} {params}"
+                except Exception as e:
+                    self.logger.error("An error occurred: %s", str(e), exc_info=True)
+                    return {"message": 'Job failed to create!'}
 
                 from jcloud.flow import CloudFlow
 
                 job_response = await CloudFlow(flow_id=flow_id).create_job(
-                    job_name=func.__name__,
+                    job_name=job_name,
                     image_name=image_id,
                     backofflimit=backofflimit,
                     timeout=timeout,
-                    entrypoint="python lcserve/backend/cli.py --help",
+                    entrypoint=entrypoint,
                 )
-                print(job_response)
-                return f'job -  timeout {timeout} - backofflimit {backofflimit} - flowid {flow_id} - image {image_id}'
+
+                return {"message": 'Job was created!', "job_id": job_response["name"]}
 
 
 def _get_files_data(kwargs: Dict) -> Dict:
