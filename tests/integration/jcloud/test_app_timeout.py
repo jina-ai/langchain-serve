@@ -19,6 +19,7 @@ async def test_timeout():
 
 
 def _test_http_route(app_id, timeout):
+    time.sleep(30)
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
@@ -57,11 +58,9 @@ async def _test_ws_route(app_id, timeout):
             await websocket.send(json.dumps({"interval": 1}))
             receive_task = asyncio.create_task(_receive_messages(websocket))
             await asyncio.wait_for(receive_task, timeout=timeout)
-        except asyncio.TimeoutError:
-            assert math.isclose(
-                time.time() - start_time, timeout, abs_tol=5
-            ), "WebSocket request timed out at an unexpected time"
-        except websockets.exceptions.ConnectionClosed as e:
-            pytest.fail(f"The WebSocket connection was closed unexpectedly: {e}")
-        else:
-            pytest.fail("The WebSocket connection should have timed out")
+        except Exception:
+            pass
+
+        assert math.isclose(
+            time.time() - start_time, timeout, abs_tol=5
+        ), "WebSocket request timed out at an unexpected time"

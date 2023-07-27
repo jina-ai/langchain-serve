@@ -1,4 +1,5 @@
 import json
+import time
 
 import pytest
 import requests
@@ -19,6 +20,7 @@ async def test_basic_app():
 
 
 def _test_http_route(app_id):
+    time.sleep(30)
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
