@@ -643,6 +643,7 @@ class ServingGateway(FastAPIBaseGateway):
     ):
         from fastapi import Body, Header, HTTPException
         from fastapi.security.utils import get_authorization_scheme_param
+        from jcloud.flow import CloudFlow
 
         with ChangeDirCtxtManager(dirname):
             self.logger.info(f'Registering job: {func.__name__}')
@@ -671,13 +672,19 @@ class ServingGateway(FastAPIBaseGateway):
                     )
                     job_name = func.__name__ + '-' + uuid.uuid4().hex[:5]
                     image_id = os.getenv('LCSERVE_IMAGE')
-                    params = ' '.join([f'--param {k} {v}' for k, v in req.items()])
-                    entrypoint = f"python lcserve/backend/cli.py --module {self._modules[0]} --name {func.__name__} {params}"
+                    entrypoint = [
+                        'python',
+                        'lcserve/backend/cli.py',
+                        '--module',
+                        self._modules[0],
+                        '--name',
+                        f'job-{func.__name__}',
+                        '--params',
+                        json.dumps({k: v for k, v in req.items()}),
+                    ]
                 except Exception as e:
                     self.logger.error("An error occurred: %s", str(e), exc_info=True)
                     return {"message": 'Job failed to create!'}
-
-                from jcloud.flow import CloudFlow
 
                 job_response = await CloudFlow(flow_id=flow_id).create_job(
                     job_name=job_name,
@@ -686,6 +693,9 @@ class ServingGateway(FastAPIBaseGateway):
                     timeout=timeout,
                     entrypoint=entrypoint,
                 )
+                if job_response.get("error"):
+                    self.logger.error("An error occurred: %s", job_response["error"])
+                    raise HTTPException(status_code=500, detail=job_response["error"])
 
                 return {"message": 'Job was created!', "job_id": job_response["name"]}
 

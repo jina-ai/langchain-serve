@@ -1074,20 +1074,17 @@ async def get_job(job_name, flow_id):
 @job.command('create', help='Create a job.')
 @click.argument('flow-id')
 @click.argument('job-name')
-@click.option('--param', type=(str, str), multiple=True)
-def create_job(flow_id, job_name, param):
+@click.option('--params', type=(str, str), multiple=True)
+def create_job(flow_id, job_name, params):
     from rich import print
 
     token = Auth.get_auth_token()
     if not token:
         print('You are not logged in, please login using [b]jcloud login[/b] first.')
 
-    param_dict = dict(param)
-    json_data = json.dumps(param_dict)
-
     response = requests.post(
         f"https://{flow_id}.wolf.jina.ai/{job_name}",
-        data=json_data,
+        data=json.dumps(dict(params)),
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {token}",
