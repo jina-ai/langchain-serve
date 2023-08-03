@@ -1,6 +1,6 @@
 jina==3.15.2
 click
-jcloud>=0.2.13
+jcloud>=0.2.15
 requests
 langchain
 jina-hubble-sdk
