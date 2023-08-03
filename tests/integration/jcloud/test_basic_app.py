@@ -1,9 +1,11 @@
+import asyncio
 import json
 import time
 
 import pytest
 import requests
 import websockets
+from jcloud.flow import CloudFlow
 from websockets.exceptions import ConnectionClosedOK
 
 from ..helper import deploy_jcloud_app
@@ -17,6 +19,7 @@ async def test_basic_app():
         await _test_workspace(app_id)
         await _test_local_file_access(app_id)
         await _test_tracing(app_id)
+        await _test_job(app_id)
 
 
 def _test_http_route(app_id):
@@ -107,3 +110,22 @@ async def _test_tracing(app_id: str):
         assert "dummy string ws" in message
     except ConnectionClosedOK:
         pass
+
+
+async def _test_job(app_id: str):
+    asyncio.sleep(30)
+    create_job_url = f"https://{app_id}.wolf.jina.ai/my_job"
+
+    response = requests.post(
+        create_job_url, data=json.dumps({"param1": "hello", "param2": "world"})
+    )
+    assert response.status_code == 200
+
+    asyncio.sleep(30)
+
+    jobs = await CloudFlow(flow_id=app_id).list_resources("jobs")
+    assert (
+        len(jobs) > 1
+        and jobs[0]['name'].startswith('my-job-')
+        and jobs[0]['status']['conditions'][-1]['type'] == 'Complete'
+    )

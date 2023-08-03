@@ -670,7 +670,9 @@ class ServingGateway(FastAPIBaseGateway):
                         + '-'
                         + os.getenv('K8S_NAMESPACE_NAME').split('-')[1]
                     )
-                    job_name = func.__name__ + '-' + uuid.uuid4().hex[:5]
+                    job_name = (
+                        func.__name__.replace('_', '-') + '-' + uuid.uuid4().hex[:5]
+                    )
                     image_id = os.getenv('LCSERVE_IMAGE')
                     entrypoint = [
                         'python',
