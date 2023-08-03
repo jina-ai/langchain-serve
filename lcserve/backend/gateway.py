@@ -678,10 +678,24 @@ class ServingGateway(FastAPIBaseGateway):
                         '--module',
                         self._modules[0],
                         '--name',
-                        f'job-{func.__name__}',
+                        func.__name__,
                         '--params',
                         json.dumps({k: v for k, v in req.items()}),
                     ]
+
+                    secrets_payload = {}
+                    secrets = await CloudFlow(flow_id=flow_id).list_resources("secrets")
+                    if secrets:
+                        for secret in secrets:
+                            secret_detail = await CloudFlow(
+                                flow_id=flow_id
+                            ).get_resource("secrets", secret)
+                            secrets_payload.update(
+                                {
+                                    key: {"name": secret_detail['name'], "key": key}
+                                    for key in secret_detail['data'].keys()
+                                }
+                            )
                 except Exception as e:
                     self.logger.error("An error occurred: %s", str(e), exc_info=True)
                     return {"message": 'Job failed to create!'}
@@ -692,6 +706,7 @@ class ServingGateway(FastAPIBaseGateway):
                     backofflimit=backofflimit,
                     timeout=timeout,
                     entrypoint=entrypoint,
+                    secrets=secrets_payload,
                 )
                 if job_response.get("error"):
                     self.logger.error("An error occurred: %s", job_response["error"])
