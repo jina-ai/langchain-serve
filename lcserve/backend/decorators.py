@@ -82,3 +82,40 @@ def slackbot(
         return decorator
     else:
         return decorator(_func)
+
+
+def job(
+    _func=None,
+    *,
+    timeout: int = 600,
+    backofflimit: int = 6,
+):
+    def decorator(func):
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            return await func(*args, **kwargs)
+
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        if inspect.iscoroutinefunction(func):
+            wrapper = async_wrapper
+        else:
+            wrapper = sync_wrapper
+
+        wrapper.__job__ = {
+            'name': func.__name__,
+            'doc': func.__doc__,
+            'params': {
+                'timeout': timeout,
+                'backofflimit': backofflimit,
+            },
+        }
+
+        return wrapper
+
+    if _func is None:
+        return decorator
+    else:
+        return decorator(_func)

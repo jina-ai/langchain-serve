@@ -1,8 +1,8 @@
 import asyncio
 import inspect
+import json
 import os
 import shutil
-import sys
 import time
 import traceback
 import uuid
@@ -42,7 +42,6 @@ from .langchain_helper import (
 )
 from .playground.utils.helper import (
     AGENT_OUTPUT,
-    APPDIR,
     DEFAULT_KEY,
     LANGCHAIN_API_PORT,
     LANGCHAIN_PLAYGROUND_PORT,
@@ -56,6 +55,7 @@ from .playground.utils.helper import (
     run_cmd,
     run_function,
 )
+from .utils import fix_sys_path
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -291,7 +291,7 @@ class ServingGateway(FastAPIBaseGateway):
         self._modules = modules
         self._fastapi_app_str = fastapi_app_str
         self._lcserve_app = lcserve_app
-        self._fix_sys_path()
+        fix_sys_path()
         self._init_fastapi_app()
         self._configure_cors()
         self._register_healthz()
@@ -343,19 +343,6 @@ class ServingGateway(FastAPIBaseGateway):
                 allow_methods=['*'],
                 allow_headers=['*'],
             )
-
-    def _fix_sys_path(self):
-        if os.getcwd() not in sys.path:
-            sys.path.append(os.getcwd())
-        if Path(APPDIR).exists() and APPDIR not in sys.path:
-            # This is where the app code is mounted in the container
-            sys.path.append(APPDIR)
-
-        if self._lcserve_app:
-            # register all predefined apps to sys.path if they exist
-            if os.path.exists(os.path.join(APPDIR, 'lcserve', 'apps')):
-                for app in os.listdir(os.path.join(APPDIR, 'lcserve', 'apps')):
-                    sys.path.append(os.path.join(APPDIR, 'lcserve', 'apps', app))
 
     def _setup_metrics(self):
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -483,6 +470,13 @@ class ServingGateway(FastAPIBaseGateway):
                 dirname=dirname,
                 commands=_decorator_params.get('commands', None),
                 openai_tracing=_decorator_params.get('openai_tracing', False),
+            )
+        elif hasattr(func, '__job__'):
+            self._register_job(
+                func,
+                dirname=dirname,
+                timeout=_decorator_params.get('timeout', 600),
+                backofflimit=_decorator_params.get('backofflimit', 6),
             )
 
     def _register_http_route(
@@ -638,6 +632,89 @@ class ServingGateway(FastAPIBaseGateway):
                 return await bot.handler.handle(req)
 
             bot.register(func=func, commands=commands)
+
+    def _register_job(
+        self,
+        func: Callable,
+        dirname: str,
+        timeout: int = 600,
+        backofflimit: int = 6,
+        **kwargs,
+    ):
+        from fastapi import Body, Header, HTTPException
+        from fastapi.security.utils import get_authorization_scheme_param
+        from jcloud.flow import CloudFlow
+
+        with ChangeDirCtxtManager(dirname):
+            self.logger.info(f'Registering job: {func.__name__}')
+
+            @self.app.post(f'/{func.__name__}')
+            async def job(
+                req: Dict = Body(...), authorization: Optional[str] = Header(None)
+            ):
+                if authorization is None:
+                    raise HTTPException(
+                        status_code=400, detail="Missing auth token in header"
+                    )
+                scheme, token = get_authorization_scheme_param(authorization)
+                if scheme.lower() != "bearer":
+                    raise HTTPException(
+                        status_code=400, detail="Invalid token type. Expected 'Bearer'"
+                    )
+
+                os.environ['JINA_AUTH_TOKEN'] = token
+
+                try:
+                    flow_id = (
+                        os.getenv('LCSERVE_APP_NAME')
+                        + '-'
+                        + os.getenv('K8S_NAMESPACE_NAME').split('-')[1]
+                    )
+                    job_name = (
+                        func.__name__.replace('_', '-') + '-' + uuid.uuid4().hex[:5]
+                    )
+                    image_id = os.getenv('LCSERVE_IMAGE')
+                    entrypoint = [
+                        'python',
+                        'lcserve/backend/cli.py',
+                        '--module',
+                        self._modules[0],
+                        '--name',
+                        func.__name__,
+                        '--params',
+                        json.dumps({k: v for k, v in req.items()}),
+                    ]
+
+                    secrets_payload = {}
+                    secrets = await CloudFlow(flow_id=flow_id).list_resources("secrets")
+                    if secrets:
+                        for secret in secrets:
+                            secret_detail = await CloudFlow(
+                                flow_id=flow_id
+                            ).get_resource("secrets", secret)
+                            secrets_payload.update(
+                                {
+                                    key: {"name": secret_detail['name'], "key": key}
+                                    for key in secret_detail['data'].keys()
+                                }
+                            )
+                except Exception as e:
+                    self.logger.error("An error occurred: %s", str(e), exc_info=True)
+                    return {"message": 'Job failed to create!'}
+
+                job_response = await CloudFlow(flow_id=flow_id).create_job(
+                    job_name=job_name,
+                    image_name=image_id,
+                    backofflimit=backofflimit,
+                    timeout=timeout,
+                    entrypoint=entrypoint,
+                    secrets=secrets_payload,
+                )
+                if job_response.get("error"):
+                    self.logger.error("An error occurred: %s", job_response["error"])
+                    raise HTTPException(status_code=500, detail=job_response["error"])
+
+                return {"message": 'Job was created!', "job_id": job_response["name"]}
 
 
 def _get_files_data(kwargs: Dict) -> Dict:

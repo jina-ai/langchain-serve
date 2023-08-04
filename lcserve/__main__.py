@@ -1,8 +1,11 @@
+import json
 import os
 import sys
 from typing import List
 
 import click
+import requests
+from hubble import Auth
 from jcloud.constants import Phase
 from jina import Flow
 
@@ -23,12 +26,15 @@ from .flow import (
     get_app_status_on_jcloud,
     get_flow_dict,
     get_flow_yaml,
+    get_job_on_jcloud,
     get_module_dir,
-    get_uri,
     list_apps_on_jcloud,
+    list_jobs_on_jcloud,
     load_local_df,
     patch_secret_on_jcloud,
+    pause_app_on_jcloud,
     remove_app_on_jcloud,
+    resume_app_on_jcloud,
     syncify,
     update_requirements,
 )
@@ -72,7 +78,6 @@ async def serve_on_jcloud(
     public: bool = False,
     lcserve_app: bool = False,
 ) -> str:
-    from .backend.playground.utils.helper import get_random_tag
     from .flow import push_app_to_hubble
 
     module_dir, is_websocket = get_module_dir(
@@ -89,7 +94,6 @@ async def serve_on_jcloud(
         gateway_id = push_app_to_hubble(
             module_dir=module_dir,
             requirements=requirements,
-            tag=get_random_tag(),
             version=version,
             platform=platform,
             verbose=verbose,
@@ -527,9 +531,9 @@ def push(
         verbose=verbose,
         public=public,
     )
-    id, tag = gateway_id.split(':')
+
     click.echo(
-        f'Pushed to Hubble. Use {click.style(get_uri(id, tag), fg="green")} to deploy.'
+        f'Pushed to Hubble. Use {click.style(f"jinaai+docker://{gateway_id}", fg="green")} to deploy.'
     )
 
 
@@ -1021,12 +1025,78 @@ async def status(app_id):
     await get_app_status_on_jcloud(app_id)
 
 
+@serve.command(help='Pause a serving app.')
+@click.argument('app-id')
+@click.help_option('-h', '--help')
+@syncify
+async def pause(app_id):
+    await pause_app_on_jcloud(app_id)
+
+
+@serve.command(help='Resume a paused app.')
+@click.argument('app-id')
+@click.help_option('-h', '--help')
+@syncify
+async def resume(app_id):
+    await resume_app_on_jcloud(app_id)
+
+
 @serve.command(help='Remove an app.')
 @click.argument('app-id')
 @click.help_option('-h', '--help')
 @syncify
 async def remove(app_id):
     await remove_app_on_jcloud(app_id)
+
+
+@click.group(help="Job related operations.")
+def job():
+    pass
+
+
+@job.command('list', help='List all jobs for an app.')
+@click.argument('flow-id')
+@click.help_option('-h', '--help')
+@syncify
+async def list_jobs(flow_id):
+    await list_jobs_on_jcloud(flow_id)
+
+
+@job.command('get', help='Get job details.')
+@click.argument('job-name')
+@click.argument('flow-id')
+@click.help_option('-h', '--help')
+@syncify
+async def get_job(job_name, flow_id):
+    await get_job_on_jcloud(job_name, flow_id)
+
+
+@job.command('create', help='Create a job.')
+@click.argument('flow-id')
+@click.argument('job-name')
+@click.option('--params', type=(str, str), multiple=True)
+def create_job(flow_id, job_name, params):
+    from rich import print
+
+    token = Auth.get_auth_token()
+    if not token:
+        print('You are not logged in, please login using [b]jcloud login[/b] first.')
+
+    response = requests.post(
+        f"https://{flow_id}.wolf.jina.ai/{job_name}",
+        data=json.dumps(dict(params)),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}",
+        },
+    )
+    if response.status_code == 200:
+        print(f'Job [red]{response.json()["job_id"]}[/red] was created!')
+    else:
+        print(f"Job create request failed!")
+
+
+serve.add_command(job)
 
 
 @serve.group(help='Play with predefined apps on JCloud.')

@@ -22,7 +22,7 @@ flow_dict_template = {
         "env": {},
     },
     "gateway": {
-        "uses": "jinahub+docker://None",
+        "uses": "jinaai+docker://dummy_image",
         "uses_with": {
             "modules": ["dummy"],
             "fastapi_app_str": "dummy",
@@ -188,6 +188,7 @@ def test_get_flow_dict_for_jcloud(
             jcloud=True,
             jcloud_config_path="dummy.yaml",
             is_websocket=is_websocket,
+            gateway_id="dummy_image",
         )
     else:
         flow_dict = get_flow_dict(
@@ -196,6 +197,7 @@ def test_get_flow_dict_for_jcloud(
             jcloud=True,
             jcloud_config_path=None,
             is_websocket=is_websocket,
+            gateway_id="dummy_image",
         )
 
     flow_dict_template["gateway"]["protocol"][0] = (
@@ -204,5 +206,12 @@ def test_get_flow_dict_for_jcloud(
     flow_dict_template["gateway"]["jcloud"]["autoscale"]["min"] = autoscale_min
     flow_dict_template["gateway"]["jcloud"]["resources"]["instance"] = instance
     flow_dict_template["gateway"]["jcloud"]["resources"]["storage"]["size"] = disk_size
+
+    flow_dict_template["with"]["env"]["LCSERVE_APP_NAME"] = "langchain"
+    flow_dict_template["with"]["env"]["LCSERVE_IMAGE"] = "jinaai+docker://dummy_image"
+    flow_dict_template["gateway"]["env"]["LCSERVE_APP_NAME"] = "langchain"
+    flow_dict_template["gateway"]["env"][
+        "LCSERVE_IMAGE"
+    ] = "jinaai+docker://dummy_image"
 
     assert flow_dict == flow_dict_template

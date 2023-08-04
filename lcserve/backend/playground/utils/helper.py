@@ -1,15 +1,15 @@
 import asyncio
+import functools
+import importlib
+import inspect
 import os
 import subprocess
 import sys
 import threading
-import importlib
 import uuid
 from collections import defaultdict
 from io import StringIO
-from typing import Any, Dict, List, Union, Callable, Tuple
-import inspect
-import functools
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import nest_asyncio
 from pydantic import BaseModel
@@ -21,7 +21,6 @@ DEFAULT_FIELD = 'chain'
 DEFAULT_KEY = '__default__'
 AGENT_OUTPUT = '__agent_output__'
 SERVING = 'Serving'
-APPDIR = '/appdir'
 
 LANGCHAIN_API_PORT = os.environ.get('LANGCHAIN_API_PORT', 8080)
 LANGCHAIN_PLAYGROUND_PORT = os.environ.get('LANGCHAIN_PLAYGROUND_PORT', 8501)

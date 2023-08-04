@@ -1,4 +1,5 @@
 import asyncio
+import os
 import time
 from typing import Dict, List
 
@@ -9,7 +10,7 @@ from langchain.agents.agent_types import AgentType
 from langchain.callbacks.manager import CallbackManager
 from langchain.llms.fake import FakeListLLM
 
-from lcserve import serving
+from lcserve import job, serving
 
 
 @serving
@@ -198,3 +199,8 @@ def tracing_ws(dummy: str, **kwargs):
     agent.run(dummy)
 
     return 'ok'
+
+
+@job(timeout=100, backofflimit=3)
+def my_job(param1: str, param2: str):
+    print('ok')

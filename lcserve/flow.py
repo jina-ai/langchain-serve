@@ -20,6 +20,7 @@ import yaml
 from dotenv import dotenv_values
 from jina import Flow
 
+from .backend.utils import fix_sys_path
 from .config import DEFAULT_TIMEOUT, get_jcloud_config
 
 if TYPE_CHECKING:
@@ -126,30 +127,13 @@ def _any_websocket_router_in_module(module: ModuleType) -> bool:
     return False
 
 
-def get_uri(id: str, tag: str):
-    import requests
-    from hubble import Auth
-
-    r = requests.get(
-        f"https://apihubble.jina.ai/v2/executor/getMeta?id={id}&tag={tag}",
-        headers={"Authorization": f"token {Auth.get_auth_token()}"},
-    )
-    _json = r.json()
-    if _json is None:
-        print(f'Could not find image with id {id} and tag {tag}')
-        return
-    _image_name = _json['data']['name']
-    _user_name = _json['meta']['owner']['name']
-    return f'jinaai+docker://{_user_name}/{_image_name}:{tag}'
-
-
 def get_module_dir(
     module_str: str = None,
     fastapi_app_str: str = None,
     app_dir: str = None,
     lcserve_app: bool = False,
 ) -> Tuple[str, bool]:
-    _add_to_path(lcserve_app=lcserve_app)
+    fix_sys_path(lcserve_app=lcserve_app)
 
     if module_str is not None:
         # if module_str is ., then it is the current directory. So, we can use __init__ as the module
@@ -348,8 +332,10 @@ def _push_to_hubble(
         {'JINA_HUBBLE_HIDE_EXECUTOR_PUSH_SUCCESS_MSG': 'true'} if not verbose else {}
     )
     with EnvironmentVarCtxtManager(push_envs):
-        gateway_id = HubIO(args).push().get('id')
-        return gateway_id + ':' + tag
+        response = HubIO(args).push()
+        image_name = response['name']
+        user_name = response['owner']['name']
+        return f'{user_name}/{image_name}:{tag}'
 
 
 def push_app_to_hubble(
@@ -389,7 +375,7 @@ def get_gateway_uses(id: str) -> str:
     if id is not None:
         if id.startswith('jinahub+docker') or id.startswith('jinaai+docker'):
             return id
-    return f'jinahub+docker://{id}'
+    return f'jinaai+docker://{id}'
 
 
 def get_existing_name(app_id: str) -> str:
@@ -489,6 +475,11 @@ def get_flow_dict(
         _envs = dict(dotenv_values(env))
 
     uses = get_gateway_uses(id=gateway_id) if jcloud else get_gateway_config_yaml_path()
+
+    if jcloud:
+        _envs['LCSERVE_IMAGE'] = uses
+        _envs['LCSERVE_APP_NAME'] = name
+
     flow_dict = {
         'jtype': 'Flow',
         **(get_with_args_for_jcloud(cors, _envs) if jcloud else {}),
@@ -788,12 +779,108 @@ async def list_apps_on_jcloud(phase: str, name: str):
         console.print(_t)
 
 
+async def pause_app_on_jcloud(app_id: str) -> None:
+    from jcloud.flow import CloudFlow
+    from rich import print
+
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+
+    with EnvironmentVarCtxtManager({'JCLOUD_HIDE_SUCCESS_MSG': 'true'}):
+        await CloudFlow(flow_id=app_id).pause()
+    print(f'App [bold][green]{app_id}[/green][/bold] paused successfully!')
+
+
+async def resume_app_on_jcloud(app_id: str) -> None:
+    from jcloud.flow import CloudFlow
+    from rich import print
+
+    from .backend.playground.utils.helper import EnvironmentVarCtxtManager
+
+    with EnvironmentVarCtxtManager({'JCLOUD_HIDE_SUCCESS_MSG': 'true'}):
+        await CloudFlow(flow_id=app_id).resume()
+    print(f'App [bold][green]{app_id}[/green][/bold] resumed successfully!')
+
+
 async def remove_app_on_jcloud(app_id: str) -> None:
     from jcloud.flow import CloudFlow
     from rich import print
 
     await CloudFlow(flow_id=app_id).__aexit__()
     print(f'App [bold][green]{app_id}[/green][/bold] removed successfully!')
+
+
+async def list_jobs_on_jcloud(flow_id: str):
+    import json
+
+    from jcloud.flow import CloudFlow
+    from jcloud.helper import cleanup_dt
+    from rich import box
+    from rich.console import Console
+    from rich.table import Table
+
+    _t = Table(
+        'Job Name',
+        'Status',
+        'Start Time',
+        'Completion Time',
+        'Last Probe Time',
+        box=box.ROUNDED,
+        highlight=True,
+    )
+
+    console = Console()
+    with console.status(f'[bold]Listing all jobs for app {flow_id}'):
+        all_jobs = await CloudFlow(flow_id=flow_id).list_resources('job')
+
+        for job in all_jobs:
+            _t.add_row(
+                job['name'],
+                job['status']['conditions'][-1]['type']
+                if job['status'].get('conditions')
+                else 'Failed',
+                cleanup_dt(job['status']['startTime']),
+                cleanup_dt(job['status'].get('completionTime', 'N/A')),
+                cleanup_dt(
+                    job['status']['conditions'][-1]['lastProbeTime']
+                    if job['status'].get('conditions')
+                    else 'N/A'
+                ),
+            )
+    console.print(_t)
+
+
+async def get_job_on_jcloud(job_name: str, flow_id: str):
+    import json
+
+    from jcloud.flow import CloudFlow
+    from rich import box
+    from rich.console import Console
+    from rich.json import JSON
+    from rich.table import Table
+
+    _t = Table(
+        'Job Name',
+        'Details',
+        box=box.ROUNDED,
+        highlight=True,
+    )
+
+    def jsonify(data: Union[Dict, List]) -> str:
+        return (
+            json.dumps(data, indent=2, sort_keys=True)
+            if isinstance(data, (dict, list))
+            else data
+        )
+
+    console = Console()
+    with console.status(f'[bold]Listing job details for job {job_name}'):
+        job = await CloudFlow(flow_id=flow_id).get_resource('job', job_name)
+
+        _t.add_row(
+            job['name'],
+            JSON(jsonify(job['status'])),
+        )
+    console.print(_t)
 
 
 class ImportFromStringError(Exception):
