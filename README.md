@@ -203,6 +203,7 @@ langchain-serve currently wraps following apps as a service to be deployed on Ji
   - ⚡️ Serverless, autoscaling apps that scales automatically with your traffic.
   - 🗝️ Secure handling of secrets and environment variables.
   - 📁 Persistent storage (EFS) mounted on your app for your data.
+  - ⏱️ Trigger one-time jobs to run asynchronously, allowing for non-blocking execution.
   - 📊 Builtin logging, monitoring, and traces for your APIs.
   - 🤖 No need to change your code to manage APIs, or manage dockerfiles, or worry about infrastructure!
 
@@ -435,6 +436,10 @@ lc-serve deploy jcloud main --secrets secrets.env
 ```
 
 </details>
+
+## ⏱️ Trigger one-time jobs to run asynchronously
+
+Here's a [step-by-step guide](examples/job/README.md) to trigger one-time jobs to run asynchronously using `@job` decorator.
 
 ## 💻 `lc-serve` CLI
 
