@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import time
 
 import pytest
@@ -113,19 +114,24 @@ async def _test_tracing(app_id: str):
 
 
 async def _test_job(app_id: str):
-    asyncio.sleep(30)
+    await asyncio.sleep(30)
     create_job_url = f"https://{app_id}.wolf.jina.ai/my_job"
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {os.environ['JINA_AUTH_TOKEN']}",
+    }
 
     response = requests.post(
-        create_job_url, data=json.dumps({"param1": "hello", "param2": "world"})
+        create_job_url, json={"param1": "hello", "param2": "world"}, headers=headers
     )
     assert response.status_code == 200
 
-    asyncio.sleep(30)
+    await asyncio.sleep(30)
 
     jobs = await CloudFlow(flow_id=app_id).list_resources("jobs")
     assert (
-        len(jobs) > 1
+        len(jobs) > 0
         and jobs[0]['name'].startswith('my-job-')
         and jobs[0]['status']['conditions'][-1]['type'] == 'Complete'
     )
