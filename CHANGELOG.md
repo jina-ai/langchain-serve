@@ -58,6 +58,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1493,4 +1494,40 @@
 ### 🍹 Other Improvements
 
  - [[```d538013b```](https://github.com/jina-ai/langchain-serve/commit/d538013b053cd751b314f053a47f3f4ef2ddd5b6)] __-__ __version__: the next version will be 0.0.58 (*Jina Dev Bot*)
+
+<a name=release-note-0-0-59></a>
+## Release Note (`0.0.59`)
+
+> Release time: 2023-08-07 02:27:42
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```8b888ce3```](https://github.com/jina-ai/langchain-serve/commit/8b888ce367cfbff11b5f255628ef8eba93094266)] __-__ job function (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```f86c584e```](https://github.com/jina-ai/langchain-serve/commit/f86c584e30c6dd9f06cf10c5e96e745d9f338ba4)] __-__ jcloud fix (*Zac Li*)
+ - [[```db2bcb5a```](https://github.com/jina-ai/langchain-serve/commit/db2bcb5a3a00185f3ec95589174ae81235161b80)] __-__ jcloud version (*Zac Li*)
+ - [[```e95863ff```](https://github.com/jina-ai/langchain-serve/commit/e95863ff68aebe594ae31470e36bd9d69e6e7494)] __-__ secrets passing (*Zac Li*)
+ - [[```a4440161```](https://github.com/jina-ai/langchain-serve/commit/a44401611572f42e6ee9085e3bfb7ab10e912fc0)] __-__ param parsing (*Zac Li*)
+
+### 📗 Documentation
+
+ - [[```9b75850c```](https://github.com/jina-ai/langchain-serve/commit/9b75850c2b0f4895fd90bb196e351cfd477d9e02)] __-__ job docs (*Zac Li*)
+
+### 🏁 Unit Test and CICD
+
+ - [[```11448ba2```](https://github.com/jina-ai/langchain-serve/commit/11448ba263a8f951b4405968327c5cb21136bb5c)] __-__ test for job (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```94be5f24```](https://github.com/jina-ai/langchain-serve/commit/94be5f24d22b6f44b4727f9abf8b133fde9a2c52)] __-__ __version__: the next version will be 0.0.59 (*Jina Dev Bot*)
+ - [[```84f855e0```](https://github.com/jina-ai/langchain-serve/commit/84f855e0685ba755cef7024377db0e2d4569f28c)] __-__ __version__: the next version will be 0.0.57 (*Jina Dev Bot*)
+ - [[```86099dd5```](https://github.com/jina-ai/langchain-serve/commit/86099dd5ed35905ef3c894d1225af0f09bb06455)] __-__ Merge pull request #128 from jina-ai/fix-versions (*Zac Li*)
 
