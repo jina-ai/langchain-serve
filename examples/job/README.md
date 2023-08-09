@@ -114,6 +114,12 @@ lcserve job list langchain-1bde192651
 lcserve job get my-job-7787b langchain-1bde192651
 ```
 
+To access the logs from job executions, refer to the `Job Logs` section of the monitoring dashboard. You can find the link to this dashboard by running:
+
+```bash
+lcserve status langchain-1bde192651
+```
+
 ## 👀 What's next?
 
 - [Learn more about Langchain](https://python.langchain.com/docs/)
