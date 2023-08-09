@@ -38,7 +38,7 @@ JINA_VERSION = '3.18.0'
 DOCARRAY_VERSION = '0.21.0'
 
 ServingGatewayConfigFile = 'servinggateway_config.yml'
-APP_LOGS_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=logs)"
+APP_MONITOR_URL = "[https://cloud.jina.ai/](https://cloud.jina.ai/user/flows?action=detail&id={app_id}&tab=monitor)"
 PRICING_URL = "****{cph}**** ([Read about pricing here](https://github.com/jina-ai/langchain-serve#-pricing))"
 INIT_MODULE = '__init__'
 
@@ -725,8 +725,8 @@ async def get_app_status_on_jcloud(app_id: str):
         _add_row('Phase', status.get('phase', ''))
         _add_row('Endpoint', endpoint)
         _add_row(
-            'App logs',
-            Markdown(APP_LOGS_URL.format(app_id=app_id), justify='center'),
+            'App Monitoring',
+            Markdown(APP_MONITOR_URL.format(app_id=app_id), justify='center'),
         )
         _add_row(
             'Base credits (per hour)',
