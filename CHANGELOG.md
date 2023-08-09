@@ -59,6 +59,7 @@
 
 
 
+
 <a name=release-note-0-0-1></a>
 ## Release Note (`0.0.1`)
 
@@ -1530,4 +1531,27 @@
  - [[```94be5f24```](https://github.com/jina-ai/langchain-serve/commit/94be5f24d22b6f44b4727f9abf8b133fde9a2c52)] __-__ __version__: the next version will be 0.0.59 (*Jina Dev Bot*)
  - [[```84f855e0```](https://github.com/jina-ai/langchain-serve/commit/84f855e0685ba755cef7024377db0e2d4569f28c)] __-__ __version__: the next version will be 0.0.57 (*Jina Dev Bot*)
  - [[```86099dd5```](https://github.com/jina-ai/langchain-serve/commit/86099dd5ed35905ef3c894d1225af0f09bb06455)] __-__ Merge pull request #128 from jina-ai/fix-versions (*Zac Li*)
+
+<a name=release-note-0-0-60></a>
+## Release Note (`0.0.60`)
+
+> Release time: 2023-08-09 06:40:28
+
+
+
+🙇 We'd like to thank all contributors for this new release! In particular,
+ Zac Li,  Jina Dev Bot,  🙇
+
+
+### 🆕 New Features
+
+ - [[```215a666f```](https://github.com/jina-ai/langchain-serve/commit/215a666f692442cfda29d7c480ca38036b30e8db)] __-__ link to monitor url (*Zac Li*)
+
+### 🐞 Bug fixes
+
+ - [[```933e705d```](https://github.com/jina-ai/langchain-serve/commit/933e705db679edef8408c16a86cf47f6e0a3cf7b)] __-__ integration tests issue (*Zac Li*)
+
+### 🍹 Other Improvements
+
+ - [[```5c142765```](https://github.com/jina-ai/langchain-serve/commit/5c142765a32e34b5172e8fbd371683a860cdb90a)] __-__ __version__: the next version will be 0.0.60 (*Jina Dev Bot*)
 
