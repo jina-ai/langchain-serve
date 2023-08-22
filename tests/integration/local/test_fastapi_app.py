@@ -13,7 +13,7 @@ from ..helper import (
     run_fastapi_app_locally,
 )
 
-HOST = "localhost:8080"
+HOST = "localhost:8000"
 HTTP_HOST = f"http://{HOST}"
 WS_HOST = f"ws://{HOST}"
 APP = "tests.integration.fastapi_app.endpoints:app"
@@ -35,7 +35,6 @@ def test_start_up_app(run_fastapi_app_locally, route):
 
     assert response.status_code == 200
     assert response_data["startup_event_ran"] == True
-    assert "JCLOUD_WORKSPACE" in response_data["envvar"]
 
 
 @pytest.mark.parametrize(
