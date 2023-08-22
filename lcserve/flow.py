@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import os
+import platform as p
 import secrets
 import shutil
 import sys
@@ -351,6 +352,10 @@ def push_app_to_hubble(
     from .backend.playground.utils.helper import get_random_name
 
     tmpdir = mkdtemp()
+
+    # Auto convert platform to amd64 if this is Mac
+    if p.machine() == 'arm64':
+        platform = "linux/amd64"
 
     # Copy appdir to tmpdir
     copytree(module_dir, tmpdir, dirs_exist_ok=True)
