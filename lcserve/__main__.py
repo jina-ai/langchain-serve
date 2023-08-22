@@ -124,7 +124,7 @@ async def serve_on_jcloud(
         verbose=verbose,
     )
 
-    # If secret is not None, create a secret and update the app
+    # If secret is not None, create a secret and update the app.
     if secret is not None:
         await patch_secret_on_jcloud(
             flow_dict=flow_dict,
