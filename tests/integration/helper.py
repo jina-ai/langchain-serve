@@ -89,7 +89,7 @@ def run_test_app_locally(request):
 
     # Start the app
     server_process = subprocess.Popen(
-        ["python", "-m", "lcserve", "deploy", "local", app_name, "--port", "8000"],
+        ["python", "-m", "lcserve", "deploy", "local", app_name, "--port", "7030"],
         env=env,
     )
     logging.info(f"Wait 10s for app [{app_name}] to be ready ...")

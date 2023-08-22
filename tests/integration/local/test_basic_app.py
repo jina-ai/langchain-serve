@@ -13,7 +13,7 @@ from ..helper import (
     run_test_app_locally,
 )
 
-HOST = "localhost:8000"
+HOST = "localhost:7030"
 HTTP_HOST = f"http://{HOST}"
 WS_HOST = f"ws://{HOST}"
 
