@@ -1,3 +1,5 @@
+> :warning: **IMPORTANT NOTICE:** This repository is no longer maintained. 
+
 <p align="center">
 <h2 align="center">⚡ LangChain Apps on Production with Jina & FastAPI 🚀</h2>
 </p>
